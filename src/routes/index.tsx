@@ -9,6 +9,7 @@ import recipeTempehBowl from "@/assets/recipe-tempeh-bowl.jpg";
 import recipeFajitas from "@/assets/recipe-fajitas.jpg";
 import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
 import { usePaddleCheckout } from "@/hooks/usePaddleCheckout";
+import { CountdownTimer } from "@/components/CountdownTimer";
 
 const PRICE_ID = "high_protein_cookbook_onetime";
 
@@ -668,6 +669,10 @@ function SalesPage() {
               30 High-Protein <br />
               <span className="italic">Plant-Based Meals</span>
             </h2>
+
+            <div className="mt-8">
+              <CountdownTimer variant="dark" label="Launch price ends in" />
+            </div>
 
             <div className="mt-8 flex items-baseline gap-4">
               <span className="font-mono text-xl text-cream/50 line-through">
