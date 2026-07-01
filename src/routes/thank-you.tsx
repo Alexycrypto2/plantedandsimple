@@ -1,9 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import cookbookAsset from "@/assets/cookbook.pdf.asset.json";
 import cookbookMockup from "@/assets/cookbook-mockup.jpg";
 import { verifyCookbookPayment } from "@/lib/payments.functions";
 import { getStripeEnvironment } from "@/lib/stripe";
+
+function downloadUrl(sessionId: string): string {
+  const env = getStripeEnvironment();
+  return `/api/public/download/cookbook?session_id=${encodeURIComponent(
+    sessionId,
+  )}&env=${env}`;
+}
 
 export const Route = createFileRoute("/thank-you")({
   component: ThankYou,
@@ -28,7 +34,7 @@ export const Route = createFileRoute("/thank-you")({
 
 type State =
   | { status: "checking" }
-  | { status: "paid"; email: string | null }
+  | { status: "paid"; email: string | null; sessionId: string }
   | { status: "unpaid"; reason: string }
   | { status: "no_session" };
 
@@ -48,7 +54,7 @@ function ThankYou() {
         });
         if (cancelled) return;
         if (res.paid) {
-          setState({ status: "paid", email: res.email });
+          setState({ status: "paid", email: res.email, sessionId });
         } else {
           setState({ status: "unpaid", reason: res.reason });
         }
@@ -80,7 +86,9 @@ function ThankYou() {
       <main className="mx-auto max-w-2xl px-6 pt-8 pb-24">
         <div className="rounded-[2.5rem] bg-white p-8 text-center shadow-[var(--shadow-card)] ring-1 ring-forest/10 md:p-14">
           {state.status === "checking" && <CheckingView />}
-          {state.status === "paid" && <PaidView email={state.email} />}
+          {state.status === "paid" && (
+            <PaidView email={state.email} sessionId={state.sessionId} />
+          )}
           {state.status === "unpaid" && <UnpaidView reason={state.reason} />}
           {state.status === "no_session" && <NoSessionView />}
         </div>
@@ -114,7 +122,13 @@ function CheckingView() {
   );
 }
 
-function PaidView({ email }: { email: string | null }) {
+function PaidView({
+  email,
+  sessionId,
+}: {
+  email: string | null;
+  sessionId: string;
+}) {
   return (
     <>
       <div className="mx-auto grid size-16 place-items-center rounded-full bg-sage/20 text-forest">
@@ -157,14 +171,13 @@ function PaidView({ email }: { email: string | null }) {
       />
 
       <a
-        href={cookbookAsset.url}
-        download
+        href={downloadUrl(sessionId)}
         className="mt-10 inline-flex items-center justify-center gap-2 rounded-full bg-forest px-10 py-5 text-lg font-bold text-cream shadow-xl transition-all hover:-translate-y-0.5 hover:bg-forest-deep"
       >
         ⬇ Download Cookbook (PDF)
       </a>
       <p className="mt-4 font-mono text-[11px] uppercase tracking-widest text-charcoal/50">
-        Lifetime access · Save the file to your device
+        Secure link · Save the file to your device
       </p>
 
       <div className="mt-12 rounded-2xl border border-sage/20 bg-cream/60 p-6 text-left">

@@ -14,7 +14,63 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      cookbook_downloads: {
+        Row: {
+          confirmation_email_sent_at: string | null
+          created_at: string
+          download_count: number
+          email: string | null
+          id: string
+          last_downloaded_at: string | null
+          stripe_session_id: string
+        }
+        Insert: {
+          confirmation_email_sent_at?: string | null
+          created_at?: string
+          download_count?: number
+          email?: string | null
+          id?: string
+          last_downloaded_at?: string | null
+          stripe_session_id: string
+        }
+        Update: {
+          confirmation_email_sent_at?: string | null
+          created_at?: string
+          download_count?: number
+          email?: string | null
+          id?: string
+          last_downloaded_at?: string | null
+          stripe_session_id?: string
+        }
+        Relationships: []
+      }
+      subscribers: {
+        Row: {
+          email: string
+          id: string
+          source: string
+          stripe_session_id: string | null
+          subscribed_at: string
+          unsubscribed_at: string | null
+        }
+        Insert: {
+          email: string
+          id?: string
+          source?: string
+          stripe_session_id?: string | null
+          subscribed_at?: string
+          unsubscribed_at?: string | null
+        }
+        Update: {
+          email?: string
+          id?: string
+          source?: string
+          stripe_session_id?: string | null
+          subscribed_at?: string
+          unsubscribed_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
