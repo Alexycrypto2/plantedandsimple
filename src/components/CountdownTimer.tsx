@@ -48,7 +48,7 @@ export function useOfferCountdown() {
   const hours = Math.floor(remaining / (60 * 60 * 1000));
   const minutes = Math.floor((remaining % (60 * 60 * 1000)) / (60 * 1000));
   const seconds = Math.floor((remaining % (60 * 1000)) / 1000);
-  const timeText = `${hours}h ${minutes}m`;
+  const timeText = `${hours}h ${pad(minutes)}m ${pad(seconds)}s`;
 
   return {
     remaining,
