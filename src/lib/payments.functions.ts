@@ -46,7 +46,7 @@ export const verifyCookbookPayment = createServerFn({ method: "POST" })
     try {
       const res = await gatewayFetch(
         data.environment,
-        `/transactions/${encodeURIComponent(data.transactionId)}?include=customer`,
+        `/transactions/${encodeURIComponent(data.transactionId)}`,
       );
       if (!res.ok) {
         return {
@@ -64,8 +64,23 @@ export const verifyCookbookPayment = createServerFn({ method: "POST" })
         };
       }
 
-      const email: string | null =
-        json?.data?.customer?.email ?? null;
+      // Transactions don't inline the customer — fetch it if we have an ID.
+      const customerId: string | undefined = json?.data?.customer_id;
+      let email: string | null = null;
+      if (customerId) {
+        try {
+          const cRes = await gatewayFetch(
+            data.environment,
+            `/customers/${encodeURIComponent(customerId)}`,
+          );
+          if (cRes.ok) {
+            const cJson = await cRes.json();
+            email = cJson?.data?.email ?? null;
+          }
+        } catch {
+          // Non-fatal.
+        }
+      }
 
       if (email) {
         try {
