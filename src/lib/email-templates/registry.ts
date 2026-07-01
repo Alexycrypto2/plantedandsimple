@@ -1,4 +1,5 @@
 import type { ComponentType } from 'react'
+import { template as cookbookDownloadTemplate } from './cookbook-download'
 
 export interface TemplateEntry {
   component: ComponentType<any>
@@ -20,5 +21,3 @@ export interface TemplateEntry {
 export const TEMPLATES: Record<string, TemplateEntry> = {
   'cookbook-download': cookbookDownloadTemplate,
 }
-
-import { template as cookbookDownloadTemplate } from './cookbook-download'
