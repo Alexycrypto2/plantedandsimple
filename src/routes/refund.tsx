@@ -32,10 +32,10 @@ function RefundPage() {
         money-back guarantee.
       </p>
 
-      <h2>1. 30-day money-back guarantee</h2>
+      <h2>1. 60-day money-back guarantee</h2>
       <p>
         You may request a full refund of your purchase within{" "}
-        <strong>30 days</strong> of your order date, for any reason. This
+        <strong>60 days</strong> of your order date, for any reason. This
         applies to the digital cookbook and any bundled bonuses.
       </p>
 
