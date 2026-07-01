@@ -1,9 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import {
-  createStripeClient,
-  getStripeErrorMessage,
-  type StripeEnv,
-} from "@/lib/stripe.server";
+import { gatewayFetch, type PaddleEnv } from "@/lib/paddle.server";
 import cookbookAsset from "@/assets/cookbook.pdf.asset.json";
 
 // Server-side origin for the CDN URL (relative paths won't resolve in the
@@ -22,35 +18,63 @@ export const Route = createFileRoute("/api/public/download/cookbook")({
     handlers: {
       GET: async ({ request }) => {
         const url = new URL(request.url);
-        const sessionId = url.searchParams.get("session_id");
+        const transactionId = url.searchParams.get("session_id");
         const envParam = url.searchParams.get("env");
-        const environment: StripeEnv =
+        const environment: PaddleEnv =
           envParam === "live" ? "live" : "sandbox";
 
-        if (!sessionId || !/^[a-zA-Z0-9_]+$/.test(sessionId)) {
+        if (!transactionId || !/^[a-zA-Z0-9_]+$/.test(transactionId)) {
           return json(
-            { error: "Missing or invalid session_id" },
+            { error: "Missing or invalid transaction id" },
             { status: 400 },
           );
         }
 
-        // 1. Verify the session with Stripe on every request — the source
-        //    of truth is Stripe, not a local cache. This blocks direct
-        //    access without a paid, real Stripe checkout session.
+        // 1. Verify the transaction with Paddle on every request — the
+        //    source of truth is Paddle, not a local cache. Blocks direct
+        //    access without a real, paid Paddle checkout transaction.
         let email: string | null = null;
         try {
-          const stripe = createStripeClient(environment);
-          const session = await stripe.checkout.sessions.retrieve(sessionId);
-          if (session.payment_status !== "paid") {
+          const txRes = await gatewayFetch(
+            environment,
+            `/transactions/${encodeURIComponent(transactionId)}`,
+          );
+          if (!txRes.ok) {
+            return json(
+              { error: `Payment verification failed (${txRes.status}).` },
+              { status: 403 },
+            );
+          }
+          const txJson = await txRes.json();
+          const status = txJson?.data?.status as string | undefined;
+          if (
+            status !== "completed" &&
+            status !== "paid" &&
+            status !== "billed"
+          ) {
             return json(
               { error: "Payment not completed. Access denied." },
               { status: 402 },
             );
           }
-          email = session.customer_details?.email ?? null;
+          const customerId: string | undefined = txJson?.data?.customer_id;
+          if (customerId) {
+            const cRes = await gatewayFetch(
+              environment,
+              `/customers/${encodeURIComponent(customerId)}`,
+            );
+            if (cRes.ok) {
+              const cJson = await cRes.json();
+              email = cJson?.data?.email ?? null;
+            }
+          }
         } catch (error) {
           return json(
-            { error: `Stripe verification failed: ${getStripeErrorMessage(error)}` },
+            {
+              error: `Payment verification failed: ${
+                error instanceof Error ? error.message : "unknown error"
+              }`,
+            },
             { status: 403 },
           );
         }
@@ -63,7 +87,7 @@ export const Route = createFileRoute("/api/public/download/cookbook")({
         const { data: existing } = await supabaseAdmin
           .from("cookbook_downloads")
           .select("download_count")
-          .eq("stripe_session_id", sessionId)
+          .eq("stripe_session_id", transactionId)
           .maybeSingle();
 
         const nextCount = (existing?.download_count ?? 0) + 1;
@@ -85,10 +109,10 @@ export const Route = createFileRoute("/api/public/download/cookbook")({
               last_downloaded_at: new Date().toISOString(),
               email,
             })
-            .eq("stripe_session_id", sessionId);
+            .eq("stripe_session_id", transactionId);
         } else {
           await supabaseAdmin.from("cookbook_downloads").insert({
-            stripe_session_id: sessionId,
+            stripe_session_id: transactionId,
             email,
             download_count: 1,
             last_downloaded_at: new Date().toISOString(),
@@ -103,7 +127,7 @@ export const Route = createFileRoute("/api/public/download/cookbook")({
               {
                 email: email.toLowerCase(),
                 source: "cookbook_purchase",
-                stripe_session_id: sessionId,
+                stripe_session_id: transactionId,
               },
               { onConflict: "email", ignoreDuplicates: true },
             );
