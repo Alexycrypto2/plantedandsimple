@@ -31,6 +31,7 @@ export function usePaddleCheckout() {
             displayMode: "overlay",
             theme: "light",
             variant: "one-page",
+            locale: "en",
             successUrl:
               options.successUrl ||
               `${window.location.origin}/thank-you`,
