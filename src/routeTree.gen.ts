@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as ThankYouRouteImport } from './routes/thank-you'
+import { Route as TermsRouteImport } from './routes/terms'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as IndexRouteImport } from './routes/index'
@@ -21,6 +22,11 @@ import { Route as ApiPublicDownloadCookbookRouteImport } from './routes/api/publ
 const ThankYouRoute = ThankYouRouteImport.update({
   id: '/thank-you',
   path: '/thank-you',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
@@ -65,6 +71,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/privacy': typeof PrivacyRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/terms': typeof TermsRoute
   '/thank-you': typeof ThankYouRoute
   '/api/public/download/cookbook': typeof ApiPublicDownloadCookbookRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
@@ -75,6 +82,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/privacy': typeof PrivacyRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/terms': typeof TermsRoute
   '/thank-you': typeof ThankYouRoute
   '/api/public/download/cookbook': typeof ApiPublicDownloadCookbookRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
@@ -86,6 +94,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/privacy': typeof PrivacyRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/terms': typeof TermsRoute
   '/thank-you': typeof ThankYouRoute
   '/api/public/download/cookbook': typeof ApiPublicDownloadCookbookRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
@@ -98,6 +107,7 @@ export interface FileRouteTypes {
     | '/'
     | '/privacy'
     | '/sitemap.xml'
+    | '/terms'
     | '/thank-you'
     | '/api/public/download/cookbook'
     | '/lovable/email/auth/preview'
@@ -108,6 +118,7 @@ export interface FileRouteTypes {
     | '/'
     | '/privacy'
     | '/sitemap.xml'
+    | '/terms'
     | '/thank-you'
     | '/api/public/download/cookbook'
     | '/lovable/email/auth/preview'
@@ -118,6 +129,7 @@ export interface FileRouteTypes {
     | '/'
     | '/privacy'
     | '/sitemap.xml'
+    | '/terms'
     | '/thank-you'
     | '/api/public/download/cookbook'
     | '/lovable/email/auth/preview'
@@ -129,6 +141,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   PrivacyRoute: typeof PrivacyRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  TermsRoute: typeof TermsRoute
   ThankYouRoute: typeof ThankYouRoute
   ApiPublicDownloadCookbookRoute: typeof ApiPublicDownloadCookbookRoute
   LovableEmailAuthPreviewRoute: typeof LovableEmailAuthPreviewRoute
@@ -143,6 +156,13 @@ declare module '@tanstack/react-router' {
       path: '/thank-you'
       fullPath: '/thank-you'
       preLoaderRoute: typeof ThankYouRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/sitemap.xml': {
@@ -201,6 +221,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   PrivacyRoute: PrivacyRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  TermsRoute: TermsRoute,
   ThankYouRoute: ThankYouRoute,
   ApiPublicDownloadCookbookRoute: ApiPublicDownloadCookbookRoute,
   LovableEmailAuthPreviewRoute: LovableEmailAuthPreviewRoute,
