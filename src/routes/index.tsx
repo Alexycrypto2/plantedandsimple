@@ -263,8 +263,7 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 
 function SalesPage() {
   const [openFaq, setOpenFaq] = useState<number | null>(0);
-  const { openCheckout: openPaddle, loading: checkoutLoading } =
-    usePaddleCheckout();
+  const { openCheckout: openPaddle } = usePaddleCheckout();
   const openCheckout = () =>
     openPaddle({
       priceId: PRICE_ID,
