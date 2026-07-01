@@ -72,10 +72,39 @@ export const verifyCookbookPayment = createServerFn({ method: "POST" })
       if (session.payment_status !== "paid") {
         return { paid: false, reason: "Payment not completed yet." };
       }
-      return {
-        paid: true,
-        email: session.customer_details?.email ?? null,
-      };
+
+      const email = session.customer_details?.email ?? null;
+
+      // Capture the buyer's email so we can email them about future
+      // products. Idempotent — safe if the page is refreshed.
+      if (email) {
+        try {
+          const { supabaseAdmin } = await import(
+            "@/integrations/supabase/client.server"
+          );
+          await supabaseAdmin
+            .from("subscribers")
+            .upsert(
+              {
+                email: email.toLowerCase(),
+                source: "cookbook_purchase",
+                stripe_session_id: data.sessionId,
+              },
+              { onConflict: "email", ignoreDuplicates: true },
+            );
+          await supabaseAdmin.from("cookbook_downloads").upsert(
+            {
+              stripe_session_id: data.sessionId,
+              email,
+            },
+            { onConflict: "stripe_session_id", ignoreDuplicates: true },
+          );
+        } catch {
+          // Non-fatal — the order is still valid.
+        }
+      }
+
+      return { paid: true, email };
     } catch (error) {
       return { paid: false, reason: getStripeErrorMessage(error) };
     }

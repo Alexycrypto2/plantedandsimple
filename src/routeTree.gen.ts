@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as ThankYouRouteImport } from './routes/thank-you'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ApiPublicDownloadCookbookRouteImport } from './routes/api/public/download/cookbook'
 
 const ThankYouRoute = ThankYouRouteImport.update({
   id: '/thank-you',
@@ -28,35 +29,54 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicDownloadCookbookRoute =
+  ApiPublicDownloadCookbookRouteImport.update({
+    id: '/api/public/download/cookbook',
+    path: '/api/public/download/cookbook',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/thank-you': typeof ThankYouRoute
+  '/api/public/download/cookbook': typeof ApiPublicDownloadCookbookRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/thank-you': typeof ThankYouRoute
+  '/api/public/download/cookbook': typeof ApiPublicDownloadCookbookRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/thank-you': typeof ThankYouRoute
+  '/api/public/download/cookbook': typeof ApiPublicDownloadCookbookRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/sitemap.xml' | '/thank-you'
+  fullPaths:
+    | '/'
+    | '/sitemap.xml'
+    | '/thank-you'
+    | '/api/public/download/cookbook'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/sitemap.xml' | '/thank-you'
-  id: '__root__' | '/' | '/sitemap.xml' | '/thank-you'
+  to: '/' | '/sitemap.xml' | '/thank-you' | '/api/public/download/cookbook'
+  id:
+    | '__root__'
+    | '/'
+    | '/sitemap.xml'
+    | '/thank-you'
+    | '/api/public/download/cookbook'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   ThankYouRoute: typeof ThankYouRoute
+  ApiPublicDownloadCookbookRoute: typeof ApiPublicDownloadCookbookRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -82,6 +102,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/download/cookbook': {
+      id: '/api/public/download/cookbook'
+      path: '/api/public/download/cookbook'
+      fullPath: '/api/public/download/cookbook'
+      preLoaderRoute: typeof ApiPublicDownloadCookbookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -89,6 +116,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   ThankYouRoute: ThankYouRoute,
+  ApiPublicDownloadCookbookRoute: ApiPublicDownloadCookbookRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
