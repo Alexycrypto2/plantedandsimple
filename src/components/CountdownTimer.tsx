@@ -70,7 +70,6 @@ type Props = {
 export function CountdownTimer({
   variant = "dark",
   label = "Launch price ends in",
-  expiredLabel: _expiredLabel = "Offer refreshed — today’s launch savings are open",
 }: Props) {
   const { hours, minutes, seconds, urgencyText } = useOfferCountdown();
 
