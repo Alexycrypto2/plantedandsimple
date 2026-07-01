@@ -19,15 +19,7 @@ function pad(n: number) {
   return n.toString().padStart(2, "0");
 }
 
-type Props = {
-  variant?: "light" | "dark";
-  label?: string;
-};
-
-export function CountdownTimer({
-  variant = "dark",
-  label = "Launch price ends in",
-}: Props) {
+export function useOfferCountdown() {
   const [deadline, setDeadline] = useState<number | null>(null);
   const [now, setNow] = useState(() => Date.now());
 
@@ -38,9 +30,27 @@ export function CountdownTimer({
   }, []);
 
   const remaining = Math.max(0, (deadline ?? Date.now() + WINDOW_MS) - now);
-  const hours = Math.floor(remaining / (60 * 60 * 1000));
-  const minutes = Math.floor((remaining % (60 * 60 * 1000)) / (60 * 1000));
-  const seconds = Math.floor((remaining % (60 * 1000)) / 1000);
+  return {
+    remaining,
+    expired: deadline !== null && remaining === 0,
+    hours: Math.floor(remaining / (60 * 60 * 1000)),
+    minutes: Math.floor((remaining % (60 * 60 * 1000)) / (60 * 1000)),
+    seconds: Math.floor((remaining % (60 * 1000)) / 1000),
+  };
+}
+
+type Props = {
+  variant?: "light" | "dark";
+  label?: string;
+  expiredLabel?: string;
+};
+
+export function CountdownTimer({
+  variant = "dark",
+  label = "Launch price ends in",
+  expiredLabel = "Offer ended — last chance at checkout",
+}: Props) {
+  const { hours, minutes, seconds, expired } = useOfferCountdown();
 
   const isLight = variant === "light";
   const labelClass = isLight ? "text-forest/70" : "text-sage-soft";
@@ -49,6 +59,31 @@ export function CountdownTimer({
     : "bg-cream/10 text-cream ring-1 ring-cream/20 backdrop-blur";
   const sepClass = isLight ? "text-forest/40" : "text-cream/40";
   const captionClass = isLight ? "text-forest/60" : "text-cream/60";
+
+  if (expired) {
+    return (
+      <div
+        className={`flex flex-col items-center gap-2 rounded-2xl px-4 py-3 sm:items-start ${
+          isLight
+            ? "bg-forest/5 ring-1 ring-forest/15"
+            : "bg-cream/10 ring-1 ring-cream/20 backdrop-blur"
+        }`}
+        role="status"
+        aria-live="polite"
+      >
+        <p
+          className={`font-mono text-[11px] font-semibold uppercase tracking-[0.28em] ${
+            isLight ? "text-forest" : "text-cream"
+          }`}
+        >
+          ⏰ Launch price ended
+        </p>
+        <p className={`text-sm ${isLight ? "text-forest/70" : "text-cream/80"}`}>
+          {expiredLabel}
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col items-center gap-3 sm:items-start">

@@ -9,7 +9,7 @@ import recipeTempehBowl from "@/assets/recipe-tempeh-bowl.jpg";
 import recipeFajitas from "@/assets/recipe-fajitas.jpg";
 import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
 import { usePaddleCheckout } from "@/hooks/usePaddleCheckout";
-import { CountdownTimer } from "@/components/CountdownTimer";
+import { CountdownTimer, useOfferCountdown } from "@/components/CountdownTimer";
 
 const PRICE_ID = "high_protein_cookbook_onetime";
 
@@ -265,6 +265,7 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 function SalesPage() {
   const [openFaq, setOpenFaq] = useState<number | null>(0);
   const { openCheckout: openPaddle } = usePaddleCheckout();
+  const { expired: offerExpired } = useOfferCountdown();
   const openCheckout = () =>
     openPaddle({
       priceId: PRICE_ID,
@@ -338,6 +339,10 @@ function SalesPage() {
             <p className="mt-4 font-mono text-[11px] uppercase tracking-widest text-charcoal/50">
               Instant PDF · Phone, Tablet & Computer
             </p>
+
+            <div className="mt-6 max-w-md">
+              <CountdownTimer variant="light" />
+            </div>
 
             <div className="mt-8 flex flex-wrap gap-2">
               {trustBadges.map((b) => (
@@ -690,10 +695,23 @@ function SalesPage() {
             <button
               type="button"
               onClick={openCheckout}
-              className="mt-8 inline-flex w-full items-center justify-center gap-2 rounded-full bg-cream px-8 py-5 text-lg font-bold text-forest shadow-2xl transition-all hover:-translate-y-0.5 hover:bg-white active:scale-[0.98] sm:w-auto"
+              className={`mt-8 inline-flex w-full items-center justify-center gap-2 rounded-full px-8 py-5 text-lg font-bold shadow-2xl transition-all hover:-translate-y-0.5 active:scale-[0.98] sm:w-auto ${
+                offerExpired
+                  ? "bg-sage text-forest-deep hover:bg-sage-soft"
+                  : "bg-cream text-forest hover:bg-white"
+              }`}
             >
-              Get Instant Access →
+              {offerExpired
+                ? "Claim Last-Chance Access →"
+                : "Get Instant Access →"}
             </button>
+
+            {offerExpired && (
+              <p className="mt-3 text-sm font-medium text-cream/85">
+                The launch window closed — checkout still open at today's price
+                while supplies last.
+              </p>
+            )}
 
             <p className="mt-4 font-mono text-[11px] uppercase tracking-widest text-cream/60">
               🔒 Secure checkout · Instant download
