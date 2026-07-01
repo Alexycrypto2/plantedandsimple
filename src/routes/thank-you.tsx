@@ -2,21 +2,22 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import cookbookMockup from "@/assets/cookbook-mockup.jpg";
 import { verifyCookbookPayment } from "@/lib/payments.functions";
-import { getStripeEnvironment } from "@/lib/stripe";
+import { getPaddleEnvironment } from "@/lib/paddle";
 
-function downloadUrl(sessionId: string): string {
-  const env = getStripeEnvironment();
+function downloadUrl(transactionId: string): string {
+  const env = getPaddleEnvironment();
   return `/api/public/download/cookbook?session_id=${encodeURIComponent(
-    sessionId,
+    transactionId,
   )}&env=${env}`;
 }
 
 export const Route = createFileRoute("/thank-you")({
   component: ThankYou,
   ssr: false,
-  validateSearch: (search: Record<string, unknown>): { session_id?: string } => ({
-    session_id:
-      typeof search.session_id === "string" ? search.session_id : undefined,
+  validateSearch: (
+    search: Record<string, unknown>,
+  ): { _ptxn?: string } => ({
+    _ptxn: typeof search._ptxn === "string" ? search._ptxn : undefined,
   }),
   head: () => ({
     meta: [
@@ -34,27 +35,27 @@ export const Route = createFileRoute("/thank-you")({
 
 type State =
   | { status: "checking" }
-  | { status: "paid"; email: string | null; sessionId: string }
+  | { status: "paid"; email: string | null; transactionId: string }
   | { status: "unpaid"; reason: string }
   | { status: "no_session" };
 
 function ThankYou() {
-  const { session_id: sessionId } = Route.useSearch();
+  const { _ptxn: transactionId } = Route.useSearch();
   const [state, setState] = useState<State>(
-    sessionId ? { status: "checking" } : { status: "no_session" },
+    transactionId ? { status: "checking" } : { status: "no_session" },
   );
 
   useEffect(() => {
-    if (!sessionId) return;
+    if (!transactionId) return;
     let cancelled = false;
     (async () => {
       try {
         const res = await verifyCookbookPayment({
-          data: { sessionId, environment: getStripeEnvironment() },
+          data: { transactionId, environment: getPaddleEnvironment() },
         });
         if (cancelled) return;
         if (res.paid) {
-          setState({ status: "paid", email: res.email, sessionId });
+          setState({ status: "paid", email: res.email, transactionId });
         } else {
           setState({ status: "unpaid", reason: res.reason });
         }
@@ -70,7 +71,7 @@ function ThankYou() {
     return () => {
       cancelled = true;
     };
-  }, [sessionId]);
+  }, [transactionId]);
 
   return (
     <div className="min-h-screen bg-cream font-sans text-charcoal">
@@ -87,7 +88,7 @@ function ThankYou() {
         <div className="rounded-[2.5rem] bg-white p-8 text-center shadow-[var(--shadow-card)] ring-1 ring-forest/10 md:p-14">
           {state.status === "checking" && <CheckingView />}
           {state.status === "paid" && (
-            <PaidView email={state.email} sessionId={state.sessionId} />
+            <PaidView email={state.email} transactionId={state.transactionId} />
           )}
           {state.status === "unpaid" && <UnpaidView reason={state.reason} />}
           {state.status === "no_session" && <NoSessionView />}
@@ -124,10 +125,10 @@ function CheckingView() {
 
 function PaidView({
   email,
-  sessionId,
+  transactionId,
 }: {
   email: string | null;
-  sessionId: string;
+  transactionId: string;
 }) {
   return (
     <>
@@ -171,7 +172,7 @@ function PaidView({
       />
 
       <a
-        href={downloadUrl(sessionId)}
+        href={downloadUrl(transactionId)}
         className="mt-10 inline-flex items-center justify-center gap-2 rounded-full bg-forest px-10 py-5 text-lg font-bold text-cream shadow-xl transition-all hover:-translate-y-0.5 hover:bg-forest-deep"
       >
         ⬇ Download Cookbook (PDF)
