@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import cookbookMockup from "@/assets/cookbook-mockup.jpg";
 import { verifyCookbookPayment } from "@/lib/payments.functions";
 import { getPaddleEnvironment } from "@/lib/paddle";
+import { ReviewForm } from "@/components/ReviewForm";
 
 function downloadUrl(transactionId: string): string {
   const env = getPaddleEnvironment();
@@ -199,6 +200,10 @@ function PaidView({
             .
           </li>
         </ul>
+      </div>
+
+      <div className="mt-8">
+        <ReviewForm transactionId={transactionId} />
       </div>
 
       <a

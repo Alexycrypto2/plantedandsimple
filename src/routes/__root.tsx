@@ -100,9 +100,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         content:
           "30 delicious high-protein vegan recipes — quick, satisfying, and meal-prep friendly.",
       },
-      { name: "description", content: "A premium, mobile-first sales page for a digital cookbook, designed to convert visitors into customers." },
-      { property: "og:description", content: "A premium, mobile-first sales page for a digital cookbook, designed to convert visitors into customers." },
-      { name: "twitter:description", content: "A premium, mobile-first sales page for a digital cookbook, designed to convert visitors into customers." },
       { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/8a2d8b2f-bacc-42cf-a867-a8a59b348ff4/id-preview-51a46c35--52b53015-fb2e-4297-a919-f0cb70f5a6d0.lovable.app-1782938452763.png" },
       { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/8a2d8b2f-bacc-42cf-a867-a8a59b348ff4/id-preview-51a46c35--52b53015-fb2e-4297-a919-f0cb70f5a6d0.lovable.app-1782938452763.png" },
     ],

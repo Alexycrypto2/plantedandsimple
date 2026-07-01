@@ -131,6 +131,39 @@ export type Database = {
         }
         Relationships: []
       }
+      reviews: {
+        Row: {
+          approved: boolean
+          created_at: string
+          id: string
+          location: string | null
+          name: string
+          quote: string
+          rating: number
+          stripe_session_id: string | null
+        }
+        Insert: {
+          approved?: boolean
+          created_at?: string
+          id?: string
+          location?: string | null
+          name: string
+          quote: string
+          rating: number
+          stripe_session_id?: string | null
+        }
+        Update: {
+          approved?: boolean
+          created_at?: string
+          id?: string
+          location?: string | null
+          name?: string
+          quote?: string
+          rating?: number
+          stripe_session_id?: string | null
+        }
+        Relationships: []
+      }
       subscribers: {
         Row: {
           email: string
