@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import cookbookMockup from "@/assets/cookbook-mockup.jpg";
 import recipeSesameTofu from "@/assets/recipe-sesame-tofu.jpg";
@@ -653,7 +653,7 @@ function SalesPage() {
                 $24.99
               </span>
               <span className="font-display text-6xl font-bold">$9.99</span>
-              <span className="font-mono text-xs uppercase tracking-widest text-sage-sog">
+              <span className="font-mono text-xs uppercase tracking-widest text-sage-soft">
                 USD
               </span>
             </div>
@@ -791,9 +791,6 @@ function SalesPage() {
       {/* TODO: Add Pinterest Tag: <script>...</script> */}
       {/* TODO: Add Google Analytics gtag script */}
 
-      <noscript>
-        <Link to="/thank-you" />
-      </noscript>
     </div>
   );
 }
