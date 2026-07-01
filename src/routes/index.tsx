@@ -272,7 +272,7 @@ function SalesPage() {
 
   return (
     <div className="min-h-screen bg-cream font-sans text-charcoal selection:bg-sage/30">
-      <PaymentTestModeBanner />
+      {null}
 
       {/* Sticky mobile CTA */}
       <div className="fixed inset-x-0 bottom-4 z-50 px-4 md:hidden">
