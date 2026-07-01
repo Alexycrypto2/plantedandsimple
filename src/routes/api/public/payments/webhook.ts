@@ -183,7 +183,7 @@ export const Route = createFileRoute("/api/public/payments/webhook")({
           status: "pending",
         });
 
-        const { error: enqueueError } = await supabaseAdmin.rpc(
+        const { error: enqueueError } = await (supabaseAdmin as any).rpc(
           "enqueue_email",
           {
             queue_name: "transactional_emails",
