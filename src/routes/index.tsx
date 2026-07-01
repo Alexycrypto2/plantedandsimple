@@ -7,8 +7,8 @@ import recipeSmoothieBowl from "@/assets/recipe-smoothie-bowl.jpg";
 import recipeLentilBolognese from "@/assets/recipe-lentil-bolognese.jpg";
 import recipeTempehBowl from "@/assets/recipe-tempeh-bowl.jpg";
 import recipeFajitas from "@/assets/recipe-fajitas.jpg";
-import { CheckoutModal } from "@/components/CheckoutModal";
 import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
+import { usePaddleCheckout } from "@/hooks/usePaddleCheckout";
 
 const PRICE_ID = "high_protein_cookbook_onetime";
 
@@ -263,17 +263,17 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 
 function SalesPage() {
   const [openFaq, setOpenFaq] = useState<number | null>(0);
-  const [checkoutOpen, setCheckoutOpen] = useState(false);
-  const openCheckout = () => setCheckoutOpen(true);
+  const { openCheckout: openPaddle, loading: checkoutLoading } =
+    usePaddleCheckout();
+  const openCheckout = () =>
+    openPaddle({
+      priceId: PRICE_ID,
+      successUrl: `${window.location.origin}/thank-you`,
+    });
 
   return (
     <div className="min-h-screen bg-cream font-sans text-charcoal selection:bg-sage/30">
       <PaymentTestModeBanner />
-      <CheckoutModal
-        open={checkoutOpen}
-        onClose={() => setCheckoutOpen(false)}
-        priceId={PRICE_ID}
-      />
 
       {/* Sticky mobile CTA */}
       <div className="fixed inset-x-0 bottom-4 z-50 px-4 md:hidden">
@@ -692,7 +692,7 @@ function SalesPage() {
             </button>
 
             <p className="mt-4 font-mono text-[11px] uppercase tracking-widest text-cream/60">
-              🔒 Secure checkout · Powered by Stripe
+              🔒 Secure checkout · Instant download
             </p>
 
             <ul className="mt-8 space-y-2 text-sm text-cream/85">
