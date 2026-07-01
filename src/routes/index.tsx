@@ -7,6 +7,10 @@ import recipeSmoothieBowl from "@/assets/recipe-smoothie-bowl.jpg";
 import recipeLentilBolognese from "@/assets/recipe-lentil-bolognese.jpg";
 import recipeTempehBowl from "@/assets/recipe-tempeh-bowl.jpg";
 import recipeFajitas from "@/assets/recipe-fajitas.jpg";
+import { CheckoutModal } from "@/components/CheckoutModal";
+import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
+
+const PRICE_ID = "high_protein_cookbook_onetime";
 
 const productJsonLd = {
   "@context": "https://schema.org",
@@ -69,7 +73,8 @@ export const Route = createFileRoute("/")({
 /*  Content                                                            */
 /* ------------------------------------------------------------------ */
 
-const CHECKOUT_URL = "/thank-you"; // TODO: replace with Stripe Checkout URL after enabling payments
+// Checkout is handled by the embedded Stripe modal — buttons that need to
+// open it use the onBuy handler passed down from the SalesPage component.
 
 const trustBadges = [
   "Digital Download",
@@ -224,10 +229,12 @@ function CTAButton({
   children,
   variant = "primary",
   className = "",
+  onClick,
 }: {
   children: React.ReactNode;
   variant?: "primary" | "sage";
   className?: string;
+  onClick: () => void;
 }) {
   const base =
     "inline-flex items-center justify-center gap-2 rounded-full px-8 py-4 text-base font-semibold shadow-[var(--shadow-card)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl active:scale-[0.98] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-sage/40";
@@ -236,9 +243,13 @@ function CTAButton({
     sage: "bg-sage text-cream hover:bg-forest",
   };
   return (
-    <a href={CHECKOUT_URL} className={`${base} ${variants[variant]} ${className}`}>
+    <button
+      type="button"
+      onClick={onClick}
+      className={`${base} ${variants[variant]} ${className}`}
+    >
       {children}
-    </a>
+    </button>
   );
 }
 
@@ -252,13 +263,23 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 
 function SalesPage() {
   const [openFaq, setOpenFaq] = useState<number | null>(0);
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const openCheckout = () => setCheckoutOpen(true);
 
   return (
     <div className="min-h-screen bg-cream font-sans text-charcoal selection:bg-sage/30">
+      <PaymentTestModeBanner />
+      <CheckoutModal
+        open={checkoutOpen}
+        onClose={() => setCheckoutOpen(false)}
+        priceId={PRICE_ID}
+      />
+
       {/* Sticky mobile CTA */}
       <div className="fixed inset-x-0 bottom-4 z-50 px-4 md:hidden">
-        <a
-          href={CHECKOUT_URL}
+        <button
+          type="button"
+          onClick={openCheckout}
           className="mx-auto flex w-full max-w-md items-center justify-between rounded-full bg-forest px-6 py-4 text-cream shadow-2xl ring-1 ring-forest-deep/20 active:scale-[0.98] transition-transform"
         >
           <span className="flex items-center gap-2">
@@ -270,7 +291,7 @@ function SalesPage() {
           <span className="text-sm font-semibold uppercase tracking-wider">
             Get the Book →
           </span>
-        </a>
+        </button>
       </div>
 
       {/* Nav */}
@@ -278,12 +299,13 @@ function SalesPage() {
         <span className="font-display text-xl font-bold italic tracking-tight text-forest sm:text-2xl">
           Planted<span className="text-sage">&amp;</span>Simple
         </span>
-        <a
-          href={CHECKOUT_URL}
+        <button
+          type="button"
+          onClick={openCheckout}
           className="hidden rounded-full bg-forest px-5 py-2.5 text-sm font-semibold text-cream shadow-sm transition hover:bg-forest-deep md:inline-flex"
         >
           Get the Book · $9.99
-        </a>
+        </button>
       </nav>
 
       {/* ================= HERO ================= */}
@@ -302,7 +324,7 @@ function SalesPage() {
             </p>
 
             <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
-              <CTAButton>Download Instantly →</CTAButton>
+              <CTAButton onClick={openCheckout}>Get the Cookbook →</CTAButton>
               <div className="flex items-center gap-2 text-sm text-charcoal/60">
                 <div className="flex">
                   {Array.from({ length: 5 }).map((_, i) => (
@@ -661,12 +683,13 @@ function SalesPage() {
               Instant PDF download · Lifetime access · All 6 bonuses included
             </p>
 
-            <a
-              href={CHECKOUT_URL}
+            <button
+              type="button"
+              onClick={openCheckout}
               className="mt-8 inline-flex w-full items-center justify-center gap-2 rounded-full bg-cream px-8 py-5 text-lg font-bold text-forest shadow-2xl transition-all hover:-translate-y-0.5 hover:bg-white active:scale-[0.98] sm:w-auto"
             >
               Get Instant Access →
-            </a>
+            </button>
 
             <p className="mt-4 font-mono text-[11px] uppercase tracking-widest text-cream/60">
               🔒 Secure checkout · Powered by Stripe
@@ -742,12 +765,13 @@ function SalesPage() {
           <p className="mx-auto mt-5 max-w-lg text-cream/75">
             Start eating meals you actually look forward to, tonight.
           </p>
-          <a
-            href={CHECKOUT_URL}
+          <button
+            type="button"
+            onClick={openCheckout}
             className="mt-10 inline-flex items-center justify-center gap-2 rounded-full bg-cream px-10 py-5 text-lg font-bold text-forest shadow-2xl transition-all hover:-translate-y-0.5 hover:bg-white active:scale-[0.98]"
           >
             Download My Cookbook Now →
-          </a>
+          </button>
           <p className="mt-4 font-mono text-[11px] uppercase tracking-widest text-cream/60">
             $9.99 · Instant PDF · 60-day guarantee
           </p>
