@@ -100,7 +100,7 @@ function TermsPage() {
 
       <h2>8. Refunds</h2>
       <p>
-        We offer a 30-day money-back guarantee on the cookbook. See our{" "}
+        We offer a 60-day money-back guarantee on the cookbook. See our{" "}
         <a href="/refund">Refund Policy</a> for how to request a refund.
       </p>
 
