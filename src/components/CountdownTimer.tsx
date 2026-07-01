@@ -3,14 +3,20 @@ import { useEffect, useState } from "react";
 const STORAGE_KEY = "pas_offer_deadline";
 const WINDOW_MS = 24 * 60 * 60 * 1000; // 24h rolling window
 
+function setNextDeadline(): number {
+  const next = Date.now() + WINDOW_MS;
+  if (typeof window !== "undefined") {
+    window.localStorage.setItem(STORAGE_KEY, String(next));
+  }
+  return next;
+}
+
 function getDeadline(): number {
   if (typeof window === "undefined") return Date.now() + WINDOW_MS;
   const raw = window.localStorage.getItem(STORAGE_KEY);
   const parsed = raw ? parseInt(raw, 10) : NaN;
   if (!parsed || Number.isNaN(parsed) || parsed < Date.now()) {
-    const next = Date.now() + WINDOW_MS;
-    window.localStorage.setItem(STORAGE_KEY, String(next));
-    return next;
+    return setNextDeadline();
   }
   return parsed;
 }
@@ -25,17 +31,33 @@ export function useOfferCountdown() {
 
   useEffect(() => {
     setDeadline(getDeadline());
-    const id = window.setInterval(() => setNow(Date.now()), 1000);
+    const id = window.setInterval(() => {
+      const current = Date.now();
+      setNow(current);
+      setDeadline((currentDeadline) => {
+        if (currentDeadline !== null && current >= currentDeadline) {
+          return setNextDeadline();
+        }
+        return currentDeadline;
+      });
+    }, 1000);
     return () => window.clearInterval(id);
   }, []);
 
   const remaining = Math.max(0, (deadline ?? Date.now() + WINDOW_MS) - now);
+  const hours = Math.floor(remaining / (60 * 60 * 1000));
+  const minutes = Math.floor((remaining % (60 * 60 * 1000)) / (60 * 1000));
+  const seconds = Math.floor((remaining % (60 * 1000)) / 1000);
+  const timeText = `${hours}h ${minutes}m`;
+
   return {
     remaining,
-    expired: deadline !== null && remaining === 0,
-    hours: Math.floor(remaining / (60 * 60 * 1000)),
-    minutes: Math.floor((remaining % (60 * 60 * 1000)) / (60 * 1000)),
-    seconds: Math.floor((remaining % (60 * 1000)) / 1000),
+    expired: false,
+    hours,
+    minutes,
+    seconds,
+    timeText,
+    urgencyText: `Launch savings refresh in ${timeText}`,
   };
 }
 
@@ -48,9 +70,9 @@ type Props = {
 export function CountdownTimer({
   variant = "dark",
   label = "Launch price ends in",
-  expiredLabel = "Offer ended — last chance at checkout",
+  expiredLabel: _expiredLabel = "Offer refreshed — today’s launch savings are open",
 }: Props) {
-  const { hours, minutes, seconds, expired } = useOfferCountdown();
+  const { hours, minutes, seconds, urgencyText } = useOfferCountdown();
 
   const isLight = variant === "light";
   const labelClass = isLight ? "text-forest/70" : "text-sage-soft";
@@ -60,37 +82,12 @@ export function CountdownTimer({
   const sepClass = isLight ? "text-forest/40" : "text-cream/40";
   const captionClass = isLight ? "text-forest/60" : "text-cream/60";
 
-  if (expired) {
-    return (
-      <div
-        className={`flex flex-col items-center gap-2 rounded-2xl px-4 py-3 sm:items-start ${
-          isLight
-            ? "bg-forest/5 ring-1 ring-forest/15"
-            : "bg-cream/10 ring-1 ring-cream/20 backdrop-blur"
-        }`}
-        role="status"
-        aria-live="polite"
-      >
-        <p
-          className={`font-mono text-[11px] font-semibold uppercase tracking-[0.28em] ${
-            isLight ? "text-forest" : "text-cream"
-          }`}
-        >
-          ⏰ Launch price ended
-        </p>
-        <p className={`text-sm ${isLight ? "text-forest/70" : "text-cream/80"}`}>
-          {expiredLabel}
-        </p>
-      </div>
-    );
-  }
-
   return (
     <div className="flex flex-col items-center gap-3 sm:items-start">
       <p
         className={`font-mono text-[11px] font-semibold uppercase tracking-[0.28em] ${labelClass}`}
       >
-        ⏳ {label}
+        ⏳ {label || urgencyText}
       </p>
       <div className="flex items-center gap-2 sm:gap-3">
         {[
