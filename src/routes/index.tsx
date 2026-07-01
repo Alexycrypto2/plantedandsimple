@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import cookbookMockup from "@/assets/cookbook-mockup.jpg";
 import recipeSesameTofu from "@/assets/recipe-sesame-tofu.jpg";
 import recipeProteinOats from "@/assets/recipe-protein-oats.jpg";
@@ -9,6 +9,7 @@ import recipeTempehBowl from "@/assets/recipe-tempeh-bowl.jpg";
 import recipeFajitas from "@/assets/recipe-fajitas.jpg";
 import { usePaddleCheckout } from "@/hooks/usePaddleCheckout";
 import { CountdownTimer, useOfferCountdown } from "@/components/CountdownTimer";
+import { listApprovedReviews, type PublicReview } from "@/lib/reviews.functions";
 
 const PRICE_ID = "high_protein_cookbook_onetime";
 
@@ -24,11 +25,6 @@ const productJsonLd = {
     price: "9.99",
     priceCurrency: "USD",
     availability: "https://schema.org/InStock",
-  },
-  aggregateRating: {
-    "@type": "AggregateRating",
-    ratingValue: "4.9",
-    reviewCount: "2143",
   },
 };
 
@@ -81,27 +77,6 @@ const trustBadges = [
   "Lifetime Access",
   "Beginner Friendly",
   "Meal Prep Friendly",
-];
-
-const reviews = [
-  {
-    quote:
-      "These recipes completely changed my meal prep routine. I actually look forward to lunch again.",
-    name: "Sarah J.",
-    role: "Busy Professional",
-  },
-  {
-    quote:
-      "I never knew plant-based meals could be this filling. The tempeh bowl is a weekly staple.",
-    name: "Marcus T.",
-    role: "Fitness Enthusiast",
-  },
-  {
-    quote:
-      "My whole family loved them — even my picky teenager asked for seconds of the lentil bolognese.",
-    name: "Priya K.",
-    role: "Mom of 3",
-  },
 ];
 
 const painPoints = [
@@ -265,6 +240,12 @@ function SalesPage() {
   const [openFaq, setOpenFaq] = useState<number | null>(0);
   const { openCheckout: openPaddle } = usePaddleCheckout();
   const { timeText, urgencyText } = useOfferCountdown();
+  const [reviews, setReviews] = useState<PublicReview[] | null>(null);
+  useEffect(() => {
+    listApprovedReviews()
+      .then((r) => setReviews(r))
+      .catch(() => setReviews([]));
+  }, []);
   const openCheckout = () =>
     openPaddle({
       priceId: PRICE_ID,
