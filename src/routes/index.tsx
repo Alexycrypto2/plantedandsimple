@@ -322,14 +322,9 @@ function SalesPage() {
 
             <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
               <CTAButton onClick={openCheckout}>Get the Cookbook →</CTAButton>
-              <div className="flex items-center gap-2 text-sm text-charcoal/60">
-                <div className="flex">
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <Star key={i} />
-                  ))}
-                </div>
-                <span className="font-medium">4.9/5 · 2,143 readers</span>
-              </div>
+              <p className="text-sm text-charcoal/60">
+                New launch · Backed by a 60-day money-back guarantee
+              </p>
             </div>
 
             <p className="mt-4 font-mono text-[11px] uppercase tracking-widest text-charcoal/50">
@@ -384,42 +379,67 @@ function SalesPage() {
       <section className="border-y border-forest/5 bg-white/60 py-16 md:py-20">
         <div className="mx-auto max-w-6xl px-6">
           <div className="text-center">
-            <SectionLabel>Loved by readers everywhere</SectionLabel>
+            <SectionLabel>Real reviews from real readers</SectionLabel>
             <h2 className="font-display text-3xl text-forest-deep sm:text-4xl">
-              Join Thousands of Plant-Based Food Lovers
+              What readers are saying
             </h2>
-            <div className="mt-6 flex items-center justify-center gap-2">
-              <div className="flex gap-0.5">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <Star key={i} />
-                ))}
-              </div>
-              <span className="font-mono text-sm font-semibold text-forest">
-                4.9/5 average rating
-              </span>
-            </div>
+            <p className="mx-auto mt-4 max-w-xl text-sm text-charcoal/70">
+              Every review below is submitted by a verified reader after
+              downloading the cookbook — and hand-approved before it appears
+              here.
+            </p>
           </div>
 
-          <div className="mt-12 grid gap-5 md:grid-cols-3">
-            {reviews.map((r) => (
-              <figure
-                key={r.name}
-                className="rounded-3xl bg-cream/70 p-7 ring-1 ring-forest/10 transition hover:-translate-y-1 hover:shadow-[var(--shadow-soft)]"
+          {reviews && reviews.length > 0 ? (
+            <div className="mt-12 grid gap-5 md:grid-cols-3">
+              {reviews.map((r) => (
+                <figure
+                  key={r.id}
+                  className="rounded-3xl bg-cream/70 p-7 ring-1 ring-forest/10 transition hover:-translate-y-1 hover:shadow-[var(--shadow-soft)]"
+                >
+                  <div className="mb-4 flex gap-0.5">
+                    {Array.from({ length: r.rating }).map((_, i) => (
+                      <Star key={i} />
+                    ))}
+                  </div>
+                  <blockquote className="font-display text-lg leading-snug italic text-charcoal/85">
+                    “{r.quote}”
+                  </blockquote>
+                  <figcaption className="mt-6 font-mono text-[11px] font-semibold uppercase tracking-widest text-forest">
+                    — {r.name}
+                    {r.location ? (
+                      <>
+                        {" · "}
+                        <span className="text-sage">{r.location}</span>
+                      </>
+                    ) : null}
+                  </figcaption>
+                </figure>
+              ))}
+            </div>
+          ) : (
+            <div className="mx-auto mt-12 max-w-2xl rounded-3xl border border-dashed border-sage/50 bg-cream/60 p-8 text-center">
+              <p className="font-mono text-[11px] font-semibold uppercase tracking-widest text-sage">
+                Fresh launch
+              </p>
+              <h3 className="mt-3 font-display text-2xl italic text-forest-deep">
+                You could be one of our first reviewers.
+              </h3>
+              <p className="mx-auto mt-3 max-w-lg text-sm text-charcoal/70">
+                We just launched, so we're not pretending to have thousands of
+                reviews yet. Grab the cookbook, try a recipe, and share what
+                you think — verified reviews from real buyers will appear
+                right here.
+              </p>
+              <button
+                type="button"
+                onClick={openCheckout}
+                className="mt-6 inline-flex items-center justify-center rounded-full bg-forest px-6 py-3 text-sm font-semibold text-cream shadow-sm transition hover:bg-forest-deep"
               >
-                <div className="mb-4 flex gap-0.5">
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <Star key={i} />
-                  ))}
-                </div>
-                <blockquote className="font-display text-lg leading-snug italic text-charcoal/85">
-                  “{r.quote}”
-                </blockquote>
-                <figcaption className="mt-6 font-mono text-[11px] font-semibold uppercase tracking-widest text-forest">
-                  — {r.name} · <span className="text-sage">{r.role}</span>
-                </figcaption>
-              </figure>
-            ))}
-          </div>
+                Get the cookbook · $9.99
+              </button>
+            </div>
+          )}
         </div>
       </section>
 
@@ -641,8 +661,23 @@ function SalesPage() {
             60-Day Money-Back Guarantee
           </h2>
           <p className="mx-auto mt-5 max-w-lg text-charcoal/70">
-            If you're not completely satisfied, you can request a refund within
-            60 days according to the purchase platform's refund policy.
+            Full refund within 60 days. No questions asked. Email{" "}
+            <a
+              href="mailto:support@primedownloads.store"
+              className="font-semibold text-forest underline underline-offset-4"
+            >
+              support@primedownloads.store
+            </a>{" "}
+            or request it directly from your{" "}
+            <a
+              href="https://paddle.net"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-semibold text-forest underline underline-offset-4"
+            >
+              Paddle receipt
+            </a>
+            .
           </p>
         </div>
       </section>
