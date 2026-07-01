@@ -793,13 +793,19 @@ function SalesPage() {
               <a href="https://pinterest.com" className="hover:text-forest">
                 Pinterest
               </a>
-              <a href="#" className="hover:text-forest">
+              <a href="/privacy" className="hover:text-forest">
                 Privacy
               </a>
-              <a href="#" className="hover:text-forest">
+              <a href="/terms" className="hover:text-forest">
                 Terms
               </a>
-              <a href="#" className="hover:text-forest">
+              <a href="/refund" className="hover:text-forest">
+                Refunds
+              </a>
+              <a
+                href="mailto:support@primedownloads.store"
+                className="hover:text-forest"
+              >
                 Contact
               </a>
             </nav>
