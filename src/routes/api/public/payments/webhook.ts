@@ -171,10 +171,13 @@ export const Route = createFileRoute("/api/public/payments/webhook")({
         const text = await render(element, { plainText: true });
 
         const messageId = crypto.randomUUID();
+        const rawSubject = cookbookTemplate.subject as
+          | string
+          | ((data: Record<string, any>) => string);
         const subject =
-          typeof cookbookTemplate.subject === "function"
-            ? cookbookTemplate.subject({ downloadUrl, orderId: transactionId })
-            : cookbookTemplate.subject;
+          typeof rawSubject === "function"
+            ? rawSubject({ downloadUrl, orderId: transactionId })
+            : rawSubject;
 
         await supabaseAdmin.from("email_send_log").insert({
           message_id: messageId,
