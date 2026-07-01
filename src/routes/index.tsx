@@ -7,7 +7,6 @@ import recipeSmoothieBowl from "@/assets/recipe-smoothie-bowl.jpg";
 import recipeLentilBolognese from "@/assets/recipe-lentil-bolognese.jpg";
 import recipeTempehBowl from "@/assets/recipe-tempeh-bowl.jpg";
 import recipeFajitas from "@/assets/recipe-fajitas.jpg";
-import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
 import { usePaddleCheckout } from "@/hooks/usePaddleCheckout";
 import { CountdownTimer, useOfferCountdown } from "@/components/CountdownTimer";
 
@@ -265,7 +264,7 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 function SalesPage() {
   const [openFaq, setOpenFaq] = useState<number | null>(0);
   const { openCheckout: openPaddle } = usePaddleCheckout();
-  const { expired: offerExpired } = useOfferCountdown();
+  const { timeText, urgencyText } = useOfferCountdown();
   const openCheckout = () =>
     openPaddle({
       priceId: PRICE_ID,
@@ -274,7 +273,23 @@ function SalesPage() {
 
   return (
     <div className="min-h-screen bg-cream font-sans text-charcoal selection:bg-sage/30">
-      {null}
+      <div className="sticky top-0 z-50 border-b border-forest/10 bg-forest text-cream shadow-sm">
+        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-2 px-4 py-3 text-center sm:flex-row sm:px-6 sm:text-left">
+          <p className="text-sm font-medium leading-snug text-cream/90">
+            <span className="font-display text-base italic text-sage-soft">
+              Today’s launch savings refresh in {timeText}.
+            </span>{" "}
+            Secure the premium cookbook bundle for $9.99 while this window is open.
+          </p>
+          <button
+            type="button"
+            onClick={openCheckout}
+            className="shrink-0 rounded-full bg-cream px-4 py-2 text-xs font-bold uppercase tracking-wider text-forest transition hover:bg-white active:scale-[0.98]"
+          >
+            Get $9.99 Access
+          </button>
+        </div>
+      </div>
 
       {/* Sticky mobile CTA */}
       <div className="fixed inset-x-0 bottom-4 z-50 px-4 md:hidden">
@@ -341,7 +356,7 @@ function SalesPage() {
             </p>
 
             <div className="mt-6 max-w-md">
-              <CountdownTimer variant="light" />
+              <CountdownTimer variant="light" label={urgencyText} />
             </div>
 
             <div className="mt-8 flex flex-wrap gap-2">
@@ -676,7 +691,7 @@ function SalesPage() {
             </h2>
 
             <div className="mt-8">
-              <CountdownTimer variant="dark" label="Launch price ends in" />
+              <CountdownTimer variant="dark" label={urgencyText} />
             </div>
 
             <div className="mt-8 flex items-baseline gap-4">
@@ -695,23 +710,10 @@ function SalesPage() {
             <button
               type="button"
               onClick={openCheckout}
-              className={`mt-8 inline-flex w-full items-center justify-center gap-2 rounded-full px-8 py-5 text-lg font-bold shadow-2xl transition-all hover:-translate-y-0.5 active:scale-[0.98] sm:w-auto ${
-                offerExpired
-                  ? "bg-sage text-forest-deep hover:bg-sage-soft"
-                  : "bg-cream text-forest hover:bg-white"
-              }`}
+              className="mt-8 inline-flex w-full items-center justify-center gap-2 rounded-full bg-cream px-8 py-5 text-lg font-bold text-forest shadow-2xl transition-all hover:-translate-y-0.5 hover:bg-white active:scale-[0.98] sm:w-auto"
             >
-              {offerExpired
-                ? "Claim Last-Chance Access →"
-                : "Get Instant Access →"}
+              Get Instant Access →
             </button>
-
-            {offerExpired && (
-              <p className="mt-3 text-sm font-medium text-cream/85">
-                The launch window closed — checkout still open at today's price
-                while supplies last.
-              </p>
-            )}
 
             <p className="mt-4 font-mono text-[11px] uppercase tracking-widest text-cream/60">
               🔒 Secure checkout · Instant download
