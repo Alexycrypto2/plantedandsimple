@@ -59,29 +59,52 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+  --color-forest: var(--forest);
+  --color-forest-deep: var(--forest-deep);
+  --color-sage: var(--sage);
+  --color-sage-soft: var(--sage-soft);
+  --color-cream: var(--cream);
+  --color-cream-warm: var(--cream-warm);
+  --color-charcoal: var(--charcoal);
+  --font-display: "Playfair Display", ui-serif, Georgia, serif;
+  --font-sans:
+    "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --shadow-card: 0 10px 30px -12px color-mix(in oklab, var(--forest) 22%, transparent);
+  --shadow-soft: 0 4px 20px -8px color-mix(in oklab, var(--forest) 14%, transparent);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 :root {
   --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.129 0.042 264.695);
+  /* Brand palette — PlantedAndSimple */
+  --forest: #2e5e3b;
+  --forest-deep: #234a2e;
+  --sage: #7fa77a;
+  --sage-soft: #cddac9;
+  --cream: #faf8f3;
+  --cream-warm: #f2ede2;
+  --charcoal: #1a1c19;
+
+  --background: var(--cream);
+  --foreground: var(--charcoal);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.129 0.042 264.695);
+  --card-foreground: var(--charcoal);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.129 0.042 264.695);
-  --primary: oklch(0.208 0.042 265.755);
-  --primary-foreground: oklch(0.984 0.003 247.858);
-  --secondary: oklch(0.968 0.007 247.896);
-  --secondary-foreground: oklch(0.208 0.042 265.755);
-  --muted: oklch(0.968 0.007 247.896);
-  --muted-foreground: oklch(0.554 0.046 257.417);
-  --accent: oklch(0.968 0.007 247.896);
-  --accent-foreground: oklch(0.208 0.042 265.755);
+  --popover-foreground: var(--charcoal);
+  --primary: var(--forest);
+  --primary-foreground: var(--cream);
+  --secondary: var(--sage-soft);
+  --secondary-foreground: var(--forest-deep);
+  --muted: var(--cream-warm);
+  --muted-foreground: color-mix(in oklab, var(--charcoal) 60%, transparent);
+  --accent: var(--sage);
+  --accent-foreground: var(--cream);
   --destructive: oklch(0.577 0.245 27.325);
   --destructive-foreground: oklch(0.984 0.003 247.858);
-  --border: oklch(0.929 0.013 255.508);
-  --input: oklch(0.929 0.013 255.508);
-  --ring: oklch(0.704 0.04 256.788);
+  --border: color-mix(in oklab, var(--forest) 10%, transparent);
+  --input: color-mix(in oklab, var(--forest) 12%, transparent);
+  --ring: var(--sage);
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
@@ -140,5 +163,28 @@
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
   }
+
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes floatSoft {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+@utility animate-fade-up {
+  animation: fadeUp 0.9s var(--ease-out-expo) both;
+}
+@utility animate-float {
+  animation: floatSoft 6s ease-in-out infinite;
 }
