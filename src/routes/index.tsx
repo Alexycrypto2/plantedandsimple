@@ -813,7 +813,10 @@ function SalesPage() {
                 USD
               </span>
             </div>
-            <p className="mt-2 text-sm text-cream/70">
+            <p className="mt-2 text-sm font-semibold text-sage-soft">
+              Launch Price: $9.99 — Save 60%
+            </p>
+            <p className="mt-1 text-sm text-cream/70">
               Instant PDF download · Lifetime access · All 6 bonuses included
             </p>
 
@@ -825,9 +828,14 @@ function SalesPage() {
               Get Instant Access →
             </button>
 
-            <p className="mt-4 font-mono text-[11px] uppercase tracking-widest text-cream/60">
-              🔒 Secure checkout · Instant download
-            </p>
+            <ul className="mt-5 flex flex-wrap gap-x-4 gap-y-2 text-[11px] font-medium text-cream/80">
+              {trustSignals.map((t) => (
+                <li key={t.text} className="inline-flex items-center gap-1.5">
+                  <span aria-hidden="true">{t.icon}</span>
+                  {t.text}
+                </li>
+              ))}
+            </ul>
 
             <ul className="mt-8 space-y-2 text-sm text-cream/85">
               <li className="flex items-center gap-2">
