@@ -1066,6 +1066,68 @@ function SalesPage() {
       {/* TODO: Add Pinterest Tag: <script>...</script> */}
       {/* TODO: Add Google Analytics gtag script */}
 
+      {lightbox !== null && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label={peekPages[lightbox].label}
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-forest-deep/95 p-4 backdrop-blur-sm"
+          onClick={() => setLightbox(null)}
+        >
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setLightbox(null);
+            }}
+            aria-label="Close preview"
+            className="absolute right-4 top-4 grid size-11 place-items-center rounded-full bg-cream/95 text-lg font-bold text-forest shadow-lg transition hover:bg-white"
+          >
+            ✕
+          </button>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setLightbox(
+                (lightbox - 1 + peekPages.length) % peekPages.length,
+              );
+            }}
+            aria-label="Previous preview"
+            className="absolute left-3 top-1/2 grid size-11 -translate-y-1/2 place-items-center rounded-full bg-cream/90 text-forest shadow-lg transition hover:bg-white sm:left-6"
+          >
+            ‹
+          </button>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setLightbox((lightbox + 1) % peekPages.length);
+            }}
+            aria-label="Next preview"
+            className="absolute right-3 top-1/2 grid size-11 -translate-y-1/2 place-items-center rounded-full bg-cream/90 text-forest shadow-lg transition hover:bg-white sm:right-6"
+          >
+            ›
+          </button>
+          <figure
+            className="relative mx-auto flex max-h-[90vh] max-w-4xl flex-col items-center"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <img
+              src={peekPages[lightbox].img}
+              alt={peekPages[lightbox].alt}
+              className="max-h-[80vh] w-auto rounded-xl object-contain shadow-2xl ring-1 ring-cream/20"
+            />
+            <figcaption className="mt-4 text-center font-display text-sm italic text-cream sm:text-base">
+              {peekPages[lightbox].label}
+              <span className="ml-2 font-mono text-[10px] uppercase tracking-widest text-cream/60">
+                {lightbox + 1} / {peekPages.length}
+              </span>
+            </figcaption>
+          </figure>
+        </div>
+      )}
+
     </div>
   );
 }
