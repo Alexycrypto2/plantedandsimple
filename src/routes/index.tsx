@@ -6,7 +6,7 @@ import recipeProteinOats from "@/assets/recipe-protein-oats.jpg";
 import recipeSmoothieBowl from "@/assets/recipe-smoothie-bowl.jpg";
 import recipeLentilBolognese from "@/assets/recipe-lentil-bolognese.jpg";
 import recipeTempehBowl from "@/assets/recipe-tempeh-bowl.jpg";
-import recipeFajitas from "@/assets/recipe-fajitas.jpg";
+import recipeFajitas from "@/assets/recipe-fajitas.jpg.asset.json";
 import peekCoverAsset from "@/assets/peek-cover.jpg.asset.json";
 import peekRecipeAsset from "@/assets/peek-recipe.jpg.asset.json";
 import peekMealPlanAsset from "@/assets/peek-meal-plan.jpg.asset.json";
