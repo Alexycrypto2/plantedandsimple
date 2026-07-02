@@ -654,23 +654,33 @@ function SalesPage() {
             </p>
           </div>
           <div className="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-3">
-            {peekPages.map((p) => (
+            {peekPages.map((p, i) => (
               <figure
                 key={p.label}
                 className="group relative overflow-hidden rounded-2xl ring-1 ring-forest/10 transition hover:-translate-y-1 hover:shadow-[var(--shadow-card)]"
               >
+                <button
+                  type="button"
+                  onClick={() => setLightbox(i)}
+                  aria-label={`Open larger preview: ${p.label}`}
+                  className="block w-full cursor-zoom-in"
+                >
                 <img
                   src={p.img}
                   alt={p.alt}
                   loading="lazy"
                   className={`${p.ratio} w-full object-cover transition duration-700 group-hover:scale-105`}
                 />
+                </button>
                 <span className="absolute left-3 top-3 rounded-full bg-cream/95 px-2.5 py-1 font-mono text-[10px] font-semibold uppercase tracking-widest text-forest">
                   Page {p.tag}
                 </span>
-                <figcaption className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-forest-deep/85 via-forest-deep/30 to-transparent p-3">
+                <figcaption className="pointer-events-none absolute inset-x-0 bottom-0 flex items-end justify-between gap-2 bg-gradient-to-t from-forest-deep/85 via-forest-deep/30 to-transparent p-3">
                   <span className="font-display text-sm italic text-cream drop-shadow sm:text-base">
                     {p.label}
+                  </span>
+                  <span className="rounded-full bg-cream/90 px-2 py-0.5 font-mono text-[9px] font-semibold uppercase tracking-widest text-forest">
+                    Tap to zoom
                   </span>
                 </figcaption>
               </figure>
