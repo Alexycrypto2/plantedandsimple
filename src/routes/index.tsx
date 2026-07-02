@@ -96,6 +96,38 @@ const insideItems = [
   "Freezer-Friendly Options",
 ];
 
+const heroHighlights = [
+  { icon: "✅", text: "30 High-Protein Recipes" },
+  { icon: "✅", text: "6 Bonus Guides ($70 Value)" },
+  { icon: "✅", text: "Instant PDF Download" },
+  { icon: "⭐", text: "20–32g Protein Per Meal" },
+];
+
+const trustSignals = [
+  { icon: "🔒", text: "Secure Checkout" },
+  { icon: "⚡", text: "Instant Download" },
+  { icon: "💻", text: "Phone, Tablet & PC" },
+  { icon: "💳", text: "Secure Payment" },
+];
+
+const peekPages = [
+  { label: "Cover Page", tag: "01", img: cookbookMockup, ratio: "aspect-[3/4]" },
+  { label: "Recipe Page", tag: "02", img: recipeSesameTofu, ratio: "aspect-[3/4]" },
+  { label: "Weekly Meal Plan", tag: "03", img: recipeLentilBolognese, ratio: "aspect-[3/4]" },
+  { label: "Smoothie Section", tag: "04", img: recipeSmoothieBowl, ratio: "aspect-[3/4]" },
+  { label: "Grocery Guide", tag: "05", img: recipeTempehBowl, ratio: "aspect-[3/4]" },
+  { label: "Freezer Guide", tag: "06", img: recipeFajitas, ratio: "aspect-[3/4]" },
+];
+
+const todayItems = [
+  { icon: "📖", text: "30 High-Protein Recipes" },
+  { icon: "🥤", text: "15 Smoothie Recipes" },
+  { icon: "📅", text: "4 Weekly Meal Plans" },
+  { icon: "🛒", text: "Grocery Guide" },
+  { icon: "❄️", text: "Freezer Guide" },
+  { icon: "📄", text: "Instant PDF Download" },
+];
+
 const bonuses = [
   { title: "4 Weekly Meal Plans", value: "$19 value" },
   { title: "7-Day High-Protein Plan", value: "$14 value" },
