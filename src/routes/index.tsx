@@ -315,6 +315,25 @@ function SalesPage() {
   const { openCheckout: openPaddle } = usePaddleCheckout();
   const { timeText, urgencyText } = useOfferCountdown();
   const [reviews, setReviews] = useState<PublicReview[] | null>(null);
+  const [lightbox, setLightbox] = useState<number | null>(null);
+  useEffect(() => {
+    if (lightbox === null) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setLightbox(null);
+      if (e.key === "ArrowRight")
+        setLightbox((i) => (i === null ? 0 : (i + 1) % peekPages.length));
+      if (e.key === "ArrowLeft")
+        setLightbox((i) =>
+          i === null ? 0 : (i - 1 + peekPages.length) % peekPages.length,
+        );
+    };
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = "";
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [lightbox]);
   useEffect(() => {
     listApprovedReviews()
       .then((r) => setReviews(r))
@@ -329,19 +348,19 @@ function SalesPage() {
   return (
     <div className="min-h-screen bg-cream font-sans text-charcoal selection:bg-sage/30">
       <div className="sticky top-0 z-50 border-b border-forest/10 bg-forest text-cream shadow-sm">
-        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-2 px-4 py-3 text-center sm:flex-row sm:px-6 sm:text-left">
-          <p className="text-sm font-medium leading-snug text-cream/90">
-            <span className="font-display text-base italic text-sage-soft">
-              Today’s launch savings refresh in {timeText}.
-            </span>{" "}
-            Secure the premium cookbook bundle for $9.99 while this window is open.
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-3 py-2 sm:px-6 sm:py-3">
+          <p className="min-w-0 flex-1 truncate text-[12px] leading-tight text-cream/90 sm:text-sm">
+            <span className="font-display italic text-sage-soft">
+              Launch price ends in {timeText}
+            </span>
+            <span className="hidden sm:inline"> — grab the cookbook for $9.99.</span>
           </p>
           <button
             type="button"
             onClick={openCheckout}
-            className="shrink-0 rounded-full bg-cream px-4 py-2 text-xs font-bold uppercase tracking-wider text-forest transition hover:bg-white active:scale-[0.98]"
+            className="shrink-0 rounded-full bg-cream px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-forest transition hover:bg-white active:scale-[0.98] sm:px-4 sm:py-2 sm:text-xs"
           >
-            Get $9.99 Access
+            Get $9.99
           </button>
         </div>
       </div>
@@ -635,23 +654,33 @@ function SalesPage() {
             </p>
           </div>
           <div className="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-3">
-            {peekPages.map((p) => (
+            {peekPages.map((p, i) => (
               <figure
                 key={p.label}
                 className="group relative overflow-hidden rounded-2xl ring-1 ring-forest/10 transition hover:-translate-y-1 hover:shadow-[var(--shadow-card)]"
               >
+                <button
+                  type="button"
+                  onClick={() => setLightbox(i)}
+                  aria-label={`Open larger preview: ${p.label}`}
+                  className="block w-full cursor-zoom-in"
+                >
                 <img
                   src={p.img}
                   alt={p.alt}
                   loading="lazy"
                   className={`${p.ratio} w-full object-cover transition duration-700 group-hover:scale-105`}
                 />
+                </button>
                 <span className="absolute left-3 top-3 rounded-full bg-cream/95 px-2.5 py-1 font-mono text-[10px] font-semibold uppercase tracking-widest text-forest">
                   Page {p.tag}
                 </span>
-                <figcaption className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-forest-deep/85 via-forest-deep/30 to-transparent p-3">
+                <figcaption className="pointer-events-none absolute inset-x-0 bottom-0 flex items-end justify-between gap-2 bg-gradient-to-t from-forest-deep/85 via-forest-deep/30 to-transparent p-3">
                   <span className="font-display text-sm italic text-cream drop-shadow sm:text-base">
                     {p.label}
+                  </span>
+                  <span className="rounded-full bg-cream/90 px-2 py-0.5 font-mono text-[9px] font-semibold uppercase tracking-widest text-forest">
+                    Tap to zoom
                   </span>
                 </figcaption>
               </figure>
@@ -1036,6 +1065,68 @@ function SalesPage() {
       {/* Analytics placeholders */}
       {/* TODO: Add Pinterest Tag: <script>...</script> */}
       {/* TODO: Add Google Analytics gtag script */}
+
+      {lightbox !== null && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label={peekPages[lightbox].label}
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-forest-deep/95 p-4 backdrop-blur-sm"
+          onClick={() => setLightbox(null)}
+        >
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setLightbox(null);
+            }}
+            aria-label="Close preview"
+            className="absolute right-4 top-4 grid size-11 place-items-center rounded-full bg-cream/95 text-lg font-bold text-forest shadow-lg transition hover:bg-white"
+          >
+            ✕
+          </button>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setLightbox(
+                (lightbox - 1 + peekPages.length) % peekPages.length,
+              );
+            }}
+            aria-label="Previous preview"
+            className="absolute left-3 top-1/2 grid size-11 -translate-y-1/2 place-items-center rounded-full bg-cream/90 text-forest shadow-lg transition hover:bg-white sm:left-6"
+          >
+            ‹
+          </button>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setLightbox((lightbox + 1) % peekPages.length);
+            }}
+            aria-label="Next preview"
+            className="absolute right-3 top-1/2 grid size-11 -translate-y-1/2 place-items-center rounded-full bg-cream/90 text-forest shadow-lg transition hover:bg-white sm:right-6"
+          >
+            ›
+          </button>
+          <figure
+            className="relative mx-auto flex max-h-[90vh] max-w-4xl flex-col items-center"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <img
+              src={peekPages[lightbox].img}
+              alt={peekPages[lightbox].alt}
+              className="max-h-[80vh] w-auto rounded-xl object-contain shadow-2xl ring-1 ring-cream/20"
+            />
+            <figcaption className="mt-4 text-center font-display text-sm italic text-cream sm:text-base">
+              {peekPages[lightbox].label}
+              <span className="ml-2 font-mono text-[10px] uppercase tracking-widest text-cream/60">
+                {lightbox + 1} / {peekPages.length}
+              </span>
+            </figcaption>
+          </figure>
+        </div>
+      )}
 
     </div>
   );
