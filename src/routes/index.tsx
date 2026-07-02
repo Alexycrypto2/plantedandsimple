@@ -199,7 +199,7 @@ const recipes = [
   { name: "BBQ Tempeh Bowls", img: recipeTempehBowl, ratio: "aspect-square" },
   {
     name: "Seitan Steak Fajitas",
-    img: recipeFajitas,
+    img: recipeFajitas.url,
     ratio: "aspect-[3/4]",
   },
 ];
