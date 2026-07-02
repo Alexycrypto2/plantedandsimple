@@ -352,12 +352,37 @@ function SalesPage() {
               ingredients.
             </p>
 
+            {/* Value box */}
+            <ul className="mt-6 grid gap-2 rounded-2xl border border-sage/30 bg-white/80 p-5 shadow-sm sm:grid-cols-2">
+              {heroHighlights.map((h) => (
+                <li
+                  key={h.text}
+                  className="flex items-center gap-2 text-sm font-medium text-forest-deep"
+                >
+                  <span aria-hidden="true" className="text-base leading-none">
+                    {h.icon}
+                  </span>
+                  <span>{h.text}</span>
+                </li>
+              ))}
+            </ul>
+
             <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
               <CTAButton onClick={openCheckout}>Get the Cookbook →</CTAButton>
               <p className="text-sm text-charcoal/60">
                 New launch · Backed by a 60-day money-back guarantee
               </p>
             </div>
+
+            {/* Trust signals */}
+            <ul className="mt-4 flex flex-wrap gap-x-4 gap-y-2 text-xs font-medium text-charcoal/70">
+              {trustSignals.map((t) => (
+                <li key={t.text} className="inline-flex items-center gap-1.5">
+                  <span aria-hidden="true">{t.icon}</span>
+                  {t.text}
+                </li>
+              ))}
+            </ul>
 
             <p className="mt-4 font-mono text-[11px] uppercase tracking-widest text-charcoal/50">
               Instant PDF · Phone, Tablet & Computer
