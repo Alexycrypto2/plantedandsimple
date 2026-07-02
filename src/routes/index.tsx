@@ -436,9 +436,9 @@ function SalesPage() {
       <section className="border-y border-forest/5 bg-white/60 py-16 md:py-20">
         <div className="mx-auto max-w-6xl px-6">
           <div className="text-center">
-            <SectionLabel>Real reviews from real readers</SectionLabel>
+            <SectionLabel>Reader favorites</SectionLabel>
             <h2 className="font-display text-3xl text-forest-deep sm:text-4xl">
-              What readers are saying
+              Why readers love meal-prepping with this cookbook
             </h2>
             <p className="mx-auto mt-4 max-w-xl text-sm text-charcoal/70">
               Every review below is submitted by a verified reader after
