@@ -642,7 +642,7 @@ function SalesPage() {
               >
                 <img
                   src={p.img}
-                  alt={`${p.label} preview`}
+                  alt={p.alt}
                   loading="lazy"
                   className={`${p.ratio} w-full object-cover transition duration-700 group-hover:scale-105`}
                 />
