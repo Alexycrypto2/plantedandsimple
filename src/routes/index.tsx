@@ -580,6 +580,43 @@ function SalesPage() {
 
       {/* ================= BONUSES ================= */}
       <section className="mx-auto max-w-6xl px-6 py-20 md:py-28">
+        {/* Take a Peek Inside */}
+        <div className="mb-24 md:mb-28">
+          <div className="text-center">
+            <SectionLabel>Take a peek inside</SectionLabel>
+            <h2 className="font-display text-3xl text-forest-deep sm:text-4xl">
+              A look at the <span className="italic">pages</span> waiting for you
+            </h2>
+            <p className="mx-auto mt-4 max-w-xl text-charcoal/70">
+              From the cover to the freezer guide — here's a preview of what
+              your PDF actually looks like.
+            </p>
+          </div>
+          <div className="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-3">
+            {peekPages.map((p) => (
+              <figure
+                key={p.label}
+                className="group relative overflow-hidden rounded-2xl ring-1 ring-forest/10 transition hover:-translate-y-1 hover:shadow-[var(--shadow-card)]"
+              >
+                <img
+                  src={p.img}
+                  alt={`${p.label} preview`}
+                  loading="lazy"
+                  className={`${p.ratio} w-full object-cover transition duration-700 group-hover:scale-105`}
+                />
+                <span className="absolute left-3 top-3 rounded-full bg-cream/95 px-2.5 py-1 font-mono text-[10px] font-semibold uppercase tracking-widest text-forest">
+                  Page {p.tag}
+                </span>
+                <figcaption className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-forest-deep/85 via-forest-deep/30 to-transparent p-3">
+                  <span className="font-display text-sm italic text-cream drop-shadow sm:text-base">
+                    {p.label}
+                  </span>
+                </figcaption>
+              </figure>
+            ))}
+          </div>
+        </div>
+
         <div className="text-center">
           <SectionLabel>Bonus bundle · Included FREE</SectionLabel>
           <h2 className="font-display text-3xl text-forest-deep sm:text-4xl">
