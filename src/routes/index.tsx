@@ -7,6 +7,12 @@ import recipeSmoothieBowl from "@/assets/recipe-smoothie-bowl.jpg";
 import recipeLentilBolognese from "@/assets/recipe-lentil-bolognese.jpg";
 import recipeTempehBowl from "@/assets/recipe-tempeh-bowl.jpg";
 import recipeFajitas from "@/assets/recipe-fajitas.jpg";
+import peekCoverAsset from "@/assets/peek-cover.jpg.asset.json";
+import peekRecipeAsset from "@/assets/peek-recipe.jpg.asset.json";
+import peekMealPlanAsset from "@/assets/peek-meal-plan.jpg.asset.json";
+import peekSmoothiesAsset from "@/assets/peek-smoothies.jpg.asset.json";
+import peekMealPrepAsset from "@/assets/peek-meal-prep.jpg.asset.json";
+import peekGroceryAsset from "@/assets/peek-grocery.jpg.asset.json";
 import { usePaddleCheckout } from "@/hooks/usePaddleCheckout";
 import { CountdownTimer, useOfferCountdown } from "@/components/CountdownTimer";
 import { listApprovedReviews, type PublicReview } from "@/lib/reviews.functions";
@@ -111,12 +117,48 @@ const trustSignals = [
 ];
 
 const peekPages = [
-  { label: "Cover Page", tag: "01", img: cookbookMockup, ratio: "aspect-[3/4]" },
-  { label: "Recipe Page", tag: "02", img: recipeSesameTofu, ratio: "aspect-[3/4]" },
-  { label: "Weekly Meal Plan", tag: "03", img: recipeLentilBolognese, ratio: "aspect-[3/4]" },
-  { label: "Smoothie Section", tag: "04", img: recipeSmoothieBowl, ratio: "aspect-[3/4]" },
-  { label: "Grocery Guide", tag: "05", img: recipeTempehBowl, ratio: "aspect-[3/4]" },
-  { label: "Freezer Guide", tag: "06", img: recipeFajitas, ratio: "aspect-[3/4]" },
+  {
+    label: "Cover Page",
+    tag: "01",
+    img: peekCoverAsset.url,
+    alt: "PlantedAndSimple cookbook cover — 30 High-Protein Plant-Based Meals title page",
+    ratio: "aspect-[3/4]",
+  },
+  {
+    label: "Recipe Page",
+    tag: "02",
+    img: peekRecipeAsset.url,
+    alt: "Sample recipe page from the cookbook with ingredients, method and macros",
+    ratio: "aspect-[3/4]",
+  },
+  {
+    label: "Weekly Meal Plan",
+    tag: "03",
+    img: peekMealPlanAsset.url,
+    alt: "Weekly meal plan page showing breakfast, lunch, dinner and snacks for every day",
+    ratio: "aspect-[3/4]",
+  },
+  {
+    label: "Smoothie Bonus",
+    tag: "04",
+    img: peekSmoothiesAsset.url,
+    alt: "Bonus chapter page from the 15 high-protein plant-based smoothie recipes",
+    ratio: "aspect-[3/4]",
+  },
+  {
+    label: "Meal Prep Hacks",
+    tag: "05",
+    img: peekMealPrepAsset.url,
+    alt: "Meal prep hacks bonus page with storage, freezing and reheating tips",
+    ratio: "aspect-[3/4]",
+  },
+  {
+    label: "Grocery Guide",
+    tag: "06",
+    img: peekGroceryAsset.url,
+    alt: "Budget grocery guide page listing high-protein plant staples and shopping tips",
+    ratio: "aspect-[3/4]",
+  },
 ];
 
 const todayItems = [
