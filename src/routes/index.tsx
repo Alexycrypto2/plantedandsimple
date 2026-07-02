@@ -329,19 +329,19 @@ function SalesPage() {
   return (
     <div className="min-h-screen bg-cream font-sans text-charcoal selection:bg-sage/30">
       <div className="sticky top-0 z-50 border-b border-forest/10 bg-forest text-cream shadow-sm">
-        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-2 px-4 py-3 text-center sm:flex-row sm:px-6 sm:text-left">
-          <p className="text-sm font-medium leading-snug text-cream/90">
-            <span className="font-display text-base italic text-sage-soft">
-              Today’s launch savings refresh in {timeText}.
-            </span>{" "}
-            Secure the premium cookbook bundle for $9.99 while this window is open.
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-3 py-2 sm:px-6 sm:py-3">
+          <p className="min-w-0 flex-1 truncate text-[12px] leading-tight text-cream/90 sm:text-sm">
+            <span className="font-display italic text-sage-soft">
+              Launch price ends in {timeText}
+            </span>
+            <span className="hidden sm:inline"> — grab the cookbook for $9.99.</span>
           </p>
           <button
             type="button"
             onClick={openCheckout}
-            className="shrink-0 rounded-full bg-cream px-4 py-2 text-xs font-bold uppercase tracking-wider text-forest transition hover:bg-white active:scale-[0.98]"
+            className="shrink-0 rounded-full bg-cream px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-forest transition hover:bg-white active:scale-[0.98] sm:px-4 sm:py-2 sm:text-xs"
           >
-            Get $9.99 Access
+            Get $9.99
           </button>
         </div>
       </div>
