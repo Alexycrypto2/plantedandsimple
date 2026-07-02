@@ -96,6 +96,38 @@ const insideItems = [
   "Freezer-Friendly Options",
 ];
 
+const heroHighlights = [
+  { icon: "✅", text: "30 High-Protein Recipes" },
+  { icon: "✅", text: "6 Bonus Guides ($70 Value)" },
+  { icon: "✅", text: "Instant PDF Download" },
+  { icon: "⭐", text: "20–32g Protein Per Meal" },
+];
+
+const trustSignals = [
+  { icon: "🔒", text: "Secure Checkout" },
+  { icon: "⚡", text: "Instant Download" },
+  { icon: "💻", text: "Phone, Tablet & PC" },
+  { icon: "💳", text: "Secure Payment" },
+];
+
+const peekPages = [
+  { label: "Cover Page", tag: "01", img: cookbookMockup, ratio: "aspect-[3/4]" },
+  { label: "Recipe Page", tag: "02", img: recipeSesameTofu, ratio: "aspect-[3/4]" },
+  { label: "Weekly Meal Plan", tag: "03", img: recipeLentilBolognese, ratio: "aspect-[3/4]" },
+  { label: "Smoothie Section", tag: "04", img: recipeSmoothieBowl, ratio: "aspect-[3/4]" },
+  { label: "Grocery Guide", tag: "05", img: recipeTempehBowl, ratio: "aspect-[3/4]" },
+  { label: "Freezer Guide", tag: "06", img: recipeFajitas, ratio: "aspect-[3/4]" },
+];
+
+const todayItems = [
+  { icon: "📖", text: "30 High-Protein Recipes" },
+  { icon: "🥤", text: "15 Smoothie Recipes" },
+  { icon: "📅", text: "4 Weekly Meal Plans" },
+  { icon: "🛒", text: "Grocery Guide" },
+  { icon: "❄️", text: "Freezer Guide" },
+  { icon: "📄", text: "Instant PDF Download" },
+];
+
 const bonuses = [
   { title: "4 Weekly Meal Plans", value: "$19 value" },
   { title: "7-Day High-Protein Plan", value: "$14 value" },
@@ -320,12 +352,37 @@ function SalesPage() {
               ingredients.
             </p>
 
+            {/* Value box */}
+            <ul className="mt-6 grid gap-2 rounded-2xl border border-sage/30 bg-white/80 p-5 shadow-sm sm:grid-cols-2">
+              {heroHighlights.map((h) => (
+                <li
+                  key={h.text}
+                  className="flex items-center gap-2 text-sm font-medium text-forest-deep"
+                >
+                  <span aria-hidden="true" className="text-base leading-none">
+                    {h.icon}
+                  </span>
+                  <span>{h.text}</span>
+                </li>
+              ))}
+            </ul>
+
             <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
               <CTAButton onClick={openCheckout}>Get the Cookbook →</CTAButton>
               <p className="text-sm text-charcoal/60">
                 New launch · Backed by a 60-day money-back guarantee
               </p>
             </div>
+
+            {/* Trust signals */}
+            <ul className="mt-4 flex flex-wrap gap-x-4 gap-y-2 text-xs font-medium text-charcoal/70">
+              {trustSignals.map((t) => (
+                <li key={t.text} className="inline-flex items-center gap-1.5">
+                  <span aria-hidden="true">{t.icon}</span>
+                  {t.text}
+                </li>
+              ))}
+            </ul>
 
             <p className="mt-4 font-mono text-[11px] uppercase tracking-widest text-charcoal/50">
               Instant PDF · Phone, Tablet & Computer
@@ -379,9 +436,9 @@ function SalesPage() {
       <section className="border-y border-forest/5 bg-white/60 py-16 md:py-20">
         <div className="mx-auto max-w-6xl px-6">
           <div className="text-center">
-            <SectionLabel>Real reviews from real readers</SectionLabel>
+            <SectionLabel>Reader favorites</SectionLabel>
             <h2 className="font-display text-3xl text-forest-deep sm:text-4xl">
-              What readers are saying
+              Why readers love meal-prepping with this cookbook
             </h2>
             <p className="mx-auto mt-4 max-w-xl text-sm text-charcoal/70">
               Every review below is submitted by a verified reader after
@@ -523,6 +580,43 @@ function SalesPage() {
 
       {/* ================= BONUSES ================= */}
       <section className="mx-auto max-w-6xl px-6 py-20 md:py-28">
+        {/* Take a Peek Inside */}
+        <div className="mb-24 md:mb-28">
+          <div className="text-center">
+            <SectionLabel>Take a peek inside</SectionLabel>
+            <h2 className="font-display text-3xl text-forest-deep sm:text-4xl">
+              A look at the <span className="italic">pages</span> waiting for you
+            </h2>
+            <p className="mx-auto mt-4 max-w-xl text-charcoal/70">
+              From the cover to the freezer guide — here's a preview of what
+              your PDF actually looks like.
+            </p>
+          </div>
+          <div className="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-3">
+            {peekPages.map((p) => (
+              <figure
+                key={p.label}
+                className="group relative overflow-hidden rounded-2xl ring-1 ring-forest/10 transition hover:-translate-y-1 hover:shadow-[var(--shadow-card)]"
+              >
+                <img
+                  src={p.img}
+                  alt={`${p.label} preview`}
+                  loading="lazy"
+                  className={`${p.ratio} w-full object-cover transition duration-700 group-hover:scale-105`}
+                />
+                <span className="absolute left-3 top-3 rounded-full bg-cream/95 px-2.5 py-1 font-mono text-[10px] font-semibold uppercase tracking-widest text-forest">
+                  Page {p.tag}
+                </span>
+                <figcaption className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-forest-deep/85 via-forest-deep/30 to-transparent p-3">
+                  <span className="font-display text-sm italic text-cream drop-shadow sm:text-base">
+                    {p.label}
+                  </span>
+                </figcaption>
+              </figure>
+            ))}
+          </div>
+        </div>
+
         <div className="text-center">
           <SectionLabel>Bonus bundle · Included FREE</SectionLabel>
           <h2 className="font-display text-3xl text-forest-deep sm:text-4xl">
@@ -719,7 +813,10 @@ function SalesPage() {
                 USD
               </span>
             </div>
-            <p className="mt-2 text-sm text-cream/70">
+            <p className="mt-2 text-sm font-semibold text-sage-soft">
+              Launch Price: $9.99 — Save 60%
+            </p>
+            <p className="mt-1 text-sm text-cream/70">
               Instant PDF download · Lifetime access · All 6 bonuses included
             </p>
 
@@ -731,9 +828,14 @@ function SalesPage() {
               Get Instant Access →
             </button>
 
-            <p className="mt-4 font-mono text-[11px] uppercase tracking-widest text-cream/60">
-              🔒 Secure checkout · Instant download
-            </p>
+            <ul className="mt-5 flex flex-wrap gap-x-4 gap-y-2 text-[11px] font-medium text-cream/80">
+              {trustSignals.map((t) => (
+                <li key={t.text} className="inline-flex items-center gap-1.5">
+                  <span aria-hidden="true">{t.icon}</span>
+                  {t.text}
+                </li>
+              ))}
+            </ul>
 
             <ul className="mt-8 space-y-2 text-sm text-cream/85">
               <li className="flex items-center gap-2">
@@ -795,6 +897,38 @@ function SalesPage() {
 
       {/* ================= FINAL CTA ================= */}
       <section className="mx-auto max-w-4xl px-6 pb-24 pt-4 text-center md:pb-32">
+        <div className="mb-10 rounded-[2rem] bg-white p-8 text-left ring-1 ring-forest/10 shadow-[var(--shadow-soft)] md:p-10">
+          <div className="text-center">
+            <SectionLabel>Today you'll receive</SectionLabel>
+            <h2 className="font-display text-3xl italic text-forest-deep sm:text-4xl">
+              Everything in your download
+            </h2>
+          </div>
+          <ul className="mx-auto mt-8 grid max-w-2xl gap-3 sm:grid-cols-2">
+            {todayItems.map((item) => (
+              <li
+                key={item.text}
+                className="flex items-center gap-3 rounded-2xl bg-cream/70 p-4 ring-1 ring-forest/10"
+              >
+                <span aria-hidden="true" className="text-xl">
+                  {item.icon}
+                </span>
+                <span className="text-sm font-semibold text-forest-deep">
+                  {item.text}
+                </span>
+              </li>
+            ))}
+          </ul>
+          <ul className="mx-auto mt-6 flex max-w-2xl flex-wrap justify-center gap-x-4 gap-y-2 text-xs font-medium text-charcoal/70">
+            {trustSignals.map((t) => (
+              <li key={t.text} className="inline-flex items-center gap-1.5">
+                <span aria-hidden="true">{t.icon}</span>
+                {t.text}
+              </li>
+            ))}
+          </ul>
+        </div>
+
         <div className="rounded-[2.5rem] bg-gradient-to-br from-forest to-forest-deep p-12 text-cream shadow-[var(--shadow-card)] md:p-16">
           <SectionLabel>
             <span className="text-sage-soft">One last thing</span>
