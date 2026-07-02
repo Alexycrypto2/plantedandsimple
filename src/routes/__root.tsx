@@ -84,6 +84,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           "A premium digital cookbook with 30 high-protein vegan recipes, 6 bonus guides, and everything you need for satisfying plant-based meals in under 30 minutes.",
       },
       { name: "author", content: "PlantedAndSimple" },
+      { name: "p:domain_verify", content: "1a837ba5f0252ca8dff4b14b8d6447e6" },
       { name: "theme-color", content: "#2E5E3B" },
       { property: "og:site_name", content: "PlantedAndSimple" },
       { property: "og:title", content: "PlantedAndSimple — 30 High-Protein Plant-Based Meals" },
