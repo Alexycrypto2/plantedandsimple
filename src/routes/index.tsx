@@ -897,6 +897,38 @@ function SalesPage() {
 
       {/* ================= FINAL CTA ================= */}
       <section className="mx-auto max-w-4xl px-6 pb-24 pt-4 text-center md:pb-32">
+        <div className="mb-10 rounded-[2rem] bg-white p-8 text-left ring-1 ring-forest/10 shadow-[var(--shadow-soft)] md:p-10">
+          <div className="text-center">
+            <SectionLabel>Today you'll receive</SectionLabel>
+            <h2 className="font-display text-3xl italic text-forest-deep sm:text-4xl">
+              Everything in your download
+            </h2>
+          </div>
+          <ul className="mx-auto mt-8 grid max-w-2xl gap-3 sm:grid-cols-2">
+            {todayItems.map((item) => (
+              <li
+                key={item.text}
+                className="flex items-center gap-3 rounded-2xl bg-cream/70 p-4 ring-1 ring-forest/10"
+              >
+                <span aria-hidden="true" className="text-xl">
+                  {item.icon}
+                </span>
+                <span className="text-sm font-semibold text-forest-deep">
+                  {item.text}
+                </span>
+              </li>
+            ))}
+          </ul>
+          <ul className="mx-auto mt-6 flex max-w-2xl flex-wrap justify-center gap-x-4 gap-y-2 text-xs font-medium text-charcoal/70">
+            {trustSignals.map((t) => (
+              <li key={t.text} className="inline-flex items-center gap-1.5">
+                <span aria-hidden="true">{t.icon}</span>
+                {t.text}
+              </li>
+            ))}
+          </ul>
+        </div>
+
         <div className="rounded-[2.5rem] bg-gradient-to-br from-forest to-forest-deep p-12 text-cream shadow-[var(--shadow-card)] md:p-16">
           <SectionLabel>
             <span className="text-sage-soft">One last thing</span>
