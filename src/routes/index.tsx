@@ -315,6 +315,25 @@ function SalesPage() {
   const { openCheckout: openPaddle } = usePaddleCheckout();
   const { timeText, urgencyText } = useOfferCountdown();
   const [reviews, setReviews] = useState<PublicReview[] | null>(null);
+  const [lightbox, setLightbox] = useState<number | null>(null);
+  useEffect(() => {
+    if (lightbox === null) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setLightbox(null);
+      if (e.key === "ArrowRight")
+        setLightbox((i) => (i === null ? 0 : (i + 1) % peekPages.length));
+      if (e.key === "ArrowLeft")
+        setLightbox((i) =>
+          i === null ? 0 : (i - 1 + peekPages.length) % peekPages.length,
+        );
+    };
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = "";
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [lightbox]);
   useEffect(() => {
     listApprovedReviews()
       .then((r) => setReviews(r))
