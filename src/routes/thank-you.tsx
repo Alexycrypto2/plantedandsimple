@@ -203,6 +203,22 @@ function PaidView({
       </div>
 
       <div className="mt-8">
+        <div className="mb-4 rounded-2xl border border-sage/30 bg-white p-5 text-left shadow-sm">
+          <div className="flex items-start gap-3">
+            <div className="grid size-9 shrink-0 place-items-center rounded-full bg-sage/15 text-forest">
+              ✉
+            </div>
+            <div>
+              <p className="font-mono text-[11px] font-semibold uppercase tracking-widest text-sage">
+                A quick favor
+              </p>
+              <h3 className="mt-1 font-display text-lg italic text-forest-deep">
+                Loved a recipe? Leave a short review below —
+                it helps other plant-curious readers hit “buy” with confidence.
+              </h3>
+            </div>
+          </div>
+        </div>
         <ReviewForm transactionId={transactionId} />
       </div>
 
