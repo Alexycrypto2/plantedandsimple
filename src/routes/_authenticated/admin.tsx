@@ -743,3 +743,364 @@ function AdminsPanel({ meId }: { meId: string }) {
     </div>
   );
 }
+
+function AffiliatesPanel() {
+  const [rows, setRows] = useState<AffiliateRow[] | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+  const [openId, setOpenId] = useState<string | null>(null);
+  const [creating, setCreating] = useState(false);
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [pct, setPct] = useState(50);
+  const [busy, setBusy] = useState(false);
+
+  const load = () => {
+    setErr(null);
+    adminListAffiliates()
+      .then(setRows)
+      .catch((e) => setErr(e instanceof Error ? e.message : "Failed to load"));
+  };
+  useEffect(load, []);
+
+  const create = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setBusy(true);
+    try {
+      await adminCreateAffiliate({ data: { name, email, commission_pct: pct } });
+      setName("");
+      setEmail("");
+      setPct(50);
+      setCreating(false);
+      load();
+    } catch (e) {
+      alert(e instanceof Error ? e.message : "Failed");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const copyLink = async (code: string) => {
+    await navigator.clipboard.writeText(`https://primedownloads.store/?ref=${code}`);
+  };
+
+  if (err) return <p className="text-red-600">{err}</p>;
+  if (!rows) return <p className="text-charcoal/60">Loading affiliates…</p>;
+
+  const totalPending = rows.reduce((s, r) => s + r.commission_pending, 0);
+  const totalPaid = rows.reduce((s, r) => s + r.commission_paid, 0);
+
+  return (
+    <div className="space-y-6">
+      <div className="grid gap-4 sm:grid-cols-3">
+        <StatCard label="Affiliates" value={rows.length} />
+        <StatCard label="Pending commission" value={`$${totalPending.toFixed(2)}`} />
+        <StatCard label="Paid commission" value={`$${totalPaid.toFixed(2)}`} />
+      </div>
+
+      <div className="flex items-center justify-between">
+        <p className="font-mono text-[11px] font-semibold uppercase tracking-widest text-sage">
+          Affiliates
+        </p>
+        <button
+          onClick={() => setCreating((s) => !s)}
+          className="rounded-full bg-forest px-5 py-2 text-xs font-semibold text-cream hover:bg-forest-deep"
+        >
+          {creating ? "Cancel" : "+ Add affiliate"}
+        </button>
+      </div>
+
+      {creating && (
+        <form
+          onSubmit={create}
+          className="grid gap-3 rounded-2xl border border-forest/10 bg-white p-5 shadow-sm sm:grid-cols-4"
+        >
+          <input
+            required
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Name"
+            className="rounded-lg border border-forest/20 px-3 py-2 text-sm outline-none focus:border-forest sm:col-span-1"
+          />
+          <input
+            required
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="email@example.com"
+            className="rounded-lg border border-forest/20 px-3 py-2 text-sm outline-none focus:border-forest sm:col-span-2"
+          />
+          <div className="flex items-center gap-2">
+            <input
+              type="number"
+              min={1}
+              max={100}
+              step="0.01"
+              value={pct}
+              onChange={(e) => setPct(Number(e.target.value))}
+              className="w-20 rounded-lg border border-forest/20 px-3 py-2 text-sm outline-none focus:border-forest"
+            />
+            <span className="text-sm text-charcoal/60">%</span>
+            <button
+              type="submit"
+              disabled={busy}
+              className="ml-auto rounded-full bg-forest px-4 py-2 text-xs font-semibold text-cream hover:bg-forest-deep disabled:opacity-60"
+            >
+              {busy ? "…" : "Create"}
+            </button>
+          </div>
+          <p className="text-xs text-charcoal/60 sm:col-span-4">
+            A unique referral code and link are generated automatically. Ask the
+            affiliate to sign up at <a className="underline" href="/auth">/auth</a>{" "}
+            using this same email to access their dashboard at <code>/affiliate</code>.
+          </p>
+        </form>
+      )}
+
+      <div className="space-y-3">
+        {rows.length === 0 && (
+          <p className="rounded-2xl border border-dashed border-forest/20 p-8 text-center text-charcoal/50">
+            No affiliates yet.
+          </p>
+        )}
+        {rows.map((a) => (
+          <AffiliateCard
+            key={a.id}
+            row={a}
+            open={openId === a.id}
+            onToggle={() => setOpenId(openId === a.id ? null : a.id)}
+            onCopy={() => copyLink(a.code)}
+            onChange={load}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function AffiliateCard({
+  row,
+  open,
+  onToggle,
+  onCopy,
+  onChange,
+}: {
+  row: AffiliateRow;
+  open: boolean;
+  onToggle: () => void;
+  onCopy: () => void;
+  onChange: () => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [name, setName] = useState(row.name);
+  const [email, setEmail] = useState(row.email);
+  const [pct, setPct] = useState(row.commission_pct);
+  const [busy, setBusy] = useState(false);
+  const [refs, setRefs] = useState<AffiliateReferral[] | null>(null);
+
+  useEffect(() => {
+    if (open && refs === null) {
+      adminListReferrals({ data: { affiliate_id: row.id } })
+        .then(setRefs)
+        .catch(() => setRefs([]));
+    }
+  }, [open, row.id, refs]);
+
+  const wrap = async (fn: () => Promise<unknown>) => {
+    setBusy(true);
+    try {
+      await fn();
+      onChange();
+      setRefs(null);
+    } catch (e) {
+      alert(e instanceof Error ? e.message : "Failed");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const link = `https://primedownloads.store/?ref=${row.code}`;
+
+  return (
+    <div className="rounded-2xl border border-forest/10 bg-white shadow-sm">
+      <div className="flex flex-wrap items-center gap-3 px-5 py-4">
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="font-semibold text-charcoal">{row.name}</p>
+            <span className="text-xs text-charcoal/50">{row.email}</span>
+            <span className="rounded-full bg-forest/10 px-2 py-0.5 font-mono text-[10px] font-semibold text-forest">
+              {row.code}
+            </span>
+            {row.disabled && (
+              <span className="rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-red-700">
+                Disabled
+              </span>
+            )}
+          </div>
+          <p className="mt-1 font-mono text-[10px] text-charcoal/50 truncate">{link}</p>
+        </div>
+        <div className="grid grid-cols-4 gap-3 text-center text-xs">
+          <Metric label="Clicks" value={row.clicks} />
+          <Metric label="Sales" value={row.sales} />
+          <Metric label="Revenue" value={`$${row.revenue.toFixed(0)}`} />
+          <Metric label="Comm" value={`$${row.commission_total.toFixed(0)}`} />
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <button
+            onClick={onCopy}
+            className="rounded-full border border-forest/20 px-3 py-1.5 text-xs font-semibold text-charcoal/70 hover:bg-forest/5"
+          >
+            Copy link
+          </button>
+          <button
+            onClick={onToggle}
+            className="rounded-full border border-forest/20 px-3 py-1.5 text-xs font-semibold text-charcoal/70 hover:bg-forest/5"
+          >
+            {open ? "Close" : "View"}
+          </button>
+        </div>
+      </div>
+
+      {open && (
+        <div className="space-y-4 border-t border-forest/10 px-5 py-5">
+          <div className="flex flex-wrap items-center gap-2">
+            {editing ? (
+              <>
+                <input value={name} onChange={(e) => setName(e.target.value)} className="rounded-lg border border-forest/20 px-3 py-1.5 text-sm" />
+                <input value={email} onChange={(e) => setEmail(e.target.value)} className="rounded-lg border border-forest/20 px-3 py-1.5 text-sm" />
+                <input type="number" min={1} max={100} step="0.01" value={pct} onChange={(e) => setPct(Number(e.target.value))} className="w-20 rounded-lg border border-forest/20 px-3 py-1.5 text-sm" />
+                <span className="text-sm text-charcoal/60">%</span>
+                <button
+                  disabled={busy}
+                  onClick={() =>
+                    wrap(async () => {
+                      await adminUpdateAffiliate({
+                        data: { id: row.id, name, email, commission_pct: pct },
+                      });
+                      setEditing(false);
+                    })
+                  }
+                  className="rounded-full bg-forest px-4 py-1.5 text-xs font-semibold text-cream hover:bg-forest-deep"
+                >
+                  Save
+                </button>
+                <button
+                  onClick={() => setEditing(false)}
+                  className="rounded-full border border-forest/20 px-4 py-1.5 text-xs font-semibold"
+                >
+                  Cancel
+                </button>
+              </>
+            ) : (
+              <>
+                <p className="text-sm text-charcoal/70">
+                  Commission: <span className="font-semibold">{row.commission_pct}%</span>
+                </p>
+                <button
+                  onClick={() => setEditing(true)}
+                  className="rounded-full border border-forest/20 px-4 py-1.5 text-xs font-semibold text-charcoal/70 hover:bg-forest/5"
+                >
+                  Edit
+                </button>
+                <button
+                  disabled={busy}
+                  onClick={() =>
+                    wrap(() =>
+                      adminUpdateAffiliate({
+                        data: { id: row.id, disabled: !row.disabled },
+                      }),
+                    )
+                  }
+                  className="rounded-full border border-amber-400 px-4 py-1.5 text-xs font-semibold text-amber-700 hover:bg-amber-50"
+                >
+                  {row.disabled ? "Enable" : "Disable"}
+                </button>
+                <button
+                  disabled={busy}
+                  onClick={() => {
+                    if (!confirm(`Delete affiliate ${row.name}? Referrals will also be removed.`)) return;
+                    wrap(() => adminDeleteAffiliate({ data: { id: row.id } }));
+                  }}
+                  className="ml-auto rounded-full border border-red-300 px-4 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-50"
+                >
+                  Delete
+                </button>
+              </>
+            )}
+          </div>
+
+          <div>
+            <p className="font-mono text-[11px] font-semibold uppercase tracking-widest text-sage">
+              Referrals
+            </p>
+            {refs === null ? (
+              <p className="mt-2 text-sm text-charcoal/60">Loading…</p>
+            ) : refs.length === 0 ? (
+              <p className="mt-2 text-sm text-charcoal/60">No referrals yet.</p>
+            ) : (
+              <div className="mt-2 overflow-x-auto rounded-lg border border-forest/10">
+                <table className="w-full text-sm">
+                  <thead className="bg-forest/5 text-left text-xs uppercase tracking-wider text-charcoal/60">
+                    <tr>
+                      <th className="px-3 py-2">Date</th>
+                      <th className="px-3 py-2">Product</th>
+                      <th className="px-3 py-2">Sale</th>
+                      <th className="px-3 py-2">Commission</th>
+                      <th className="px-3 py-2">Status</th>
+                      <th className="px-3 py-2"></th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-forest/5">
+                    {refs.map((r) => (
+                      <tr key={r.id}>
+                        <td className="px-3 py-2 text-charcoal/70">
+                          {new Date(r.purchased_at).toLocaleDateString()}
+                        </td>
+                        <td className="px-3 py-2 text-charcoal/70">{r.product ?? "—"}</td>
+                        <td className="px-3 py-2">${r.sale_amount.toFixed(2)}</td>
+                        <td className="px-3 py-2 font-semibold">${r.commission_amount.toFixed(2)}</td>
+                        <td className="px-3 py-2">
+                          {r.status === "paid" ? (
+                            <span className="rounded-full bg-sage/20 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-forest">
+                              Paid
+                            </span>
+                          ) : (
+                            <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-amber-800">
+                              Pending
+                            </span>
+                          )}
+                        </td>
+                        <td className="px-3 py-2 text-right">
+                          <button
+                            onClick={() =>
+                              wrap(() =>
+                                adminSetReferralPaid({
+                                  data: { id: r.id, paid: r.status !== "paid" },
+                                }),
+                              )
+                            }
+                            className="rounded-full border border-forest/20 px-3 py-1 text-xs font-semibold text-charcoal/70 hover:bg-forest/5"
+                          >
+                            {r.status === "paid" ? "Mark pending" : "Mark paid"}
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function Metric({ label, value }: { label: string; value: string | number }) {
+  return (
+    <div>
+      <p className="font-mono text-[9px] uppercase tracking-widest text-charcoal/50">{label}</p>
+      <p className="font-semibold text-forest-deep">{value}</p>
+    </div>
+  );
+}
