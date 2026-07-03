@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { gatewayFetch, type PaddleEnv } from "@/lib/paddle.server";
 
 export type PublicReview = {
   id: string;
@@ -44,7 +45,8 @@ type SubmitInput = {
   location?: string;
   rating: number;
   quote: string;
-  transactionId?: string;
+  transactionId: string;
+  environment: PaddleEnv;
   photoDataUrl?: string;
   consent?: boolean;
 };
@@ -62,19 +64,54 @@ export const submitReview = createServerFn({ method: "POST" })
       throw new Error("Review must be 10–600 characters");
     if (!Number.isInteger(rating) || rating < 1 || rating > 5)
       throw new Error("Invalid rating");
-    const transactionId = data.transactionId
-      ? String(data.transactionId).slice(0, 120)
-      : null;
+    const transactionId = String(data.transactionId ?? "").trim();
+    if (!/^[a-zA-Z0-9_]+$/.test(transactionId))
+      throw new Error("A valid purchase is required to leave a review.");
+    const environment: PaddleEnv =
+      data.environment === "live" ? "live" : "sandbox";
     const consent = Boolean(data.consent);
+    if (!consent)
+      throw new Error("Please agree to have your review published.");
     const photoDataUrl = data.photoDataUrl
       ? String(data.photoDataUrl).slice(0, 2_500_000)
       : null;
-    return { name, quote, location, rating, transactionId, consent, photoDataUrl };
+    return {
+      name,
+      quote,
+      location,
+      rating,
+      transactionId,
+      environment,
+      consent,
+      photoDataUrl,
+    };
   })
   .handler(async ({ data }): Promise<{ ok: true }> => {
     const { supabaseAdmin } = await import(
       "@/integrations/supabase/client.server"
     );
+
+    // Verify the buyer actually paid via Paddle before accepting the review.
+    const txRes = await gatewayFetch(
+      data.environment,
+      `/transactions/${encodeURIComponent(data.transactionId)}`,
+    );
+    if (!txRes.ok)
+      throw new Error("We couldn't verify your purchase. Please try again.");
+    const txJson = await txRes.json();
+    const status = txJson?.data?.status as string | undefined;
+    if (status !== "completed" && status !== "paid" && status !== "billed") {
+      throw new Error("Only verified buyers can submit a review.");
+    }
+
+    // One review per transaction.
+    const { data: existing } = await supabaseAdmin
+      .from("reviews")
+      .select("id")
+      .eq("stripe_session_id", data.transactionId)
+      .maybeSingle();
+    if (existing)
+      throw new Error("A review has already been submitted for this purchase.");
 
     // Optional photo: decode data URL, upload to private bucket.
     let photoPath: string | null = null;
