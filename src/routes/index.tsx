@@ -361,14 +361,14 @@ function SalesPage() {
             <span className="font-display italic text-sage-soft">
               Launch price ends in {timeText}
             </span>
-            <span className="hidden sm:inline"> — grab the cookbook for $9.99.</span>
+            <span className="hidden sm:inline"> — save 50% on the cookbook.</span>
           </p>
           <button
             type="button"
             onClick={openCheckout}
             className="shrink-0 rounded-full bg-cream px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-forest transition hover:bg-white active:scale-[0.98] sm:px-4 sm:py-2 sm:text-xs"
           >
-            Get $9.99
+            Save 50%
           </button>
         </div>
       </div>
@@ -382,9 +382,9 @@ function SalesPage() {
         >
           <span className="flex items-center gap-2">
             <span className="font-mono text-xs uppercase tracking-widest opacity-70 line-through">
-              $24.99
+              $29.99
             </span>
-            <span className="text-base font-semibold">$9.99</span>
+            <span className="text-base font-semibold">$14.99</span>
           </span>
           <span className="text-sm font-semibold uppercase tracking-wider">
             Get the Book →
@@ -402,7 +402,7 @@ function SalesPage() {
           onClick={openCheckout}
           className="hidden rounded-full bg-forest px-5 py-2.5 text-sm font-semibold text-cream shadow-sm transition hover:bg-forest-deep md:inline-flex"
         >
-          Get the Book · $9.99
+          Get the Book
         </button>
       </nav>
 
