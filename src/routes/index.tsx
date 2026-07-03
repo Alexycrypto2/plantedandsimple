@@ -28,7 +28,7 @@ const productJsonLd = {
   brand: { "@type": "Brand", name: "PlantedAndSimple" },
   offers: {
     "@type": "Offer",
-    price: "9.99",
+    price: "14.99",
     priceCurrency: "USD",
     availability: "https://schema.org/InStock",
   },
@@ -42,7 +42,7 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "Instant PDF cookbook: 30 high-protein vegan recipes, 4 weekly meal plans, and 6 bonuses. Quick, satisfying, meal-prep friendly. Just $9.99 today.",
+          "Instant PDF cookbook: 30 high-protein vegan recipes, 4 weekly meal plans, and 6 bonuses. Regular $29.99 — launch price $14.99 today (save 50%).",
       },
       {
         name: "keywords",
@@ -58,7 +58,7 @@ export const Route = createFileRoute("/")({
       {
         property: "og:description",
         content:
-          "Simple plant-based meals. Powerful nutrition. Instant PDF cookbook + 6 free bonuses for $9.99.",
+          "Simple plant-based meals. Powerful nutrition. Instant PDF cookbook + 6 free bonuses. $14.99 (was $29.99).",
       },
     ],
     links: [{ rel: "canonical", href: "/" }],
