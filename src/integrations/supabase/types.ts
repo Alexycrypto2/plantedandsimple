@@ -134,30 +134,39 @@ export type Database = {
       reviews: {
         Row: {
           approved: boolean
+          consent: boolean
+          country: string | null
           created_at: string
           id: string
           location: string | null
           name: string
+          photo_url: string | null
           quote: string
           rating: number
           stripe_session_id: string | null
         }
         Insert: {
           approved?: boolean
+          consent?: boolean
+          country?: string | null
           created_at?: string
           id?: string
           location?: string | null
           name: string
+          photo_url?: string | null
           quote: string
           rating: number
           stripe_session_id?: string | null
         }
         Update: {
           approved?: boolean
+          consent?: boolean
+          country?: string | null
           created_at?: string
           id?: string
           location?: string | null
           name?: string
+          photo_url?: string | null
           quote?: string
           rating?: number
           stripe_session_id?: string | null
