@@ -485,15 +485,9 @@ function SalesPage() {
                 height={1000}
                 className="animate-float relative w-full rounded-3xl object-cover shadow-[var(--shadow-card)] ring-1 ring-forest/10"
               />
-              <div className="absolute -bottom-5 -right-3 flex flex-col items-center rounded-2xl bg-white px-5 py-3 shadow-lg ring-1 ring-forest/10 sm:-right-6">
-                <span className="font-mono text-[10px] uppercase tracking-widest text-charcoal/40 line-through">
-                  $24.99
-                </span>
-                <span className="font-display text-2xl font-bold text-forest">
-                  $9.99
-                </span>
-                <span className="font-mono text-[9px] uppercase tracking-widest text-sage">
-                  Today Only
+              <div className="absolute -bottom-4 -right-3 rounded-full bg-white px-4 py-2 shadow-lg ring-1 ring-forest/10 sm:-right-6">
+                <span className="font-mono text-[10px] font-bold uppercase tracking-widest text-forest">
+                  🔥 Save 50% · Launch Offer
                 </span>
               </div>
             </div>
