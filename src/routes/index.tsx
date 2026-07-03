@@ -499,23 +499,23 @@ function SalesPage() {
       <section className="border-y border-forest/5 bg-white/60 py-16 md:py-20">
         <div className="mx-auto max-w-6xl px-6">
           <div className="text-center">
-            <SectionLabel>Reader favorites</SectionLabel>
+            <SectionLabel>Customer Reviews</SectionLabel>
             <h2 className="font-display text-3xl text-forest-deep sm:text-4xl">
-              Why readers love meal-prepping with this cookbook
+              Real reviews from real readers
             </h2>
             <p className="mx-auto mt-4 max-w-xl text-sm text-charcoal/70">
-              Every review below is submitted by a verified reader after
-              downloading the cookbook — and hand-approved before it appears
-              here.
+              Every review here comes from a verified buyer after downloading
+              the cookbook, and is hand-approved before it appears. No fake
+              names. No stock photos. No AI testimonials.
             </p>
           </div>
 
           {reviews && reviews.length > 0 ? (
-            <div className="mt-12 grid gap-5 md:grid-cols-3">
+            <div className="mt-12 grid gap-5 sm:grid-cols-2 md:grid-cols-3">
               {reviews.map((r) => (
                 <figure
                   key={r.id}
-                  className="rounded-3xl bg-cream/70 p-7 ring-1 ring-forest/10 transition hover:-translate-y-1 hover:shadow-[var(--shadow-soft)]"
+                  className="flex flex-col rounded-3xl bg-white p-7 shadow-[var(--shadow-soft)] ring-1 ring-forest/10 transition hover:-translate-y-1 hover:shadow-[var(--shadow-card)]"
                 >
                   <div className="mb-4 flex gap-0.5">
                     {Array.from({ length: r.rating }).map((_, i) => (
@@ -525,14 +525,40 @@ function SalesPage() {
                   <blockquote className="font-display text-lg leading-snug italic text-charcoal/85">
                     “{r.quote}”
                   </blockquote>
-                  <figcaption className="mt-6 font-mono text-[11px] font-semibold uppercase tracking-widest text-forest">
-                    — {r.name}
-                    {r.location ? (
-                      <>
-                        {" · "}
-                        <span className="text-sage">{r.location}</span>
-                      </>
-                    ) : null}
+                  <figcaption className="mt-6 flex items-center gap-3 border-t border-forest/10 pt-4">
+                    {r.photo_url ? (
+                      <img
+                        src={r.photo_url}
+                        alt={`${r.name} profile photo`}
+                        loading="lazy"
+                        className="size-11 rounded-full object-cover ring-1 ring-forest/15"
+                      />
+                    ) : (
+                      <span
+                        aria-hidden="true"
+                        className="grid size-11 place-items-center rounded-full bg-sage/20 font-display text-lg italic text-forest"
+                      >
+                        {r.name.charAt(0).toUpperCase()}
+                      </span>
+                    )}
+                    <div className="min-w-0 flex-1">
+                      <p className="font-semibold text-forest-deep">
+                        {r.name}
+                        {r.location && (
+                          <span className="ml-1 text-xs font-normal text-charcoal/60">
+                            · {r.location}
+                          </span>
+                        )}
+                      </p>
+                      <p className="font-mono text-[10px] uppercase tracking-widest text-charcoal/50">
+                        Verified buyer ·{" "}
+                        {new Date(r.created_at).toLocaleDateString(undefined, {
+                          year: "numeric",
+                          month: "short",
+                          day: "numeric",
+                        })}
+                      </p>
+                    </div>
                   </figcaption>
                 </figure>
               ))}
@@ -540,23 +566,22 @@ function SalesPage() {
           ) : (
             <div className="mx-auto mt-12 max-w-2xl rounded-3xl border border-dashed border-sage/50 bg-cream/60 p-8 text-center">
               <p className="font-mono text-[11px] font-semibold uppercase tracking-widest text-sage">
-                Fresh launch
+                Customer Reviews Coming Soon
               </p>
               <h3 className="mt-3 font-display text-2xl italic text-forest-deep">
-                You could be one of our first reviewers.
+                Be one of our first reviewers.
               </h3>
               <p className="mx-auto mt-3 max-w-lg text-sm text-charcoal/70">
-                We just launched, so we're not pretending to have thousands of
-                reviews yet. Grab the cookbook, try a recipe, and share what
-                you think — verified reviews from real buyers will appear
-                right here.
+                We're excited to hear what our first customers think. Purchase
+                today and be among the first to leave a review. Only verified,
+                hand-approved reviews from real buyers appear here.
               </p>
               <button
                 type="button"
                 onClick={openCheckout}
                 className="mt-6 inline-flex items-center justify-center rounded-full bg-forest px-6 py-3 text-sm font-semibold text-cream shadow-sm transition hover:bg-forest-deep"
               >
-                Get the cookbook · $9.99
+                Get the cookbook
               </button>
             </div>
           )}
