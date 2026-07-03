@@ -98,43 +98,16 @@ function AdminPage() {
 
   return (
     <div className="min-h-screen bg-cream font-sans text-charcoal">
-      <header className="border-b border-forest/10 bg-white">
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-6 py-4">
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => setNavOpen(true)}
-              aria-label="Open menu"
-              className="grid size-10 place-items-center rounded-full border border-forest/20 text-forest hover:bg-forest/5"
-            >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                <path d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-            </button>
-            <div>
-              <p className="font-mono text-[11px] font-semibold uppercase tracking-widest text-sage">
-                PrimeDownloads
-              </p>
-              <h1 className="font-display text-2xl italic text-forest-deep">
-                Admin dashboard
-              </h1>
-            </div>
-          </div>
-          <div className="flex items-center gap-3 text-xs">
-            <span className="text-charcoal/60">
-              {me.email}
-              <span className="ml-2 rounded-full bg-sage/20 px-2 py-0.5 font-semibold uppercase tracking-widest text-forest">
-                {isBoss ? "boss" : "admin"}
-              </span>
-            </span>
-            <button
-              onClick={logout}
-              className="rounded-full border border-forest/20 px-4 py-2 font-semibold text-charcoal/70 hover:bg-forest/5"
-            >
-              Sign out
-            </button>
-          </div>
-        </div>
-      </header>
+      {/* Floating hamburger — the only chrome on the page until the sidebar is opened */}
+      <button
+        onClick={() => setNavOpen(true)}
+        aria-label="Open menu"
+        className="fixed left-4 top-4 z-30 grid size-11 place-items-center rounded-full border border-forest/20 bg-white text-forest shadow-md hover:bg-forest/5"
+      >
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+          <path d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
 
       {/* Slide-in left sidebar */}
       {navOpen && (
@@ -145,12 +118,19 @@ function AdminPage() {
         />
       )}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 w-64 transform border-r border-forest/10 bg-white shadow-xl transition-transform ${
+        className={`fixed inset-y-0 left-0 z-50 flex w-72 transform flex-col border-r border-forest/10 bg-white shadow-xl transition-transform ${
           navOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
-        <div className="flex items-center justify-between border-b border-forest/10 px-5 py-4">
-          <p className="font-display text-lg italic text-forest-deep">Menu</p>
+        <div className="flex items-start justify-between border-b border-forest/10 px-5 py-4">
+          <div>
+            <p className="font-mono text-[10px] font-semibold uppercase tracking-widest text-sage">
+              PrimeDownloads
+            </p>
+            <p className="font-display text-lg italic text-forest-deep">
+              Admin dashboard
+            </p>
+          </div>
           <button
             onClick={() => setNavOpen(false)}
             aria-label="Close menu"
@@ -159,7 +139,7 @@ function AdminPage() {
             ✕
           </button>
         </div>
-        <nav className="flex flex-col p-3">
+        <nav className="flex flex-1 flex-col gap-1 p-3">
           {tabs.map((t) => (
             <button
               key={t}
@@ -177,9 +157,23 @@ function AdminPage() {
             </button>
           ))}
         </nav>
+        <div className="border-t border-forest/10 p-4 text-xs">
+          <p className="truncate text-charcoal/70">
+            {me.email}
+            <span className="ml-2 rounded-full bg-sage/20 px-2 py-0.5 font-semibold uppercase tracking-widest text-forest">
+              {isBoss ? "boss" : "admin"}
+            </span>
+          </p>
+          <button
+            onClick={logout}
+            className="mt-3 w-full rounded-full border border-forest/20 px-4 py-2 font-semibold text-charcoal/70 hover:bg-forest/5"
+          >
+            Sign out
+          </button>
+        </div>
       </aside>
 
-      <main className="mx-auto max-w-6xl px-6 py-8">
+      <main className="mx-auto max-w-6xl px-6 pb-8 pt-20">
         {activeTab === "sales" && <SalesPanel />}
         {activeTab === "reviews" && isBoss && <ReviewsPanel />}
         {activeTab === "buyers" && isBoss && <BuyersPanel />}
