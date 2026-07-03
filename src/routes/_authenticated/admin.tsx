@@ -17,6 +17,16 @@ import {
   type SalesStats,
   type AdminUserRow,
 } from "@/lib/admin.functions";
+import {
+  adminListAffiliates,
+  adminCreateAffiliate,
+  adminUpdateAffiliate,
+  adminDeleteAffiliate,
+  adminListReferrals,
+  adminSetReferralPaid,
+  type AffiliateRow,
+  type AffiliateReferral,
+} from "@/lib/affiliates.functions";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   component: AdminPage,
@@ -29,13 +39,14 @@ export const Route = createFileRoute("/_authenticated/admin")({
 });
 
 type Me = { userId: string; email: string | null; roles: ("boss" | "admin")[] };
-type Tab = "sales" | "reviews" | "buyers" | "admins";
+type Tab = "sales" | "reviews" | "buyers" | "affiliates" | "admins";
 
 function AdminPage() {
   const navigate = useNavigate();
   const [me, setMe] = useState<Me | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [tab, setTab] = useState<Tab>("sales");
+  const [navOpen, setNavOpen] = useState(false);
 
   useEffect(() => {
     adminMe()
@@ -80,20 +91,33 @@ function AdminPage() {
   }
 
   const isBoss = me.roles.includes("boss");
-  const tabs: Tab[] = isBoss ? ["sales", "reviews", "buyers", "admins"] : ["sales"];
+  const tabs: Tab[] = isBoss
+    ? ["sales", "reviews", "buyers", "affiliates", "admins"]
+    : ["sales"];
   const activeTab = tabs.includes(tab) ? tab : "sales";
 
   return (
     <div className="min-h-screen bg-cream font-sans text-charcoal">
       <header className="border-b border-forest/10 bg-white">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-6 py-4">
-          <div>
-            <p className="font-mono text-[11px] font-semibold uppercase tracking-widest text-sage">
-              PlantedAndSimple
-            </p>
-            <h1 className="font-display text-2xl italic text-forest-deep">
-              Admin dashboard
-            </h1>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setNavOpen(true)}
+              aria-label="Open menu"
+              className="grid size-10 place-items-center rounded-full border border-forest/20 text-forest hover:bg-forest/5"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                <path d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+            <div>
+              <p className="font-mono text-[11px] font-semibold uppercase tracking-widest text-sage">
+                PrimeDownloads
+              </p>
+              <h1 className="font-display text-2xl italic text-forest-deep">
+                Admin dashboard
+              </h1>
+            </div>
           </div>
           <div className="flex items-center gap-3 text-xs">
             <span className="text-charcoal/60">
@@ -110,27 +134,56 @@ function AdminPage() {
             </button>
           </div>
         </div>
-        <nav className="mx-auto flex max-w-6xl gap-6 overflow-x-auto px-6">
+      </header>
+
+      {/* Slide-in left sidebar */}
+      {navOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/30"
+          onClick={() => setNavOpen(false)}
+          aria-hidden
+        />
+      )}
+      <aside
+        className={`fixed inset-y-0 left-0 z-50 w-64 transform border-r border-forest/10 bg-white shadow-xl transition-transform ${
+          navOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
+        <div className="flex items-center justify-between border-b border-forest/10 px-5 py-4">
+          <p className="font-display text-lg italic text-forest-deep">Menu</p>
+          <button
+            onClick={() => setNavOpen(false)}
+            aria-label="Close menu"
+            className="grid size-8 place-items-center rounded-full text-charcoal/60 hover:bg-forest/5"
+          >
+            ✕
+          </button>
+        </div>
+        <nav className="flex flex-col p-3">
           {tabs.map((t) => (
             <button
               key={t}
-              onClick={() => setTab(t)}
-              className={`-mb-px shrink-0 border-b-2 px-1 py-3 text-sm font-semibold capitalize ${
+              onClick={() => {
+                setTab(t);
+                setNavOpen(false);
+              }}
+              className={`rounded-lg px-4 py-3 text-left text-sm font-semibold capitalize ${
                 activeTab === t
-                  ? "border-forest text-forest"
-                  : "border-transparent text-charcoal/50 hover:text-charcoal"
+                  ? "bg-forest text-cream"
+                  : "text-charcoal/70 hover:bg-forest/5"
               }`}
             >
               {t}
             </button>
           ))}
         </nav>
-      </header>
+      </aside>
 
       <main className="mx-auto max-w-6xl px-6 py-8">
         {activeTab === "sales" && <SalesPanel />}
         {activeTab === "reviews" && isBoss && <ReviewsPanel />}
         {activeTab === "buyers" && isBoss && <BuyersPanel />}
+        {activeTab === "affiliates" && isBoss && <AffiliatesPanel />}
         {activeTab === "admins" && isBoss && <AdminsPanel meId={me.userId} />}
       </main>
     </div>
