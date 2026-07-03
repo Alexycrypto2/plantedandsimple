@@ -6,6 +6,9 @@ export function ReviewForm({ transactionId }: { transactionId?: string }) {
   const [location, setLocation] = useState("");
   const [rating, setRating] = useState(5);
   const [quote, setQuote] = useState("");
+  const [consent, setConsent] = useState(true);
+  const [photoDataUrl, setPhotoDataUrl] = useState<string | null>(null);
+  const [photoError, setPhotoError] = useState<string | null>(null);
   const [state, setState] = useState<
     { kind: "idle" } | { kind: "sending" } | { kind: "done" } | { kind: "error"; msg: string }
   >({ kind: "idle" });
@@ -29,7 +32,15 @@ export function ReviewForm({ transactionId }: { transactionId?: string }) {
     setState({ kind: "sending" });
     try {
       await submitReview({
-        data: { name, location, rating, quote, transactionId },
+        data: {
+          name,
+          location,
+          rating,
+          quote,
+          transactionId,
+          consent,
+          photoDataUrl: photoDataUrl ?? undefined,
+        },
       });
       setState({ kind: "done" });
     } catch (err) {
@@ -38,6 +49,26 @@ export function ReviewForm({ transactionId }: { transactionId?: string }) {
         msg: err instanceof Error ? err.message : "Could not submit review",
       });
     }
+  };
+
+  const onPhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setPhotoError(null);
+    const file = e.target.files?.[0];
+    if (!file) {
+      setPhotoDataUrl(null);
+      return;
+    }
+    if (!/^image\/(png|jpe?g|webp)$/.test(file.type)) {
+      setPhotoError("Please upload a PNG, JPG, or WEBP image.");
+      return;
+    }
+    if (file.size > 1_500_000) {
+      setPhotoError("Photo must be under 1.5 MB.");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => setPhotoDataUrl(reader.result as string);
+    reader.readAsDataURL(file);
   };
 
   return (
@@ -57,7 +88,7 @@ export function ReviewForm({ transactionId }: { transactionId?: string }) {
 
       <div className="mt-4 grid gap-3 sm:grid-cols-2">
         <label className="text-sm">
-          <span className="mb-1 block text-charcoal/70">Your name</span>
+          <span className="mb-1 block text-charcoal/70">First name</span>
           <input
             required
             maxLength={80}
@@ -68,13 +99,13 @@ export function ReviewForm({ transactionId }: { transactionId?: string }) {
         </label>
         <label className="text-sm">
           <span className="mb-1 block text-charcoal/70">
-            Location <span className="text-charcoal/40">(optional)</span>
+            Country <span className="text-charcoal/40">(optional)</span>
           </span>
           <input
             maxLength={80}
             value={location}
             onChange={(e) => setLocation(e.target.value)}
-            placeholder="e.g. Austin, TX"
+            placeholder="e.g. United Kingdom"
             className="w-full rounded-lg border border-forest/15 bg-white px-3 py-2 outline-none focus:border-forest"
           />
         </label>
@@ -111,13 +142,54 @@ export function ReviewForm({ transactionId }: { transactionId?: string }) {
         />
       </label>
 
+      <div className="mt-3 text-sm">
+        <span className="mb-1 block text-charcoal/70">
+          Profile photo <span className="text-charcoal/40">(optional)</span>
+        </span>
+        <div className="flex items-center gap-3">
+          {photoDataUrl ? (
+            <img
+              src={photoDataUrl}
+              alt="Preview"
+              className="size-14 rounded-full object-cover ring-1 ring-forest/20"
+            />
+          ) : (
+            <div className="grid size-14 place-items-center rounded-full bg-sage/15 text-forest">
+              👤
+            </div>
+          )}
+          <input
+            type="file"
+            accept="image/png,image/jpeg,image/webp"
+            onChange={onPhotoChange}
+            className="block w-full text-xs text-charcoal/70 file:mr-3 file:rounded-full file:border-0 file:bg-forest file:px-4 file:py-2 file:text-xs file:font-semibold file:text-cream hover:file:bg-forest-deep"
+          />
+        </div>
+        {photoError && (
+          <p className="mt-2 text-xs text-red-600">{photoError}</p>
+        )}
+      </div>
+
+      <label className="mt-4 flex items-start gap-3 text-sm text-charcoal/80">
+        <input
+          type="checkbox"
+          checked={consent}
+          onChange={(e) => setConsent(e.target.checked)}
+          className="mt-1 size-4 accent-forest"
+        />
+        <span>
+          I agree that my first name, country, rating, review and optional
+          photo may appear on the website once approved.
+        </span>
+      </label>
+
       {state.kind === "error" && (
         <p className="mt-3 text-sm text-red-600">{state.msg}</p>
       )}
 
       <button
         type="submit"
-        disabled={state.kind === "sending"}
+        disabled={state.kind === "sending" || !consent}
         className="mt-4 inline-flex items-center justify-center rounded-full bg-forest px-6 py-3 text-sm font-semibold text-cream shadow-sm transition hover:bg-forest-deep disabled:opacity-60"
       >
         {state.kind === "sending" ? "Submitting…" : "Submit review"}
