@@ -28,7 +28,7 @@ const productJsonLd = {
   brand: { "@type": "Brand", name: "PlantedAndSimple" },
   offers: {
     "@type": "Offer",
-    price: "9.99",
+    price: "14.99",
     priceCurrency: "USD",
     availability: "https://schema.org/InStock",
   },
@@ -42,7 +42,7 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "Instant PDF cookbook: 30 high-protein vegan recipes, 4 weekly meal plans, and 6 bonuses. Quick, satisfying, meal-prep friendly. Just $9.99 today.",
+          "Instant PDF cookbook: 30 high-protein vegan recipes, 4 weekly meal plans, and 6 bonuses. Regular $29.99 — launch price $14.99 today (save 50%).",
       },
       {
         name: "keywords",
@@ -58,7 +58,7 @@ export const Route = createFileRoute("/")({
       {
         property: "og:description",
         content:
-          "Simple plant-based meals. Powerful nutrition. Instant PDF cookbook + 6 free bonuses for $9.99.",
+          "Simple plant-based meals. Powerful nutrition. Instant PDF cookbook + 6 free bonuses. $14.99 (was $29.99).",
       },
     ],
     links: [{ rel: "canonical", href: "/" }],
@@ -114,6 +114,14 @@ const trustSignals = [
   { icon: "⚡", text: "Instant Download" },
   { icon: "💻", text: "Phone, Tablet & PC" },
   { icon: "💳", text: "Secure Payment" },
+];
+
+const guaranteeBadges = [
+  { icon: "🛡️", title: "60-Day Money-Back", sub: "No questions asked" },
+  { icon: "🔒", title: "Secure Checkout", sub: "Encrypted by Paddle" },
+  { icon: "⚡", title: "Instant Download", sub: "Delivered as PDF" },
+  { icon: "♾️", title: "Lifetime Access", sub: "Yours to keep" },
+  { icon: "📱", title: "Phone · Tablet · PC", sub: "Read on any device" },
 ];
 
 const peekPages = [
@@ -353,14 +361,14 @@ function SalesPage() {
             <span className="font-display italic text-sage-soft">
               Launch price ends in {timeText}
             </span>
-            <span className="hidden sm:inline"> — grab the cookbook for $9.99.</span>
+            <span className="hidden sm:inline"> — save 50% on the cookbook.</span>
           </p>
           <button
             type="button"
             onClick={openCheckout}
             className="shrink-0 rounded-full bg-cream px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-forest transition hover:bg-white active:scale-[0.98] sm:px-4 sm:py-2 sm:text-xs"
           >
-            Get $9.99
+            Save 50%
           </button>
         </div>
       </div>
@@ -374,9 +382,9 @@ function SalesPage() {
         >
           <span className="flex items-center gap-2">
             <span className="font-mono text-xs uppercase tracking-widest opacity-70 line-through">
-              $24.99
+              $29.99
             </span>
-            <span className="text-base font-semibold">$9.99</span>
+            <span className="text-base font-semibold">$14.99</span>
           </span>
           <span className="text-sm font-semibold uppercase tracking-wider">
             Get the Book →
@@ -394,7 +402,7 @@ function SalesPage() {
           onClick={openCheckout}
           className="hidden rounded-full bg-forest px-5 py-2.5 text-sm font-semibold text-cream shadow-sm transition hover:bg-forest-deep md:inline-flex"
         >
-          Get the Book · $9.99
+          Get the Book
         </button>
       </nav>
 
@@ -477,15 +485,9 @@ function SalesPage() {
                 height={1000}
                 className="animate-float relative w-full rounded-3xl object-cover shadow-[var(--shadow-card)] ring-1 ring-forest/10"
               />
-              <div className="absolute -bottom-5 -right-3 flex flex-col items-center rounded-2xl bg-white px-5 py-3 shadow-lg ring-1 ring-forest/10 sm:-right-6">
-                <span className="font-mono text-[10px] uppercase tracking-widest text-charcoal/40 line-through">
-                  $24.99
-                </span>
-                <span className="font-display text-2xl font-bold text-forest">
-                  $9.99
-                </span>
-                <span className="font-mono text-[9px] uppercase tracking-widest text-sage">
-                  Today Only
+              <div className="absolute -bottom-4 -right-3 rounded-full bg-white px-4 py-2 shadow-lg ring-1 ring-forest/10 sm:-right-6">
+                <span className="font-mono text-[10px] font-bold uppercase tracking-widest text-forest">
+                  🔥 Save 50% · Launch Offer
                 </span>
               </div>
             </div>
@@ -497,23 +499,23 @@ function SalesPage() {
       <section className="border-y border-forest/5 bg-white/60 py-16 md:py-20">
         <div className="mx-auto max-w-6xl px-6">
           <div className="text-center">
-            <SectionLabel>Reader favorites</SectionLabel>
+            <SectionLabel>Customer Reviews</SectionLabel>
             <h2 className="font-display text-3xl text-forest-deep sm:text-4xl">
-              Why readers love meal-prepping with this cookbook
+              Real reviews from real readers
             </h2>
             <p className="mx-auto mt-4 max-w-xl text-sm text-charcoal/70">
-              Every review below is submitted by a verified reader after
-              downloading the cookbook — and hand-approved before it appears
-              here.
+              Every review here comes from a verified buyer after downloading
+              the cookbook, and is hand-approved before it appears. No fake
+              names. No stock photos. No AI testimonials.
             </p>
           </div>
 
           {reviews && reviews.length > 0 ? (
-            <div className="mt-12 grid gap-5 md:grid-cols-3">
+            <div className="mt-12 grid gap-5 sm:grid-cols-2 md:grid-cols-3">
               {reviews.map((r) => (
                 <figure
                   key={r.id}
-                  className="rounded-3xl bg-cream/70 p-7 ring-1 ring-forest/10 transition hover:-translate-y-1 hover:shadow-[var(--shadow-soft)]"
+                  className="flex flex-col rounded-3xl bg-white p-7 shadow-[var(--shadow-soft)] ring-1 ring-forest/10 transition hover:-translate-y-1 hover:shadow-[var(--shadow-card)]"
                 >
                   <div className="mb-4 flex gap-0.5">
                     {Array.from({ length: r.rating }).map((_, i) => (
@@ -523,14 +525,40 @@ function SalesPage() {
                   <blockquote className="font-display text-lg leading-snug italic text-charcoal/85">
                     “{r.quote}”
                   </blockquote>
-                  <figcaption className="mt-6 font-mono text-[11px] font-semibold uppercase tracking-widest text-forest">
-                    — {r.name}
-                    {r.location ? (
-                      <>
-                        {" · "}
-                        <span className="text-sage">{r.location}</span>
-                      </>
-                    ) : null}
+                  <figcaption className="mt-6 flex items-center gap-3 border-t border-forest/10 pt-4">
+                    {r.photo_url ? (
+                      <img
+                        src={r.photo_url}
+                        alt={`${r.name} profile photo`}
+                        loading="lazy"
+                        className="size-11 rounded-full object-cover ring-1 ring-forest/15"
+                      />
+                    ) : (
+                      <span
+                        aria-hidden="true"
+                        className="grid size-11 place-items-center rounded-full bg-sage/20 font-display text-lg italic text-forest"
+                      >
+                        {r.name.charAt(0).toUpperCase()}
+                      </span>
+                    )}
+                    <div className="min-w-0 flex-1">
+                      <p className="font-semibold text-forest-deep">
+                        {r.name}
+                        {r.location && (
+                          <span className="ml-1 text-xs font-normal text-charcoal/60">
+                            · {r.location}
+                          </span>
+                        )}
+                      </p>
+                      <p className="font-mono text-[10px] uppercase tracking-widest text-charcoal/50">
+                        Verified buyer ·{" "}
+                        {new Date(r.created_at).toLocaleDateString(undefined, {
+                          year: "numeric",
+                          month: "short",
+                          day: "numeric",
+                        })}
+                      </p>
+                    </div>
                   </figcaption>
                 </figure>
               ))}
@@ -538,23 +566,22 @@ function SalesPage() {
           ) : (
             <div className="mx-auto mt-12 max-w-2xl rounded-3xl border border-dashed border-sage/50 bg-cream/60 p-8 text-center">
               <p className="font-mono text-[11px] font-semibold uppercase tracking-widest text-sage">
-                Fresh launch
+                Customer Reviews Coming Soon
               </p>
               <h3 className="mt-3 font-display text-2xl italic text-forest-deep">
-                You could be one of our first reviewers.
+                Be one of our first reviewers.
               </h3>
               <p className="mx-auto mt-3 max-w-lg text-sm text-charcoal/70">
-                We just launched, so we're not pretending to have thousands of
-                reviews yet. Grab the cookbook, try a recipe, and share what
-                you think — verified reviews from real buyers will appear
-                right here.
+                We're excited to hear what our first customers think. Purchase
+                today and be among the first to leave a review. Only verified,
+                hand-approved reviews from real buyers appear here.
               </p>
               <button
                 type="button"
                 onClick={openCheckout}
                 className="mt-6 inline-flex items-center justify-center rounded-full bg-forest px-6 py-3 text-sm font-semibold text-cream shadow-sm transition hover:bg-forest-deep"
               >
-                Get the cookbook · $9.99
+                Get the cookbook
               </button>
             </div>
           )}
@@ -844,6 +871,25 @@ function SalesPage() {
             </a>
             .
           </p>
+
+          <ul className="mx-auto mt-10 grid max-w-3xl gap-3 sm:grid-cols-2 lg:grid-cols-5">
+            {guaranteeBadges.map((b) => (
+              <li
+                key={b.title}
+                className="flex flex-col items-center gap-2 rounded-2xl border border-forest/10 bg-cream/60 p-4 text-center transition hover:-translate-y-0.5 hover:border-sage/40 hover:bg-white"
+              >
+                <span aria-hidden="true" className="text-2xl">
+                  {b.icon}
+                </span>
+                <span className="text-sm font-semibold text-forest-deep leading-tight">
+                  {b.title}
+                </span>
+                <span className="font-mono text-[10px] uppercase tracking-widest text-charcoal/50">
+                  {b.sub}
+                </span>
+              </li>
+            ))}
+          </ul>
         </div>
       </section>
 
@@ -875,18 +921,18 @@ function SalesPage() {
               <CountdownTimer variant="dark" label={urgencyText} />
             </div>
 
-            <div className="mt-8 flex items-baseline gap-4">
+            <div className="mt-8 inline-flex items-center gap-2 rounded-full bg-sage/20 px-4 py-1.5 font-mono text-[11px] font-bold uppercase tracking-widest text-sage-soft ring-1 ring-sage/40">
+              🔥 Save 50% — Limited Launch Offer
+            </div>
+            <div className="mt-4 flex items-baseline gap-4">
               <span className="font-mono text-xl text-cream/50 line-through">
-                $24.99
+                $29.99
               </span>
-              <span className="font-display text-6xl font-bold">$9.99</span>
+              <span className="font-display text-6xl font-bold">$14.99</span>
               <span className="font-mono text-xs uppercase tracking-widest text-sage-soft">
                 USD
               </span>
             </div>
-            <p className="mt-2 text-sm font-semibold text-sage-soft">
-              Launch Price: $9.99 — Save 60%
-            </p>
             <p className="mt-1 text-sm text-cream/70">
               Instant PDF download · Lifetime access · All 6 bonuses included
             </p>
@@ -1018,7 +1064,7 @@ function SalesPage() {
             Download My Cookbook Now →
           </button>
           <p className="mt-4 font-mono text-[11px] uppercase tracking-widest text-cream/60">
-            $9.99 · Instant PDF · 60-day guarantee
+            $14.99 · Instant PDF · 60-day guarantee
           </p>
         </div>
       </section>
