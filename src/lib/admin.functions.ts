@@ -307,17 +307,18 @@ export const adminListAdmins = createServerFn({ method: "GET" })
       .from("user_roles")
       .select("user_id, role, created_at")
       .order("created_at", { ascending: false });
-    const byUser = new Map<
+    const byUser: Record<
       string,
       { roles: Role[]; created_at: string | null }
-    >();
+    > = {};
     (roleRows ?? []).forEach((r: any) => {
-      const prev = byUser.get(r.user_id) ?? { roles: [], created_at: r.created_at };
-      prev.roles.push(r.role as Role);
-      byUser.set(r.user_id, prev);
+      const key = r.user_id as string;
+      if (!byUser[key]) byUser[key] = { roles: [], created_at: r.created_at };
+      byUser[key].roles.push(r.role as Role);
     });
     const results: AdminUserRow[] = [];
-    for (const [user_id, { roles, created_at }] of byUser) {
+    for (const user_id of Object.keys(byUser)) {
+      const { roles, created_at } = byUser[user_id];
       const { data: u } = await supabaseAdmin.auth.admin.getUserById(user_id);
       results.push({
         user_id,
