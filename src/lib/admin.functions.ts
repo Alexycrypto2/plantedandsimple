@@ -313,7 +313,7 @@ export const adminListAdmins = createServerFn({ method: "GET" })
     >();
     (roleRows ?? []).forEach((r: any) => {
       const prev = byUser.get(r.user_id) ?? { roles: [], created_at: r.created_at };
-      prev.roles.push(r.role);
+      prev.roles.push(r.role as Role);
       byUser.set(r.user_id, prev);
     });
     const results: AdminUserRow[] = [];
