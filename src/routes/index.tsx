@@ -16,6 +16,7 @@ import peekGroceryAsset from "@/assets/peek-grocery.jpg.asset.json";
 import { usePaddleCheckout } from "@/hooks/usePaddleCheckout";
 import { CountdownTimer, useOfferCountdown } from "@/components/CountdownTimer";
 import { listApprovedReviews, type PublicReview } from "@/lib/reviews.functions";
+import { trackAffiliateClick } from "@/lib/affiliates.functions";
 
 const PRICE_ID = "high_protein_cookbook_onetime";
 
@@ -347,10 +348,32 @@ function SalesPage() {
       .then((r) => setReviews(r))
       .catch(() => setReviews([]));
   }, []);
+  // Capture referral code from ?ref= and persist for checkout attribution.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const ref = params.get("ref");
+    if (ref) {
+      const code = ref.trim().toUpperCase();
+      try {
+        localStorage.setItem("ref_code", code);
+        localStorage.setItem("ref_code_at", String(Date.now()));
+      } catch {}
+      trackAffiliateClick({ data: { code } }).catch(() => {});
+    }
+  }, []);
   const openCheckout = () =>
     openPaddle({
       priceId: PRICE_ID,
       successUrl: `${window.location.origin}/thank-you`,
+      customData: (() => {
+        try {
+          const ref = localStorage.getItem("ref_code");
+          return ref ? { ref } : undefined;
+        } catch {
+          return undefined;
+        }
+      })(),
     });
 
   return (
