@@ -1,18 +1,19 @@
 import { createServerFn } from "@tanstack/react-start";
 
-function requireAdmin(password: string) {
+function checkAdmin(password: string): boolean {
   const expected = process.env.ADMIN_PASSWORD;
-  if (!expected) throw new Error("Admin password not configured.");
-  if (typeof password !== "string" || password.length < 8) {
-    throw new Error("Unauthorized");
-  }
-  // Constant-time-ish compare
+  if (!expected) return false;
+  if (typeof password !== "string" || password.length === 0) return false;
   const a = Buffer.from(password);
   const b = Buffer.from(expected);
-  if (a.length !== b.length) throw new Error("Unauthorized");
+  if (a.length !== b.length) return false;
   let diff = 0;
   for (let i = 0; i < a.length; i++) diff |= a[i] ^ b[i];
-  if (diff !== 0) throw new Error("Unauthorized");
+  return diff === 0;
+}
+
+function requireAdmin(password: string) {
+  if (!checkAdmin(password)) throw new Error("Unauthorized");
 }
 
 export type AdminReview = {
@@ -32,9 +33,8 @@ export type AdminReview = {
 
 export const adminVerifyPassword = createServerFn({ method: "POST" })
   .inputValidator((data: { password: string }) => data)
-  .handler(async ({ data }): Promise<{ ok: true }> => {
-    requireAdmin(data.password);
-    return { ok: true };
+  .handler(async ({ data }): Promise<{ ok: boolean }> => {
+    return { ok: checkAdmin(data.password) };
   });
 
 export const adminListReviews = createServerFn({ method: "POST" })
