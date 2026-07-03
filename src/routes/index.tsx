@@ -871,6 +871,25 @@ function SalesPage() {
             </a>
             .
           </p>
+
+          <ul className="mx-auto mt-10 grid max-w-3xl gap-3 sm:grid-cols-2 lg:grid-cols-5">
+            {guaranteeBadges.map((b) => (
+              <li
+                key={b.title}
+                className="flex flex-col items-center gap-2 rounded-2xl border border-forest/10 bg-cream/60 p-4 text-center transition hover:-translate-y-0.5 hover:border-sage/40 hover:bg-white"
+              >
+                <span aria-hidden="true" className="text-2xl">
+                  {b.icon}
+                </span>
+                <span className="text-sm font-semibold text-forest-deep leading-tight">
+                  {b.title}
+                </span>
+                <span className="font-mono text-[10px] uppercase tracking-widest text-charcoal/50">
+                  {b.sub}
+                </span>
+              </li>
+            ))}
+          </ul>
         </div>
       </section>
 
