@@ -38,9 +38,13 @@ function AdminPage() {
       return;
     }
     adminVerifyPassword({ data: { password: stored } })
-      .then(() => {
-        setPassword(stored);
-        setAuthed(true);
+      .then((res) => {
+        if (res.ok) {
+          setPassword(stored);
+          setAuthed(true);
+        } else {
+          sessionStorage.removeItem(STORAGE_KEY);
+        }
       })
       .catch(() => sessionStorage.removeItem(STORAGE_KEY))
       .finally(() => setChecking(false));
@@ -50,11 +54,15 @@ function AdminPage() {
     e.preventDefault();
     setLoginError(null);
     try {
-      await adminVerifyPassword({ data: { password } });
-      sessionStorage.setItem(STORAGE_KEY, password);
-      setAuthed(true);
+      const res = await adminVerifyPassword({ data: { password } });
+      if (res.ok) {
+        sessionStorage.setItem(STORAGE_KEY, password);
+        setAuthed(true);
+      } else {
+        setLoginError("Incorrect password.");
+      }
     } catch {
-      setLoginError("Incorrect password.");
+      setLoginError("Could not verify. Try again.");
     }
   };
 
