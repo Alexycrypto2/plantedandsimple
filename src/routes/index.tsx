@@ -921,18 +921,18 @@ function SalesPage() {
               <CountdownTimer variant="dark" label={urgencyText} />
             </div>
 
-            <div className="mt-8 flex items-baseline gap-4">
+            <div className="mt-8 inline-flex items-center gap-2 rounded-full bg-sage/20 px-4 py-1.5 font-mono text-[11px] font-bold uppercase tracking-widest text-sage-soft ring-1 ring-sage/40">
+              🔥 Save 50% — Limited Launch Offer
+            </div>
+            <div className="mt-4 flex items-baseline gap-4">
               <span className="font-mono text-xl text-cream/50 line-through">
-                $24.99
+                $29.99
               </span>
-              <span className="font-display text-6xl font-bold">$9.99</span>
+              <span className="font-display text-6xl font-bold">$14.99</span>
               <span className="font-mono text-xs uppercase tracking-widest text-sage-soft">
                 USD
               </span>
             </div>
-            <p className="mt-2 text-sm font-semibold text-sage-soft">
-              Launch Price: $9.99 — Save 60%
-            </p>
             <p className="mt-1 text-sm text-cream/70">
               Instant PDF download · Lifetime access · All 6 bonuses included
             </p>
