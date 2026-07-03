@@ -132,6 +132,7 @@ function PaidView({
   email: string | null;
   transactionId: string;
 }) {
+  const [showReview, setShowReview] = useState(false);
   return (
     <>
       <div className="mx-auto grid size-16 place-items-center rounded-full bg-sage/20 text-forest">
@@ -148,14 +149,14 @@ function PaidView({
         Payment confirmed
       </p>
       <h1 className="mt-3 font-display text-4xl italic text-forest-deep sm:text-5xl">
-        Thank you!
+        Thank you for your purchase!
       </h1>
       <p className="mx-auto mt-4 max-w-md text-charcoal/70">
-        Your copy of{" "}
+        Your cookbook is ready to download. Your copy of{" "}
         <strong className="text-charcoal">
           30 High-Protein Plant-Based Meals
         </strong>{" "}
-        is ready.
+        is waiting below.
         {email && (
           <>
             {" "}A receipt has been sent to{" "}
@@ -177,51 +178,51 @@ function PaidView({
         href={downloadUrl(transactionId)}
         className="mt-10 inline-flex items-center justify-center gap-2 rounded-full bg-forest px-10 py-5 text-lg font-bold text-cream shadow-xl transition-all hover:-translate-y-0.5 hover:bg-forest-deep"
       >
-        ⬇ Download Cookbook (PDF)
+        ⬇ Download PDF
       </a>
       <p className="mt-4 font-mono text-[11px] uppercase tracking-widest text-charcoal/50">
         Secure link · Save the file to your device
       </p>
 
-      <div className="mt-12 rounded-2xl border border-sage/20 bg-cream/60 p-6 text-left">
+      <div className="mt-10 rounded-2xl border border-sage/20 bg-cream/60 p-6 text-left">
         <p className="font-mono text-[11px] font-semibold uppercase tracking-widest text-sage">
-          What's next
+          Download instructions
         </p>
-        <ul className="mt-3 space-y-2 text-sm text-charcoal/75">
-          <li>· Save the PDF to your phone, tablet, or Kindle.</li>
-          <li>· Print any recipe you'd like to keep in the kitchen.</li>
-          <li>
-            · Pin your favorite recipes on{" "}
-            <a
-              href="https://pinterest.com"
-              className="font-semibold text-forest underline underline-offset-4"
-            >
-              Pinterest
-            </a>
-            .
-          </li>
-        </ul>
+        <ol className="mt-3 space-y-2 text-sm text-charcoal/75">
+          <li>1. Tap the green <strong>Download PDF</strong> button above.</li>
+          <li>2. The file will save to your phone, tablet, or computer.</li>
+          <li>3. Open it in any PDF reader — no app needed.</li>
+          <li>4. Print any recipe you'd like to keep in the kitchen.</li>
+        </ol>
       </div>
 
-      <div className="mt-8">
-        <div className="mb-4 rounded-2xl border border-sage/30 bg-white p-5 text-left shadow-sm">
-          <div className="flex items-start gap-3">
-            <div className="grid size-9 shrink-0 place-items-center rounded-full bg-sage/15 text-forest">
-              ✉
-            </div>
-            <div>
-              <p className="font-mono text-[11px] font-semibold uppercase tracking-widest text-sage">
-                A quick favor
-              </p>
-              <h3 className="mt-1 font-display text-lg italic text-forest-deep">
-                Loved a recipe? Leave a short review below —
-                it helps other plant-curious readers hit “buy” with confidence.
-              </h3>
-            </div>
-          </div>
-        </div>
-        <ReviewForm transactionId={transactionId} />
+      <div className="mt-10 rounded-3xl bg-gradient-to-br from-sage/15 to-cream p-6 text-center ring-1 ring-forest/10 sm:p-8">
+        <p className="font-mono text-[11px] font-semibold uppercase tracking-widest text-sage">
+          We'd love your feedback ⭐
+        </p>
+        <h3 className="mt-2 font-display text-2xl italic text-forest-deep">
+          If you enjoyed this cookbook, please leave a quick review.
+        </h3>
+        <p className="mx-auto mt-2 max-w-md text-sm text-charcoal/70">
+          Your feedback helps other customers and helps us improve future
+          cookbooks.
+        </p>
+        {!showReview && (
+          <button
+            type="button"
+            onClick={() => setShowReview(true)}
+            className="mt-5 inline-flex items-center justify-center rounded-full bg-forest px-8 py-3 text-sm font-semibold text-cream shadow-sm transition hover:bg-forest-deep"
+          >
+            Leave a Review
+          </button>
+        )}
       </div>
+
+      {showReview && (
+        <div className="mt-6">
+          <ReviewForm transactionId={transactionId} />
+        </div>
+      )}
 
       <a
         href="/"
@@ -296,7 +297,7 @@ function NoSessionView() {
         href="/"
         className="mt-8 inline-flex items-center justify-center gap-2 rounded-full bg-forest px-8 py-4 font-semibold text-cream shadow-lg hover:bg-forest-deep"
       >
-        Get the Cookbook — $9.99
+        Get the Cookbook — $14.99
       </a>
     </>
   );
