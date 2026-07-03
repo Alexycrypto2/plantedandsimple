@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { submitReview } from "@/lib/reviews.functions";
+import { getPaddleEnvironment } from "@/lib/paddle";
 
-export function ReviewForm({ transactionId }: { transactionId?: string }) {
+export function ReviewForm({ transactionId }: { transactionId: string }) {
   const [name, setName] = useState("");
   const [location, setLocation] = useState("");
   const [rating, setRating] = useState(5);
@@ -38,6 +39,7 @@ export function ReviewForm({ transactionId }: { transactionId?: string }) {
           rating,
           quote,
           transactionId,
+          environment: getPaddleEnvironment(),
           consent,
           photoDataUrl: photoDataUrl ?? undefined,
         },
