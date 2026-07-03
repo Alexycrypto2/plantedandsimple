@@ -116,6 +116,14 @@ const trustSignals = [
   { icon: "💳", text: "Secure Payment" },
 ];
 
+const guaranteeBadges = [
+  { icon: "🛡️", title: "60-Day Money-Back", sub: "No questions asked" },
+  { icon: "🔒", title: "Secure Checkout", sub: "Encrypted by Paddle" },
+  { icon: "⚡", title: "Instant Download", sub: "Delivered as PDF" },
+  { icon: "♾️", title: "Lifetime Access", sub: "Yours to keep" },
+  { icon: "📱", title: "Phone · Tablet · PC", sub: "Read on any device" },
+];
+
 const peekPages = [
   {
     label: "Cover Page",
