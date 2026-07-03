@@ -14,6 +14,101 @@ export type Database = {
   }
   public: {
     Tables: {
+      affiliate_clicks: {
+        Row: {
+          code: string
+          created_at: string
+          id: number
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          id?: number
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          id?: number
+        }
+        Relationships: []
+      }
+      affiliate_referrals: {
+        Row: {
+          affiliate_id: string
+          commission_amount: number
+          id: string
+          paid_at: string | null
+          product: string | null
+          purchased_at: string
+          sale_amount: number
+          status: string
+          transaction_id: string
+        }
+        Insert: {
+          affiliate_id: string
+          commission_amount: number
+          id?: string
+          paid_at?: string | null
+          product?: string | null
+          purchased_at?: string
+          sale_amount: number
+          status?: string
+          transaction_id: string
+        }
+        Update: {
+          affiliate_id?: string
+          commission_amount?: number
+          id?: string
+          paid_at?: string | null
+          product?: string | null
+          purchased_at?: string
+          sale_amount?: number
+          status?: string
+          transaction_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "affiliate_referrals_affiliate_id_fkey"
+            columns: ["affiliate_id"]
+            isOneToOne: false
+            referencedRelation: "affiliates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      affiliates: {
+        Row: {
+          code: string
+          commission_pct: number
+          created_at: string
+          disabled: boolean
+          email: string
+          id: string
+          name: string
+          user_id: string | null
+        }
+        Insert: {
+          code: string
+          commission_pct?: number
+          created_at?: string
+          disabled?: boolean
+          email: string
+          id?: string
+          name: string
+          user_id?: string | null
+        }
+        Update: {
+          code?: string
+          commission_pct?: number
+          created_at?: string
+          disabled?: boolean
+          email?: string
+          id?: string
+          name?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       cookbook_downloads: {
         Row: {
           confirmation_email_sent_at: string | null
