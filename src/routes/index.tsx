@@ -1064,7 +1064,7 @@ function SalesPage() {
             Download My Cookbook Now →
           </button>
           <p className="mt-4 font-mono text-[11px] uppercase tracking-widest text-cream/60">
-            $9.99 · Instant PDF · 60-day guarantee
+            $14.99 · Instant PDF · 60-day guarantee
           </p>
         </div>
       </section>
