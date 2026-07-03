@@ -18,6 +18,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as EmailUnsubscribeRouteImport } from './routes/email/unsubscribe'
+import { Route as AuthenticatedAffiliateRouteImport } from './routes/_authenticated/affiliate'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/email/suppression'
 import { Route as LovableEmailTransactionalSendRouteImport } from './routes/lovable/email/transactional/send'
@@ -71,6 +72,11 @@ const EmailUnsubscribeRoute = EmailUnsubscribeRouteImport.update({
   id: '/email/unsubscribe',
   path: '/email/unsubscribe',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedAffiliateRoute = AuthenticatedAffiliateRouteImport.update({
+  id: '/affiliate',
+  path: '/affiliate',
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   id: '/admin',
@@ -132,6 +138,7 @@ export interface FileRoutesByFullPath {
   '/terms': typeof TermsRoute
   '/thank-you': typeof ThankYouRoute
   '/admin': typeof AuthenticatedAdminRoute
+  '/affiliate': typeof AuthenticatedAffiliateRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/api/public/download/cookbook': typeof ApiPublicDownloadCookbookRoute
@@ -151,6 +158,7 @@ export interface FileRoutesByTo {
   '/terms': typeof TermsRoute
   '/thank-you': typeof ThankYouRoute
   '/admin': typeof AuthenticatedAdminRoute
+  '/affiliate': typeof AuthenticatedAffiliateRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/api/public/download/cookbook': typeof ApiPublicDownloadCookbookRoute
@@ -172,6 +180,7 @@ export interface FileRoutesById {
   '/terms': typeof TermsRoute
   '/thank-you': typeof ThankYouRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
+  '/_authenticated/affiliate': typeof AuthenticatedAffiliateRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/api/public/download/cookbook': typeof ApiPublicDownloadCookbookRoute
@@ -193,6 +202,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/thank-you'
     | '/admin'
+    | '/affiliate'
     | '/email/unsubscribe'
     | '/lovable/email/suppression'
     | '/api/public/download/cookbook'
@@ -212,6 +222,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/thank-you'
     | '/admin'
+    | '/affiliate'
     | '/email/unsubscribe'
     | '/lovable/email/suppression'
     | '/api/public/download/cookbook'
@@ -232,6 +243,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/thank-you'
     | '/_authenticated/admin'
+    | '/_authenticated/affiliate'
     | '/email/unsubscribe'
     | '/lovable/email/suppression'
     | '/api/public/download/cookbook'
@@ -328,6 +340,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EmailUnsubscribeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/affiliate': {
+      id: '/_authenticated/affiliate'
+      path: '/affiliate'
+      fullPath: '/affiliate'
+      preLoaderRoute: typeof AuthenticatedAffiliateRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/admin': {
       id: '/_authenticated/admin'
       path: '/admin'
@@ -396,10 +415,12 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
+  AuthenticatedAffiliateRoute: typeof AuthenticatedAffiliateRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRoute,
+  AuthenticatedAffiliateRoute: AuthenticatedAffiliateRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =

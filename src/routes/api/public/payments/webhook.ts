@@ -115,6 +115,45 @@ export const Route = createFileRoute("/api/public/payments/webhook")({
             { onConflict: "email", ignoreDuplicates: true },
           );
 
+        // Affiliate attribution.
+        try {
+          const refCode: string | undefined =
+            tx.customData?.ref ?? tx.custom_data?.ref;
+          if (refCode) {
+            const code = String(refCode).trim().toUpperCase();
+            const { data: aff } = await supabaseAdmin
+              .from("affiliates")
+              .select("id, commission_pct, disabled")
+              .eq("code", code)
+              .maybeSingle();
+            if (aff && !aff.disabled) {
+              // Paddle totals in lowest denomination.
+              const totalRaw =
+                tx.details?.totals?.total ??
+                tx.details?.totals?.grand_total ??
+                tx.details?.totals?.subtotal ??
+                0;
+              const sale = Number(totalRaw) / 100;
+              const commission = Number(
+                (sale * (Number(aff.commission_pct) / 100)).toFixed(2),
+              );
+              await supabaseAdmin.from("affiliate_referrals").upsert(
+                {
+                  affiliate_id: aff.id,
+                  transaction_id: transactionId,
+                  sale_amount: sale,
+                  commission_amount: commission,
+                  product: "cookbook",
+                  status: "pending",
+                },
+                { onConflict: "transaction_id", ignoreDuplicates: true },
+              );
+            }
+          }
+        } catch (err) {
+          console.error("Affiliate attribution failed", err);
+        }
+
         // Check suppression list before sending.
         const normalizedEmail = email.toLowerCase();
         const { data: suppressed } = await supabaseAdmin
