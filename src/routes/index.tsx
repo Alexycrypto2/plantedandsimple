@@ -331,6 +331,7 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 }
 
 function SalesPage() {
+  const pricing = Route.useLoaderData() as PublicPricing;
   const [openFaq, setOpenFaq] = useState<number | null>(0);
   const { openCheckout: openPaddle } = usePaddleCheckout();
   const { timeText, urgencyText } = useOfferCountdown();
