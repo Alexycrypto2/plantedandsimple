@@ -27,6 +27,12 @@ import {
   type AffiliateRow,
   type AffiliateReferral,
 } from "@/lib/affiliates.functions";
+import {
+  adminGetPricing,
+  adminUpdatePricing,
+  type PublicPricing,
+  type AdminUpdatePricingResult,
+} from "@/lib/pricing.functions";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   component: AdminPage,
@@ -39,7 +45,7 @@ export const Route = createFileRoute("/_authenticated/admin")({
 });
 
 type Me = { userId: string; email: string | null; roles: ("boss" | "admin")[] };
-type Tab = "sales" | "reviews" | "buyers" | "affiliates" | "admins";
+type Tab = "sales" | "reviews" | "buyers" | "pricing" | "affiliates" | "admins";
 
 function AdminPage() {
   const navigate = useNavigate();
@@ -92,7 +98,7 @@ function AdminPage() {
 
   const isBoss = me.roles.includes("boss");
   const tabs: Tab[] = isBoss
-    ? ["sales", "reviews", "buyers", "affiliates", "admins"]
+    ? ["sales", "pricing", "reviews", "buyers", "affiliates", "admins"]
     : ["sales"];
   const activeTab = tabs.includes(tab) ? tab : "sales";
 
@@ -177,6 +183,7 @@ function AdminPage() {
         {activeTab === "sales" && <SalesPanel />}
         {activeTab === "reviews" && isBoss && <ReviewsPanel />}
         {activeTab === "buyers" && isBoss && <BuyersPanel />}
+        {activeTab === "pricing" && isBoss && <PricingPanel />}
         {activeTab === "affiliates" && isBoss && <AffiliatesPanel />}
         {activeTab === "admins" && isBoss && <AdminsPanel meId={me.userId} />}
       </main>
