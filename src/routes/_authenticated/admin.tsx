@@ -1105,3 +1105,148 @@ function Metric({ label, value }: { label: string; value: string | number }) {
     </div>
   );
 }
+
+function PricingPanel() {
+  const [pricing, setPricing] = useState<PublicPricing | null>(null);
+  const [priceInput, setPriceInput] = useState("");
+  const [compareInput, setCompareInput] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [msg, setMsg] = useState<string | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+  const [syncInfo, setSyncInfo] = useState<AdminUpdatePricingResult | null>(null);
+
+  const load = () => {
+    adminGetPricing()
+      .then((p) => {
+        setPricing(p);
+        setPriceInput(p.price_display);
+        setCompareInput(p.compare_at_display);
+      })
+      .catch((e) => setErr(e instanceof Error ? e.message : "Failed to load"));
+  };
+
+  useEffect(load, []);
+
+  const save = async () => {
+    setSaving(true);
+    setErr(null);
+    setMsg(null);
+    setSyncInfo(null);
+    try {
+      const price_cents = Math.round(parseFloat(priceInput) * 100);
+      const compare_at_cents = Math.round(parseFloat(compareInput) * 100);
+      const res = await adminUpdatePricing({
+        data: {
+          price_cents,
+          compare_at_cents,
+          currency: pricing?.currency ?? "USD",
+        },
+      });
+      setPricing(res.pricing);
+      setSyncInfo(res);
+      setMsg("Pricing updated. The sales page now shows the new price.");
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "Save failed");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (err && !pricing)
+    return <p className="text-red-600">{err}</p>;
+  if (!pricing)
+    return <p className="text-charcoal/60">Loading pricing…</p>;
+
+  const priceNum = parseFloat(priceInput) || 0;
+  const compareNum = parseFloat(compareInput) || 0;
+  const discountPct =
+    compareNum > priceNum && compareNum > 0
+      ? Math.round(((compareNum - priceNum) / compareNum) * 100)
+      : 0;
+
+  return (
+    <div className="max-w-2xl space-y-6">
+      <div className="rounded-2xl border border-forest/10 bg-white p-6 shadow-sm">
+        <h2 className="font-display text-2xl italic text-forest-deep">
+          Pricing
+        </h2>
+        <p className="mt-1 text-sm text-charcoal/60">
+          Edit the sale price and the crossed-out compare-at price. Changes
+          apply to the sales page immediately and sync to the Paddle checkout.
+        </p>
+
+        <div className="mt-6 grid gap-4 sm:grid-cols-2">
+          <label className="block">
+            <span className="font-mono text-[10px] font-semibold uppercase tracking-widest text-charcoal/60">
+              Sale price ({pricing.currency})
+            </span>
+            <input
+              type="number"
+              step="0.01"
+              min="0.70"
+              value={priceInput}
+              onChange={(e) => setPriceInput(e.target.value)}
+              className="mt-1 w-full rounded-lg border border-forest/20 bg-cream/40 px-4 py-2 text-lg font-semibold text-forest-deep focus:border-forest focus:outline-none"
+            />
+          </label>
+          <label className="block">
+            <span className="font-mono text-[10px] font-semibold uppercase tracking-widest text-charcoal/60">
+              Compare-at (crossed-out)
+            </span>
+            <input
+              type="number"
+              step="0.01"
+              min="0"
+              value={compareInput}
+              onChange={(e) => setCompareInput(e.target.value)}
+              className="mt-1 w-full rounded-lg border border-forest/20 bg-cream/40 px-4 py-2 text-lg font-semibold text-charcoal/60 focus:border-forest focus:outline-none"
+            />
+          </label>
+        </div>
+
+        <div className="mt-4 flex items-baseline gap-3 text-charcoal/70">
+          <span className="text-sm">Preview:</span>
+          <span className="font-mono text-sm line-through">
+            ${compareInput || "0.00"}
+          </span>
+          <span className="font-display text-2xl text-forest-deep">
+            ${priceInput || "0.00"}
+          </span>
+          {discountPct > 0 && (
+            <span className="rounded-full bg-sage/20 px-2 py-0.5 text-xs font-semibold text-forest">
+              Save {discountPct}%
+            </span>
+          )}
+        </div>
+
+        <button
+          onClick={save}
+          disabled={saving}
+          className="mt-6 rounded-full bg-forest px-6 py-3 text-sm font-semibold text-cream hover:bg-forest-deep disabled:opacity-60"
+        >
+          {saving ? "Saving…" : "Save & sync to Paddle"}
+        </button>
+
+        {msg && <p className="mt-3 text-sm text-forest">{msg}</p>}
+        {err && <p className="mt-3 text-sm text-red-600">{err}</p>}
+
+        {syncInfo && (
+          <div className="mt-4 space-y-1 rounded-lg bg-cream/50 p-3 text-xs text-charcoal/70">
+            <p>
+              <strong>Paddle test:</strong>{" "}
+              {syncInfo.paddle_sandbox.ok
+                ? "✓ synced"
+                : `⚠ ${syncInfo.paddle_sandbox.error}`}
+            </p>
+            <p>
+              <strong>Paddle live:</strong>{" "}
+              {syncInfo.paddle_live.ok
+                ? "✓ synced"
+                : `⚠ ${syncInfo.paddle_live.error}`}
+            </p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
