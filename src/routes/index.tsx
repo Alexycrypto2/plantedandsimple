@@ -417,9 +417,9 @@ function SalesPage() {
         >
           <span className="flex items-center gap-2">
             <span className="font-mono text-xs uppercase tracking-widest opacity-70 line-through">
-              $29.99
+              ${pricing.compare_at_display}
             </span>
-            <span className="text-base font-semibold">$14.99</span>
+            <span className="text-base font-semibold">${pricing.price_display}</span>
           </span>
           <span className="text-sm font-semibold uppercase tracking-wider">
             Get the Book →
@@ -961,11 +961,13 @@ function SalesPage() {
             </div>
             <div className="mt-4 flex items-baseline gap-4">
               <span className="font-mono text-xl text-cream/50 line-through">
-                $29.99
+                ${pricing.compare_at_display}
               </span>
-              <span className="font-display text-6xl font-bold">$14.99</span>
+              <span className="font-display text-6xl font-bold">
+                ${pricing.price_display}
+              </span>
               <span className="font-mono text-xs uppercase tracking-widest text-sage-soft">
-                USD
+                {pricing.currency}
               </span>
             </div>
             <p className="mt-1 text-sm text-cream/70">
@@ -1099,7 +1101,7 @@ function SalesPage() {
             Download My Cookbook Now →
           </button>
           <p className="mt-4 font-mono text-[11px] uppercase tracking-widest text-cream/60">
-            $14.99 · Instant PDF · 60-day guarantee
+            ${pricing.price_display} · Instant PDF · 60-day guarantee
           </p>
         </div>
       </section>
