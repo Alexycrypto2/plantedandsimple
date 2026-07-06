@@ -17,33 +17,43 @@ import { usePaddleCheckout } from "@/hooks/usePaddleCheckout";
 import { CountdownTimer, useOfferCountdown } from "@/components/CountdownTimer";
 import { listApprovedReviews, type PublicReview } from "@/lib/reviews.functions";
 import { trackAffiliateClick } from "@/lib/affiliates.functions";
+import { getPublicPricing, type PublicPricing } from "@/lib/pricing.functions";
 
 const PRICE_ID = "high_protein_cookbook_onetime";
 
-const productJsonLd = {
-  "@context": "https://schema.org",
-  "@type": "Product",
-  name: "30 High-Protein Plant-Based Meals",
-  description:
-    "A premium digital cookbook with 30 high-protein vegan recipes plus 6 bonus guides. Instant PDF download.",
-  brand: { "@type": "Brand", name: "PlantedAndSimple" },
-  offers: {
-    "@type": "Offer",
-    price: "14.99",
-    priceCurrency: "USD",
-    availability: "https://schema.org/InStock",
-  },
-};
+function productJsonLd(price: string, currency: string) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: "30 High-Protein Plant-Based Meals",
+    description:
+      "A premium digital cookbook with 30 high-protein vegan recipes plus 6 bonus guides. Instant PDF download.",
+    brand: { "@type": "Brand", name: "PlantedAndSimple" },
+    offers: {
+      "@type": "Offer",
+      price,
+      priceCurrency: currency,
+      availability: "https://schema.org/InStock",
+    },
+  };
+}
 
 export const Route = createFileRoute("/")({
   component: SalesPage,
-  head: () => ({
+  loader: () => getPublicPricing(),
+  head: ({ loaderData }) => {
+    const p = (loaderData as PublicPricing | undefined) ?? {
+      price_display: "14.99",
+      compare_at_display: "29.99",
+      currency: "USD",
+    };
+    return ({
     meta: [
       { title: "30 High-Protein Plant-Based Meals — PlantedAndSimple" },
       {
         name: "description",
         content:
-          "Instant PDF cookbook: 30 high-protein vegan recipes, 4 weekly meal plans, and 6 bonuses. Regular $29.99 — launch price $14.99 today (save 50%).",
+          `Instant PDF cookbook: 30 high-protein vegan recipes, 4 weekly meal plans, and 6 bonuses. Regular $${p.compare_at_display} — launch price $${p.price_display} today.`,
       },
       {
         name: "keywords",
@@ -59,17 +69,18 @@ export const Route = createFileRoute("/")({
       {
         property: "og:description",
         content:
-          "Simple plant-based meals. Powerful nutrition. Instant PDF cookbook + 6 free bonuses. $14.99 (was $29.99).",
+          `Simple plant-based meals. Powerful nutrition. Instant PDF cookbook + 6 free bonuses. $${p.price_display} (was $${p.compare_at_display}).`,
       },
     ],
     links: [{ rel: "canonical", href: "/" }],
     scripts: [
       {
         type: "application/ld+json",
-        children: JSON.stringify(productJsonLd),
+        children: JSON.stringify(productJsonLd(p.price_display, p.currency)),
       },
     ],
-  }),
+  });
+  },
 });
 
 /* ------------------------------------------------------------------ */
@@ -320,6 +331,7 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 }
 
 function SalesPage() {
+  const pricing = Route.useLoaderData() as PublicPricing;
   const [openFaq, setOpenFaq] = useState<number | null>(0);
   const { openCheckout: openPaddle } = usePaddleCheckout();
   const { timeText, urgencyText } = useOfferCountdown();
@@ -405,9 +417,9 @@ function SalesPage() {
         >
           <span className="flex items-center gap-2">
             <span className="font-mono text-xs uppercase tracking-widest opacity-70 line-through">
-              $29.99
+              ${pricing.compare_at_display}
             </span>
-            <span className="text-base font-semibold">$14.99</span>
+            <span className="text-base font-semibold">${pricing.price_display}</span>
           </span>
           <span className="text-sm font-semibold uppercase tracking-wider">
             Get the Book →
@@ -949,11 +961,13 @@ function SalesPage() {
             </div>
             <div className="mt-4 flex items-baseline gap-4">
               <span className="font-mono text-xl text-cream/50 line-through">
-                $29.99
+                ${pricing.compare_at_display}
               </span>
-              <span className="font-display text-6xl font-bold">$14.99</span>
+              <span className="font-display text-6xl font-bold">
+                ${pricing.price_display}
+              </span>
               <span className="font-mono text-xs uppercase tracking-widest text-sage-soft">
-                USD
+                {pricing.currency}
               </span>
             </div>
             <p className="mt-1 text-sm text-cream/70">
@@ -1087,7 +1101,7 @@ function SalesPage() {
             Download My Cookbook Now →
           </button>
           <p className="mt-4 font-mono text-[11px] uppercase tracking-widest text-cream/60">
-            $14.99 · Instant PDF · 60-day guarantee
+            ${pricing.price_display} · Instant PDF · 60-day guarantee
           </p>
         </div>
       </section>

@@ -226,6 +226,30 @@ export type Database = {
         }
         Relationships: []
       }
+      pricing_settings: {
+        Row: {
+          compare_at_cents: number
+          currency: string
+          id: boolean
+          price_cents: number
+          updated_at: string
+        }
+        Insert: {
+          compare_at_cents?: number
+          currency?: string
+          id?: boolean
+          price_cents?: number
+          updated_at?: string
+        }
+        Update: {
+          compare_at_cents?: number
+          currency?: string
+          id?: boolean
+          price_cents?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       reviews: {
         Row: {
           approved: boolean
