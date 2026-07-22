@@ -1279,3 +1279,529 @@ function PricingPanel() {
     </div>
   );
 }
+
+// ============ PRODUCTS PANEL ============
+
+type ProductDraft = {
+  id?: string;
+  slug: string;
+  title: string;
+  subtitle: string;
+  description: string;
+  category_id: string | null;
+  cover_image_url: string;
+  pdf_asset_url: string;
+  price_cents: number;
+  compare_at_cents: number;
+  currency: string;
+  paddle_price_external_id: string;
+  is_featured: boolean;
+  is_bestseller: boolean;
+  status: "draft" | "published";
+  seo_title: string;
+  seo_description: string;
+};
+
+const emptyDraft: ProductDraft = {
+  slug: "",
+  title: "",
+  subtitle: "",
+  description: "",
+  category_id: null,
+  cover_image_url: "",
+  pdf_asset_url: "",
+  price_cents: 1499,
+  compare_at_cents: 2999,
+  currency: "USD",
+  paddle_price_external_id: "",
+  is_featured: false,
+  is_bestseller: false,
+  status: "draft",
+  seo_title: "",
+  seo_description: "",
+};
+
+function ProductsPanel() {
+  const [products, setProducts] = useState<AdminProduct[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [editing, setEditing] = useState<ProductDraft | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  const reload = () =>
+    Promise.all([adminListProducts(), listCategories()])
+      .then(([p, c]) => {
+        setProducts(p as AdminProduct[]);
+        setCategories(c as Category[]);
+      })
+      .catch((e) => setErr(e instanceof Error ? e.message : "Load failed"));
+
+  useEffect(() => {
+    reload();
+  }, []);
+
+  const startEdit = (p?: AdminProduct) => {
+    setErr(null);
+    if (!p) return setEditing({ ...emptyDraft });
+    setEditing({
+      id: p.id,
+      slug: p.slug,
+      title: p.title,
+      subtitle: p.subtitle ?? "",
+      description: p.description ?? "",
+      category_id: p.category_id,
+      cover_image_url: p.cover_image_url ?? "",
+      pdf_asset_url: p.pdf_asset_url ?? "",
+      price_cents: p.price_cents,
+      compare_at_cents: p.compare_at_cents,
+      currency: p.currency,
+      paddle_price_external_id: p.paddle_price_external_id ?? "",
+      is_featured: p.is_featured,
+      is_bestseller: p.is_bestseller,
+      status: p.status,
+      seo_title: p.seo_title ?? "",
+      seo_description: p.seo_description ?? "",
+    });
+  };
+
+  const save = async () => {
+    if (!editing) return;
+    setSaving(true);
+    setErr(null);
+    try {
+      await adminUpsertProduct({
+        data: {
+          id: editing.id,
+          slug: editing.slug.trim(),
+          title: editing.title.trim(),
+          subtitle: editing.subtitle || null,
+          description: editing.description,
+          category_id: editing.category_id,
+          cover_image_url: editing.cover_image_url || null,
+          pdf_asset_url: editing.pdf_asset_url || null,
+          price_cents: editing.price_cents,
+          compare_at_cents: editing.compare_at_cents,
+          currency: editing.currency,
+          paddle_price_external_id:
+            editing.paddle_price_external_id || null,
+          is_featured: editing.is_featured,
+          is_bestseller: editing.is_bestseller,
+          status: editing.status,
+          seo_title: editing.seo_title || null,
+          seo_description: editing.seo_description || null,
+        },
+      });
+      setEditing(null);
+      await reload();
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "Save failed");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const remove = async (id: string) => {
+    if (!confirm("Delete this product? This cannot be undone.")) return;
+    await adminDeleteProduct({ data: { id } });
+    await reload();
+  };
+
+  if (editing) {
+    const f = editing;
+    const set = <K extends keyof ProductDraft>(k: K, v: ProductDraft[K]) =>
+      setEditing({ ...f, [k]: v });
+    return (
+      <div className="rounded-2xl border border-forest/10 bg-white p-6 shadow-sm">
+        <div className="flex items-center justify-between">
+          <h2 className="font-display text-2xl italic text-forest-deep">
+            {f.id ? "Edit product" : "New product"}
+          </h2>
+          <button
+            onClick={() => setEditing(null)}
+            className="text-sm text-charcoal/60 hover:text-forest"
+          >
+            ← Back
+          </button>
+        </div>
+
+        <div className="mt-6 grid gap-4 sm:grid-cols-2">
+          <Field label="Title">
+            <input
+              value={f.title}
+              onChange={(e) => set("title", e.target.value)}
+              className={fieldClass}
+            />
+          </Field>
+          <Field label="Slug (URL)">
+            <input
+              value={f.slug}
+              onChange={(e) =>
+                set("slug", e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "-"))
+              }
+              className={fieldClass}
+            />
+          </Field>
+          <Field label="Subtitle">
+            <input
+              value={f.subtitle}
+              onChange={(e) => set("subtitle", e.target.value)}
+              className={fieldClass}
+            />
+          </Field>
+          <Field label="Category">
+            <select
+              value={f.category_id ?? ""}
+              onChange={(e) =>
+                set("category_id", e.target.value || null)
+              }
+              className={fieldClass}
+            >
+              <option value="">— None —</option>
+              {categories.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
+          </Field>
+          <Field label="Cover image URL">
+            <input
+              value={f.cover_image_url}
+              onChange={(e) => set("cover_image_url", e.target.value)}
+              className={fieldClass}
+            />
+          </Field>
+          <Field label="PDF asset URL">
+            <input
+              value={f.pdf_asset_url}
+              onChange={(e) => set("pdf_asset_url", e.target.value)}
+              placeholder="/__l5e/assets-v1/…/file.pdf"
+              className={fieldClass}
+            />
+          </Field>
+          <Field label="Price (cents)">
+            <input
+              type="number"
+              value={f.price_cents}
+              onChange={(e) => set("price_cents", Number(e.target.value))}
+              className={fieldClass}
+            />
+          </Field>
+          <Field label="Compare-at (cents)">
+            <input
+              type="number"
+              value={f.compare_at_cents}
+              onChange={(e) =>
+                set("compare_at_cents", Number(e.target.value))
+              }
+              className={fieldClass}
+            />
+          </Field>
+          <Field label="Currency">
+            <input
+              value={f.currency}
+              onChange={(e) => set("currency", e.target.value.toUpperCase())}
+              className={fieldClass}
+            />
+          </Field>
+          <Field label="Paddle price external_id">
+            <input
+              value={f.paddle_price_external_id}
+              onChange={(e) =>
+                set("paddle_price_external_id", e.target.value)
+              }
+              placeholder="e.g. my_new_product_onetime"
+              className={fieldClass}
+            />
+          </Field>
+          <Field label="Status">
+            <select
+              value={f.status}
+              onChange={(e) => set("status", e.target.value as any)}
+              className={fieldClass}
+            >
+              <option value="draft">Draft</option>
+              <option value="published">Published</option>
+            </select>
+          </Field>
+          <div className="flex items-center gap-6 pt-6 text-sm">
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={f.is_featured}
+                onChange={(e) => set("is_featured", e.target.checked)}
+                className="size-4 accent-forest"
+              />
+              Featured
+            </label>
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={f.is_bestseller}
+                onChange={(e) => set("is_bestseller", e.target.checked)}
+                className="size-4 accent-forest"
+              />
+              Bestseller
+            </label>
+          </div>
+        </div>
+
+        <Field label="Description" className="mt-4">
+          <textarea
+            value={f.description}
+            onChange={(e) => set("description", e.target.value)}
+            rows={5}
+            className={fieldClass}
+          />
+        </Field>
+        <div className="mt-4 grid gap-4 sm:grid-cols-2">
+          <Field label="SEO title">
+            <input
+              value={f.seo_title}
+              onChange={(e) => set("seo_title", e.target.value)}
+              className={fieldClass}
+            />
+          </Field>
+          <Field label="SEO description">
+            <input
+              value={f.seo_description}
+              onChange={(e) => set("seo_description", e.target.value)}
+              className={fieldClass}
+            />
+          </Field>
+        </div>
+
+        {err && <p className="mt-4 text-sm text-red-600">{err}</p>}
+
+        <div className="mt-6 flex gap-3">
+          <button
+            onClick={save}
+            disabled={saving}
+            className="rounded-full bg-forest px-6 py-3 text-sm font-semibold text-cream hover:bg-forest-deep disabled:opacity-60"
+          >
+            {saving ? "Saving…" : "Save product"}
+          </button>
+          {f.id && (
+            <button
+              onClick={() => remove(f.id!)}
+              className="rounded-full border border-red-300 px-6 py-3 text-sm font-semibold text-red-700 hover:bg-red-50"
+            >
+              Delete
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h2 className="font-display text-2xl italic text-forest-deep">
+          Products
+        </h2>
+        <button
+          onClick={() => startEdit()}
+          className="rounded-full bg-forest px-5 py-2.5 text-sm font-semibold text-cream hover:bg-forest-deep"
+        >
+          + New product
+        </button>
+      </div>
+      {err && <p className="text-sm text-red-600">{err}</p>}
+      <div className="overflow-hidden rounded-2xl border border-forest/10 bg-white shadow-sm">
+        <table className="w-full text-sm">
+          <thead className="bg-cream/60 text-left text-xs uppercase tracking-widest text-charcoal/60">
+            <tr>
+              <th className="px-4 py-3">Title</th>
+              <th className="px-4 py-3">Status</th>
+              <th className="px-4 py-3">Price</th>
+              <th className="px-4 py-3">Category</th>
+              <th className="px-4 py-3"></th>
+            </tr>
+          </thead>
+          <tbody>
+            {products.length === 0 ? (
+              <tr>
+                <td colSpan={5} className="px-4 py-6 text-charcoal/60">
+                  No products yet.
+                </td>
+              </tr>
+            ) : (
+              products.map((p) => (
+                <tr key={p.id} className="border-t border-forest/5">
+                  <td className="px-4 py-3">
+                    <p className="font-semibold text-forest-deep">{p.title}</p>
+                    <p className="text-xs text-charcoal/50">/{p.slug}</p>
+                  </td>
+                  <td className="px-4 py-3">
+                    <span
+                      className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
+                        p.status === "published"
+                          ? "bg-sage/20 text-forest"
+                          : "bg-charcoal/10 text-charcoal/60"
+                      }`}
+                    >
+                      {p.status}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3">${p.price_display}</td>
+                  <td className="px-4 py-3">{p.category_name ?? "—"}</td>
+                  <td className="px-4 py-3 text-right">
+                    <button
+                      onClick={() => startEdit(p)}
+                      className="text-xs font-semibold text-forest hover:underline"
+                    >
+                      Edit
+                    </button>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+const fieldClass =
+  "w-full rounded-lg border border-forest/15 bg-white px-3 py-2 text-sm outline-none focus:border-forest";
+
+function Field({
+  label,
+  children,
+  className = "",
+}: {
+  label: string;
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <label className={`block text-sm ${className}`}>
+      <span className="mb-1 block text-xs font-semibold uppercase tracking-widest text-charcoal/60">
+        {label}
+      </span>
+      {children}
+    </label>
+  );
+}
+
+// ============ CATEGORIES PANEL ============
+
+function CategoriesPanel() {
+  const [cats, setCats] = useState<Category[]>([]);
+  const [name, setName] = useState("");
+  const [slug, setSlug] = useState("");
+  const [desc, setDesc] = useState("");
+  const [err, setErr] = useState<string | null>(null);
+
+  const load = () =>
+    listCategories()
+      .then((c) => setCats(c as Category[]))
+      .catch((e) => setErr(e instanceof Error ? e.message : "Load failed"));
+
+  useEffect(() => {
+    load();
+  }, []);
+
+  const add = async () => {
+    setErr(null);
+    try {
+      await adminUpsertCategory({
+        data: {
+          slug: slug.trim(),
+          name: name.trim(),
+          description: desc || null,
+          sort_order: cats.length + 1,
+        },
+      });
+      setName("");
+      setSlug("");
+      setDesc("");
+      await load();
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "Save failed");
+    }
+  };
+
+  const remove = async (id: string) => {
+    if (!confirm("Delete this category?")) return;
+    await adminDeleteCategory({ data: { id } });
+    await load();
+  };
+
+  return (
+    <div className="space-y-6">
+      <h2 className="font-display text-2xl italic text-forest-deep">
+        Categories
+      </h2>
+      <div className="rounded-2xl border border-forest/10 bg-white p-6 shadow-sm">
+        <div className="grid gap-3 sm:grid-cols-3">
+          <input
+            placeholder="Name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className={fieldClass}
+          />
+          <input
+            placeholder="Slug (lowercase-with-dashes)"
+            value={slug}
+            onChange={(e) =>
+              setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "-"))
+            }
+            className={fieldClass}
+          />
+          <input
+            placeholder="Description (optional)"
+            value={desc}
+            onChange={(e) => setDesc(e.target.value)}
+            className={fieldClass}
+          />
+        </div>
+        {err && <p className="mt-3 text-sm text-red-600">{err}</p>}
+        <button
+          onClick={add}
+          className="mt-4 rounded-full bg-forest px-5 py-2.5 text-sm font-semibold text-cream hover:bg-forest-deep"
+        >
+          + Add category
+        </button>
+      </div>
+
+      <div className="overflow-hidden rounded-2xl border border-forest/10 bg-white shadow-sm">
+        <table className="w-full text-sm">
+          <thead className="bg-cream/60 text-left text-xs uppercase tracking-widest text-charcoal/60">
+            <tr>
+              <th className="px-4 py-3">Name</th>
+              <th className="px-4 py-3">Slug</th>
+              <th className="px-4 py-3">Description</th>
+              <th className="px-4 py-3"></th>
+            </tr>
+          </thead>
+          <tbody>
+            {cats.map((c) => (
+              <tr key={c.id} className="border-t border-forest/5">
+                <td className="px-4 py-3 font-semibold text-forest-deep">
+                  {c.name}
+                </td>
+                <td className="px-4 py-3 font-mono text-xs text-charcoal/60">
+                  {c.slug}
+                </td>
+                <td className="px-4 py-3 text-charcoal/70">
+                  {c.description ?? "—"}
+                </td>
+                <td className="px-4 py-3 text-right">
+                  <button
+                    onClick={() => remove(c.id)}
+                    className="text-xs font-semibold text-red-600 hover:underline"
+                  >
+                    Delete
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
