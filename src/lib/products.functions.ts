@@ -30,7 +30,7 @@ export type PublicProduct = {
 export type AdminProduct = PublicProduct & {
   status: ProductStatus;
   pdf_asset_url: string | null;
-  bonus_files: unknown;
+  bonus_files: Array<{ label: string; url: string }>;
   pinterest_description: string | null;
   published_at: string | null;
   created_at: string;
