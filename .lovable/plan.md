@@ -1,33 +1,80 @@
-## What's happening
+# Phase 1 — Multi-Product Foundation
 
-The Stripe activation form is showing US-only fields (SSN, US state, US ZIP) because **"United States" is selected** in the Home address dropdown. You're in Nigeria (Oyo), and Stripe **does not currently support payouts to Nigerian bank accounts** for standard accounts. That's why nothing you type will work — it's not your fault, it's a country restriction.
+Turn PrimeDownloads into a scalable digital-product storefront. The current cookbook keeps selling throughout; nothing about the live checkout, webhook, or download flow changes for existing buyers.
 
-You have 3 realistic paths. Pick one and I'll wire it up.
+## What this phase delivers
 
----
+- Dynamic `products` and `categories` tables driving the whole site
+- New `/shop` (grid + category filter + sort) and `/shop/$slug` (auto-generated premium product page)
+- Existing cookbook migrated into `products` as row #1 — homepage still features it, `/thank-you` and email links still work
+- Admin: **Products** and **Categories** tabs (boss-only) with full CRUD, image + PDF upload, publish/draft, featured/bestseller flags
+- Checkout works for any product, not just the cookbook
+- Signed-in purchases attach `userId` to Paddle `customData` so the future Customer Library can attribute purchases
 
-### Option A — Use Paddle instead of Stripe (recommended for Nigeria)
-Paddle is Lovable's other built-in payment provider and **acts as the Merchant of Record**. It supports sellers in Nigeria and many other countries Stripe doesn't. Paddle handles tax, fraud, and pays you out to a Nigerian bank or Wise account.
+Not in this phase (deferred to later, agreed): Blog, Free Resources email capture, Newsletter section, Customer Library page, requiring accounts at checkout (buyers can still checkout as guests for now — we'll flip that on when Library ships).
 
-**What I'd do:**
-1. You disconnect Stripe from the Payments dashboard (3-dot menu → Disconnect).
-2. I enable Paddle, recreate the $9.99 cookbook product, and rewire checkout + the gated `/thank-you` download flow to use Paddle instead of Stripe.
-3. Everything else (PDF gating, email capture, download cap) stays exactly as it is.
+## Database (one migration)
 
-Trade-off: your existing Stripe test product is thrown away — but you have no live sales yet, so nothing is lost.
+**`product_categories`**
+- `id`, `slug` (unique), `name`, `description`, `sort_order`, timestamps
+- RLS: public SELECT; boss-only write via `has_role`
 
----
+**`products`**
+- `id`, `slug` (unique), `title`, `subtitle`, `description` (long, markdown ok)
+- `category_id` FK
+- `cover_image_url`, `gallery_urls` (text[]), `pdf_asset_id` (references CDN asset), `bonus_files` (jsonb)
+- `price_cents`, `compare_at_cents`, `currency`
+- `paddle_price_external_id` (unique, e.g. `high_protein_cookbook_onetime`) — links to Paddle catalog
+- `is_featured`, `is_bestseller`, `status` ('draft' | 'published'), `published_at`
+- `seo_title`, `seo_description`, `pinterest_description`
+- timestamps
+- RLS: public SELECT `WHERE status='published'`; boss can SELECT/INSERT/UPDATE/DELETE all
+- Grants: `SELECT` to anon+authenticated, `ALL` to service_role
 
-### Option B — Keep Stripe, register a company in a supported country
-Only viable if you actually have (or will open) a registered business + bank account in the US, UK, EU, Canada, or another Stripe-supported country. This is what services like **Payoneer / Mercury / Wise Business / Stripe Atlas** are for. Slow, costs money, and I can't do it for you — it's a real-world legal step.
+**Migrate existing cookbook**: seed one row with current title, price ($14.99 / $29.99), the existing `paddle_price_external_id`, and the current PDF asset id.
 
----
+**Storage**: reuse existing `review-photos` bucket pattern; add new public `product-assets` bucket for covers/gallery.
 
-### Option C — Stay in test mode for now
-Keep the sandbox as-is. Real customers can't pay yet, but the whole site works with test card `4242 4242 4242 4242`. Good if you want to finish the product, drive traffic, and decide on payments later.
+## Server functions (`src/lib/products.functions.ts`)
 
----
+Public (no auth):
+- `listPublishedProducts({ category?, sort?, limit? })`
+- `getProductBySlug(slug)`
+- `listCategories()`
+- `listFeaturedProducts()` / `listBestsellers()`
 
-## My recommendation
+Boss-only (`requireSupabaseAuth` + `has_role('boss')`):
+- `adminListProducts`, `adminCreateProduct`, `adminUpdateProduct`, `adminDeleteProduct`, `adminDuplicateProduct`
+- `adminListCategories`, `adminUpsertCategory`, `adminDeleteCategory`
 
-**Go with Option A (Paddle).** It's the only path that lets you take real money from your location today without opening a foreign company. Reply "Paddle" and I'll switch it over in one go.
+Existing pricing panel keeps working — it now edits the featured cookbook's row instead of the standalone `pricing_settings` table (backed by a compatibility shim so old code paths don't break in one turn).
+
+## Routes
+
+- `src/routes/shop.tsx` — grid, category chips, sort dropdown. Uses TanStack Query loader pattern.
+- `src/routes/shop.$slug.tsx` — dynamic product page. Same premium layout blocks as current sales page (hero, gallery, what's inside, guarantee, FAQ, sticky buy button, reviews for that product). `head()` pulls `seo_title` / `seo_description` / cover as `og:image`.
+- `src/routes/index.tsx` — hero unchanged; Featured Products + Best Sellers strips now read from `products` table. Existing cookbook still stars.
+- `src/routes/_authenticated/admin.tsx` — add **Products** and **Categories** entries to the sidebar; Pricing panel becomes "Cookbook Pricing" alongside a broader "All Products" editor.
+
+## Checkout wiring
+
+`usePaddleCheckout` already takes a `priceId`. Product pages pass that product's `paddle_price_external_id`. Signed-in users get `customData: { userId, product_slug }`; guests just get `product_slug`. Webhook stores `product_slug` on the download/subscriber row so re-download links resolve to the right PDF.
+
+## Reviews scoping
+
+`reviews` gets a nullable `product_id` column. Existing reviews stay associated with the cookbook. Product pages show only reviews for that product; the homepage keeps its aggregate approved-reviews strip.
+
+## Technical notes
+
+- All new tables follow the CREATE → GRANT → RLS → POLICY order.
+- All product images use `<img loading="lazy">` + explicit width/height.
+- Product `head()` sets recipe/product JSON-LD when relevant fields exist.
+- `paddle_price_external_id` on a product row is the only field the admin cannot free-edit — creating a new product requires calling `payments--create_product`, which I'll do from chat when you add each new product (Paddle can't be created from the app UI).
+
+## Verification before I hand back
+
+- `bun run build` clean
+- Playwright: `/`, `/shop`, `/shop/high-protein-cookbook` render; admin Products list loads; create-draft flow persists.
+- Existing `/thank-you` download for the cookbook still works end-to-end (test transaction id).
+
+Approve and I'll ship it.
