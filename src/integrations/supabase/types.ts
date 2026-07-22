@@ -250,6 +250,122 @@ export type Database = {
         }
         Relationships: []
       }
+      product_categories: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          slug: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          slug: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          slug?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      products: {
+        Row: {
+          bonus_files: Json
+          category_id: string | null
+          compare_at_cents: number
+          cover_image_url: string | null
+          created_at: string
+          currency: string
+          description: string
+          gallery_urls: string[]
+          id: string
+          is_bestseller: boolean
+          is_featured: boolean
+          paddle_price_external_id: string | null
+          pdf_asset_url: string | null
+          pinterest_description: string | null
+          price_cents: number
+          published_at: string | null
+          seo_description: string | null
+          seo_title: string | null
+          slug: string
+          status: string
+          subtitle: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          bonus_files?: Json
+          category_id?: string | null
+          compare_at_cents?: number
+          cover_image_url?: string | null
+          created_at?: string
+          currency?: string
+          description?: string
+          gallery_urls?: string[]
+          id?: string
+          is_bestseller?: boolean
+          is_featured?: boolean
+          paddle_price_external_id?: string | null
+          pdf_asset_url?: string | null
+          pinterest_description?: string | null
+          price_cents?: number
+          published_at?: string | null
+          seo_description?: string | null
+          seo_title?: string | null
+          slug: string
+          status?: string
+          subtitle?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          bonus_files?: Json
+          category_id?: string | null
+          compare_at_cents?: number
+          cover_image_url?: string | null
+          created_at?: string
+          currency?: string
+          description?: string
+          gallery_urls?: string[]
+          id?: string
+          is_bestseller?: boolean
+          is_featured?: boolean
+          paddle_price_external_id?: string | null
+          pdf_asset_url?: string | null
+          pinterest_description?: string | null
+          price_cents?: number
+          published_at?: string | null
+          seo_description?: string | null
+          seo_title?: string | null
+          slug?: string
+          status?: string
+          subtitle?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "products_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "product_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       reviews: {
         Row: {
           approved: boolean
@@ -260,6 +376,7 @@ export type Database = {
           location: string | null
           name: string
           photo_url: string | null
+          product_id: string | null
           quote: string
           rating: number
           stripe_session_id: string | null
@@ -273,6 +390,7 @@ export type Database = {
           location?: string | null
           name: string
           photo_url?: string | null
+          product_id?: string | null
           quote: string
           rating: number
           stripe_session_id?: string | null
@@ -286,11 +404,20 @@ export type Database = {
           location?: string | null
           name?: string
           photo_url?: string | null
+          product_id?: string | null
           quote?: string
           rating?: number
           stripe_session_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "reviews_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       subscribers: {
         Row: {
