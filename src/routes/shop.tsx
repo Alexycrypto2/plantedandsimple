@@ -1,10 +1,15 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { listPublishedProducts, listCategories, type PublicProduct } from "@/lib/products.functions";
+import {
+  listPublishedProducts,
+  listCategories,
+  type PublicProduct,
+  type Category,
+} from "@/lib/products.functions";
 
 export const Route = createFileRoute("/shop")({
   component: ShopPage,
-  loader: async () => {
+  loader: async (): Promise<{ products: PublicProduct[]; categories: Category[] }> => {
     const [products, categories] = await Promise.all([
       listPublishedProducts({ data: {} }),
       listCategories(),
