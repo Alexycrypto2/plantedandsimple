@@ -33,6 +33,16 @@ import {
   type PublicPricing,
   type AdminUpdatePricingResult,
 } from "@/lib/pricing.functions";
+import {
+  adminListProducts,
+  adminUpsertProduct,
+  adminDeleteProduct,
+  adminUpsertCategory,
+  adminDeleteCategory,
+  listCategories,
+  type AdminProduct,
+  type Category,
+} from "@/lib/products.functions";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   component: AdminPage,
@@ -45,7 +55,15 @@ export const Route = createFileRoute("/_authenticated/admin")({
 });
 
 type Me = { userId: string; email: string | null; roles: ("boss" | "admin")[] };
-type Tab = "sales" | "reviews" | "buyers" | "pricing" | "affiliates" | "admins";
+type Tab =
+  | "sales"
+  | "products"
+  | "categories"
+  | "reviews"
+  | "buyers"
+  | "pricing"
+  | "affiliates"
+  | "admins";
 
 function AdminPage() {
   const navigate = useNavigate();
@@ -98,7 +116,16 @@ function AdminPage() {
 
   const isBoss = me.roles.includes("boss");
   const tabs: Tab[] = isBoss
-    ? ["sales", "pricing", "reviews", "buyers", "affiliates", "admins"]
+    ? [
+        "sales",
+        "products",
+        "categories",
+        "pricing",
+        "reviews",
+        "buyers",
+        "affiliates",
+        "admins",
+      ]
     : ["sales"];
   const activeTab = tabs.includes(tab) ? tab : "sales";
 
@@ -181,6 +208,8 @@ function AdminPage() {
 
       <main className="mx-auto max-w-6xl px-6 pb-8 pt-20">
         {activeTab === "sales" && <SalesPanel />}
+        {activeTab === "products" && isBoss && <ProductsPanel />}
+        {activeTab === "categories" && isBoss && <CategoriesPanel />}
         {activeTab === "reviews" && isBoss && <ReviewsPanel />}
         {activeTab === "buyers" && isBoss && <BuyersPanel />}
         {activeTab === "pricing" && isBoss && <PricingPanel />}
