@@ -37,7 +37,8 @@ export const Route = createFileRoute("/shop")({
 });
 
 function ShopPage() {
-  const { products, categories } = Route.useLoaderData();
+  const loaded = Route.useLoaderData() as { products: PublicProduct[]; categories: Category[] };
+  const { products, categories } = loaded;
   const [cat, setCat] = useState<string | null>(null);
   const [sort, setSort] = useState<"new" | "price_asc" | "price_desc">("new");
 
