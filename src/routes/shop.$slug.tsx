@@ -288,7 +288,7 @@ function ProductDetail() {
               <Link to="/shop" className="text-[11px] font-bold uppercase tracking-[0.25em] text-forest hover:underline">All cookbooks →</Link>
             </div>
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {related.map((r) => (
+              {related.map((r: PublicProduct) => (
                 <Link key={r.id} to="/shop/$slug" params={{ slug: r.slug }} className="group overflow-hidden rounded-2xl border border-forest/10 bg-white transition hover:-translate-y-1 hover:shadow-card">
                   <div className="aspect-[4/5] overflow-hidden bg-cream-warm">
                     {r.cover_image_url ? (
