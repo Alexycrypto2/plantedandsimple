@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
+import { SiteNav, SiteFooter } from "@/components/SiteLayout";
 import heroImg from "@/assets/home-hero.jpg";
 import ritualImg from "@/assets/home-ritual.jpg";
 import journalLead from "@/assets/home-journal-lead.jpg";
@@ -39,16 +40,6 @@ export const Route = createFileRoute("/")({
     links: [{ rel: "canonical", href: "/" }],
   }),
 });
-
-const NAV = [
-  { to: "/", label: "Home" },
-  { to: "/shop", label: "Shop" },
-  { to: "/recipes", label: "Recipe Library" },
-  { to: "/blog", label: "Blog" },
-  { to: "/free", label: "Free Resources" },
-  { to: "/about", label: "About" },
-  { to: "/contact", label: "Contact" },
-] as const;
 
 const CATEGORIES = [
   { name: "Breakfast", img: catBreakfast },
@@ -102,6 +93,7 @@ function HomePage() {
       <FreeResources />
       <CategoryGrid />
       <BestSellersMarquee bestsellers={products.filter((p) => p.is_bestseller)} />
+      <WhyChoose />
       <Testimonial />
       <JournalBento />
       <Newsletter />

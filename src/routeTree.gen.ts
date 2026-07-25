@@ -17,6 +17,7 @@ import { Route as RefundRouteImport } from './routes/refund'
 import { Route as RecipesRouteImport } from './routes/recipes'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as FreeRouteImport } from './routes/free'
+import { Route as ContactRouteImport } from './routes/contact'
 import { Route as BlogRouteImport } from './routes/blog'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AboutRouteImport } from './routes/about'
@@ -73,6 +74,11 @@ const PrivacyRoute = PrivacyRouteImport.update({
 const FreeRoute = FreeRouteImport.update({
   id: '/free',
   path: '/free',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ContactRoute = ContactRouteImport.update({
+  id: '/contact',
+  path: '/contact',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BlogRoute = BlogRouteImport.update({
@@ -170,6 +176,7 @@ export interface FileRoutesByFullPath {
   '/about': typeof AboutRoute
   '/auth': typeof AuthRoute
   '/blog': typeof BlogRoute
+  '/contact': typeof ContactRoute
   '/free': typeof FreeRoute
   '/privacy': typeof PrivacyRoute
   '/recipes': typeof RecipesRoute
@@ -196,6 +203,7 @@ export interface FileRoutesByTo {
   '/about': typeof AboutRoute
   '/auth': typeof AuthRoute
   '/blog': typeof BlogRoute
+  '/contact': typeof ContactRoute
   '/free': typeof FreeRoute
   '/privacy': typeof PrivacyRoute
   '/recipes': typeof RecipesRoute
@@ -224,6 +232,7 @@ export interface FileRoutesById {
   '/about': typeof AboutRoute
   '/auth': typeof AuthRoute
   '/blog': typeof BlogRoute
+  '/contact': typeof ContactRoute
   '/free': typeof FreeRoute
   '/privacy': typeof PrivacyRoute
   '/recipes': typeof RecipesRoute
@@ -252,6 +261,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/auth'
     | '/blog'
+    | '/contact'
     | '/free'
     | '/privacy'
     | '/recipes'
@@ -278,6 +288,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/auth'
     | '/blog'
+    | '/contact'
     | '/free'
     | '/privacy'
     | '/recipes'
@@ -305,6 +316,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/auth'
     | '/blog'
+    | '/contact'
     | '/free'
     | '/privacy'
     | '/recipes'
@@ -333,6 +345,7 @@ export interface RootRouteChildren {
   AboutRoute: typeof AboutRoute
   AuthRoute: typeof AuthRoute
   BlogRoute: typeof BlogRoute
+  ContactRoute: typeof ContactRoute
   FreeRoute: typeof FreeRoute
   PrivacyRoute: typeof PrivacyRoute
   RecipesRoute: typeof RecipesRoute
@@ -408,6 +421,13 @@ declare module '@tanstack/react-router' {
       path: '/free'
       fullPath: '/free'
       preLoaderRoute: typeof FreeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/contact': {
+      id: '/contact'
+      path: '/contact'
+      fullPath: '/contact'
+      preLoaderRoute: typeof ContactRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/blog': {
@@ -561,6 +581,7 @@ const rootRouteChildren: RootRouteChildren = {
   AboutRoute: AboutRoute,
   AuthRoute: AuthRoute,
   BlogRoute: BlogRoute,
+  ContactRoute: ContactRoute,
   FreeRoute: FreeRoute,
   PrivacyRoute: PrivacyRoute,
   RecipesRoute: RecipesRoute,
