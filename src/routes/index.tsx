@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
+import { SiteNav, SiteFooter } from "@/components/SiteLayout";
 import heroImg from "@/assets/home-hero.jpg";
 import ritualImg from "@/assets/home-ritual.jpg";
 import journalLead from "@/assets/home-journal-lead.jpg";
@@ -39,16 +40,6 @@ export const Route = createFileRoute("/")({
     links: [{ rel: "canonical", href: "/" }],
   }),
 });
-
-const NAV = [
-  { to: "/", label: "Home" },
-  { to: "/shop", label: "Shop" },
-  { to: "/recipes", label: "Recipe Library" },
-  { to: "/blog", label: "Blog" },
-  { to: "/free", label: "Free Resources" },
-  { to: "/about", label: "About" },
-  { to: "/contact", label: "Contact" },
-] as const;
 
 const CATEGORIES = [
   { name: "Breakfast", img: catBreakfast },
@@ -102,72 +93,12 @@ function HomePage() {
       <FreeResources />
       <CategoryGrid />
       <BestSellersMarquee bestsellers={products.filter((p) => p.is_bestseller)} />
+      <WhyChoose />
       <Testimonial />
       <JournalBento />
       <Newsletter />
       <SiteFooter />
     </div>
-  );
-}
-
-/* ---------------- Nav ---------------- */
-
-function SiteNav() {
-  const [open, setOpen] = useState(false);
-  return (
-    <nav className="sticky top-0 z-50 border-b border-forest/10 bg-cream/85 px-6 py-4 backdrop-blur-md">
-      <div className="mx-auto grid max-w-7xl grid-cols-[minmax(0,1fr)_auto] items-center gap-4 lg:grid-cols-[auto_1fr_auto]">
-        <Link
-          to="/"
-          className="truncate font-display text-2xl italic text-forest-deep"
-        >
-          Planted<span className="text-sage">&amp;</span>Simple
-        </Link>
-        <div className="hidden justify-center gap-8 text-[11px] font-semibold uppercase tracking-[0.2em] lg:flex">
-          {NAV.map((n) => (
-            <Link
-              key={n.to}
-              to={n.to as any}
-              activeProps={{ className: "text-forest" }}
-              className="text-charcoal/70 transition-colors hover:text-forest"
-            >
-              {n.label}
-            </Link>
-          ))}
-        </div>
-        <div className="flex items-center gap-2 justify-self-end">
-          <Link
-            to="/auth"
-            className="hidden rounded-full border border-forest/20 px-4 py-2 text-xs font-semibold uppercase tracking-widest text-charcoal/70 transition hover:border-forest hover:text-forest sm:inline-flex"
-          >
-            Sign in
-          </Link>
-          <button
-            aria-label="Menu"
-            onClick={() => setOpen((v) => !v)}
-            className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-forest/20 lg:hidden"
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-              <path d="M3 6h18M3 12h18M3 18h18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-            </svg>
-          </button>
-        </div>
-      </div>
-      {open && (
-        <div className="mt-4 grid gap-1 border-t border-forest/10 pt-4 lg:hidden">
-          {NAV.map((n) => (
-            <Link
-              key={n.to}
-              to={n.to as any}
-              onClick={() => setOpen(false)}
-              className="rounded-lg px-3 py-2 text-sm font-medium text-charcoal/80 hover:bg-cream-warm"
-            >
-              {n.label}
-            </Link>
-          ))}
-        </div>
-      )}
-    </nav>
   );
 }
 
@@ -179,28 +110,33 @@ function Hero({ primary }: { primary?: PublicProduct }) {
       <div className="mx-auto grid max-w-7xl grid-cols-1 items-center gap-12 lg:grid-cols-12">
         <div className="space-y-8 lg:col-span-5">
           <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.25em] text-sage">
-            The Digital Cookbook Studio
+            Simple Plant-Based Meals. Powerful Nutrition.
           </p>
           <h1 className="font-display text-[3.25rem] leading-[0.95] tracking-tight sm:text-6xl md:text-7xl lg:text-[5.5rem]">
-            Nourish your <br />
-            <span className="italic text-forest">everyday.</span>
+            Eat well <br />
+            <span className="italic text-forest">without the effort.</span>
           </h1>
           <p className="max-w-md text-lg leading-relaxed text-charcoal/70">
-            Premium plant-based cookbooks, seasonal meal plans and recipes — thoughtfully crafted for the intentional kitchen.
+            Beautiful, dependable plant-based recipes — designed to make healthy eating feel simple, joyful, and something you actually look forward to.
           </p>
           <div className="flex flex-wrap gap-3 pt-2">
             <Link
-              to="/shop"
+              to="/free"
               className="rounded-full bg-forest px-8 py-4 text-xs font-bold uppercase tracking-[0.2em] text-cream shadow-soft transition hover:-translate-y-0.5 hover:bg-forest-deep"
             >
-              Shop Cookbooks
+              Download Free Recipe Book
             </Link>
-            <a
-              href="#free-resources"
+            <Link
+              to="/shop"
               className="rounded-full border border-forest/30 px-8 py-4 text-xs font-bold uppercase tracking-[0.2em] text-forest-deep transition hover:bg-cream-warm"
             >
-              Free Resources
-            </a>
+              Browse Cookbooks
+            </Link>
+          </div>
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 pt-4 text-[11px] font-semibold uppercase tracking-[0.2em] text-charcoal/50">
+            <span>✦ 15,000+ home cooks</span>
+            <span>✦ 60-day guarantee</span>
+            <span>✦ Instant PDF</span>
           </div>
         </div>
         <div className="lg:col-span-7">
@@ -657,52 +593,38 @@ function Newsletter() {
 }
 
 /* ---------------- Footer ---------------- */
+/* SiteFooter provided by @/components/SiteLayout */
 
-function SiteFooter() {
+function WhyChoose() {
+  const items = [
+    { title: "Tested, Not Guessed", body: "Every recipe is developed and re-tested in a real home kitchen before it ever ships." },
+    { title: "Simple Ingredients", body: "Whole, easy-to-find pantry staples — no obscure powders or specialty grocery runs." },
+    { title: "Nutrition That Fits Life", body: "Balanced, protein-forward meals designed for people with jobs, kids, and busy weeks." },
+    { title: "Beautifully Photographed", body: "Full-color photos with every recipe, so you always know exactly what you're cooking toward." },
+    { title: "Instant Digital Delivery", body: "Download your cookbook as a premium PDF — read it on phone, tablet, or print it out." },
+    { title: "60-Day Money-Back", body: "Cook the recipes. If you don't love them, we'll refund every cent. No questions." },
+  ];
   return (
-    <footer className="bg-charcoal px-6 py-20 text-cream/70">
-      <div className="mx-auto max-w-7xl">
-        <div className="mb-16 grid grid-cols-1 gap-12 md:grid-cols-4">
-          <div className="md:col-span-2">
-            <div className="mb-6 font-display text-3xl italic text-cream">
-              Planted<span className="text-sage">&amp;</span>Simple
-            </div>
-            <p className="max-w-sm text-sm leading-relaxed">
-              We believe in the power of plants and the beauty of simplicity. Our digital guides make thoughtful plant-based cooking accessible to everyone.
-            </p>
-          </div>
-          <div>
-            <h5 className="mb-6 text-[10px] font-bold uppercase tracking-[0.25em] text-cream">
-              Explore
-            </h5>
-            <ul className="space-y-3 text-sm">
-              <li><Link to="/shop" className="hover:text-cream">The Shop</Link></li>
-              <li><Link to="/recipes" className="hover:text-cream">Recipe Library</Link></li>
-              <li><Link to="/blog" className="hover:text-cream">The Journal</Link></li>
-              <li><Link to="/free" className="hover:text-cream">Free Resources</Link></li>
-            </ul>
-          </div>
-          <div>
-            <h5 className="mb-6 text-[10px] font-bold uppercase tracking-[0.25em] text-cream">
-              Community
-            </h5>
-            <ul className="space-y-3 text-sm">
-              <li><a href="#" className="hover:text-cream">Instagram</a></li>
-              <li><a href="#" className="hover:text-cream">Pinterest</a></li>
-              <li><Link to="/about" className="hover:text-cream">About Us</Link></li>
-              <li><Link to="/contact" className="hover:text-cream">Contact</Link></li>
-            </ul>
-          </div>
+    <section className="bg-cream-warm/40 px-6 py-24">
+      <div className="mx-auto max-w-6xl">
+        <div className="mb-14 text-center">
+          <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.25em] text-sage">Why home cooks trust us</p>
+          <h2 className="mt-3 font-display text-4xl italic text-forest-deep md:text-5xl">
+            Why Choose Our Cookbooks
+          </h2>
         </div>
-        <div className="flex flex-col items-center justify-between gap-4 border-t border-cream/10 pt-8 text-[10px] uppercase tracking-[0.25em] md:flex-row">
-          <p>© {new Date().getFullYear()} PlantedAndSimple. All rights reserved.</p>
-          <div className="flex gap-8">
-            <Link to="/privacy" className="hover:text-cream">Privacy</Link>
-            <Link to="/terms" className="hover:text-cream">Terms</Link>
-            <Link to="/refund" className="hover:text-cream">Refund</Link>
-          </div>
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {items.map((it) => (
+            <div key={it.title} className="rounded-3xl border border-forest/10 bg-white p-8 transition hover:-translate-y-1 hover:shadow-card">
+              <div className="grid h-11 w-11 place-items-center rounded-xl bg-cream text-forest">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M5 12l5 5L20 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+              </div>
+              <h3 className="mt-5 font-display text-xl text-forest-deep">{it.title}</h3>
+              <p className="mt-2 text-sm leading-relaxed text-charcoal/65">{it.body}</p>
+            </div>
+          ))}
         </div>
       </div>
-    </footer>
+    </section>
   );
 }
