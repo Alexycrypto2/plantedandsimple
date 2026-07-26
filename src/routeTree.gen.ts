@@ -16,9 +16,7 @@ import { Route as ShopRouteImport } from './routes/shop'
 import { Route as RefundRouteImport } from './routes/refund'
 import { Route as RecipesRouteImport } from './routes/recipes'
 import { Route as PrivacyRouteImport } from './routes/privacy'
-import { Route as FreeRouteImport } from './routes/free'
 import { Route as ContactRouteImport } from './routes/contact'
-import { Route as BlogRouteImport } from './routes/blog'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
@@ -71,19 +69,9 @@ const PrivacyRoute = PrivacyRouteImport.update({
   path: '/privacy',
   getParentRoute: () => rootRouteImport,
 } as any)
-const FreeRoute = FreeRouteImport.update({
-  id: '/free',
-  path: '/free',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ContactRoute = ContactRouteImport.update({
   id: '/contact',
   path: '/contact',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const BlogRoute = BlogRouteImport.update({
-  id: '/blog',
-  path: '/blog',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -175,9 +163,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/auth': typeof AuthRoute
-  '/blog': typeof BlogRoute
   '/contact': typeof ContactRoute
-  '/free': typeof FreeRoute
   '/privacy': typeof PrivacyRoute
   '/recipes': typeof RecipesRoute
   '/refund': typeof RefundRoute
@@ -202,9 +188,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/auth': typeof AuthRoute
-  '/blog': typeof BlogRoute
   '/contact': typeof ContactRoute
-  '/free': typeof FreeRoute
   '/privacy': typeof PrivacyRoute
   '/recipes': typeof RecipesRoute
   '/refund': typeof RefundRoute
@@ -231,9 +215,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/about': typeof AboutRoute
   '/auth': typeof AuthRoute
-  '/blog': typeof BlogRoute
   '/contact': typeof ContactRoute
-  '/free': typeof FreeRoute
   '/privacy': typeof PrivacyRoute
   '/recipes': typeof RecipesRoute
   '/refund': typeof RefundRoute
@@ -260,9 +242,7 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/auth'
-    | '/blog'
     | '/contact'
-    | '/free'
     | '/privacy'
     | '/recipes'
     | '/refund'
@@ -287,9 +267,7 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/auth'
-    | '/blog'
     | '/contact'
-    | '/free'
     | '/privacy'
     | '/recipes'
     | '/refund'
@@ -315,9 +293,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/about'
     | '/auth'
-    | '/blog'
     | '/contact'
-    | '/free'
     | '/privacy'
     | '/recipes'
     | '/refund'
@@ -344,9 +320,7 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AboutRoute: typeof AboutRoute
   AuthRoute: typeof AuthRoute
-  BlogRoute: typeof BlogRoute
   ContactRoute: typeof ContactRoute
-  FreeRoute: typeof FreeRoute
   PrivacyRoute: typeof PrivacyRoute
   RecipesRoute: typeof RecipesRoute
   RefundRoute: typeof RefundRoute
@@ -416,25 +390,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PrivacyRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/free': {
-      id: '/free'
-      path: '/free'
-      fullPath: '/free'
-      preLoaderRoute: typeof FreeRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/contact': {
       id: '/contact'
       path: '/contact'
       fullPath: '/contact'
       preLoaderRoute: typeof ContactRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/blog': {
-      id: '/blog'
-      path: '/blog'
-      fullPath: '/blog'
-      preLoaderRoute: typeof BlogRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth': {
@@ -580,9 +540,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AboutRoute: AboutRoute,
   AuthRoute: AuthRoute,
-  BlogRoute: BlogRoute,
   ContactRoute: ContactRoute,
-  FreeRoute: FreeRoute,
   PrivacyRoute: PrivacyRoute,
   RecipesRoute: RecipesRoute,
   RefundRoute: RefundRoute,
