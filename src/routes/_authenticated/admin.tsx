@@ -1316,6 +1316,10 @@ type ProductDraft = {
   status: "draft" | "published";
   seo_title: string;
   seo_description: string;
+  tags: string;
+  benefits: string;
+  features: string;
+  gallery_urls: string;
 };
 
 const emptyDraft: ProductDraft = {
@@ -1335,6 +1339,10 @@ const emptyDraft: ProductDraft = {
   status: "draft",
   seo_title: "",
   seo_description: "",
+  tags: "",
+  benefits: "",
+  features: "",
+  gallery_urls: "",
 };
 
 function ProductsPanel() {
