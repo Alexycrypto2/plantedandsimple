@@ -43,6 +43,16 @@ import {
   type AdminProduct,
   type Category,
 } from "@/lib/products.functions";
+import {
+  adminListPosts,
+  adminUpsertPost,
+  adminDeletePost,
+  type AdminPost,
+} from "@/lib/blog.functions";
+import {
+  getDashboardStats,
+  type DashboardStats,
+} from "@/lib/dashboard.functions";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   component: AdminPage,
@@ -56,9 +66,11 @@ export const Route = createFileRoute("/_authenticated/admin")({
 
 type Me = { userId: string; email: string | null; roles: ("boss" | "admin")[] };
 type Tab =
+  | "overview"
   | "sales"
   | "products"
   | "categories"
+  | "blog"
   | "reviews"
   | "buyers"
   | "pricing"
@@ -69,7 +81,7 @@ function AdminPage() {
   const navigate = useNavigate();
   const [me, setMe] = useState<Me | null>(null);
   const [err, setErr] = useState<string | null>(null);
-  const [tab, setTab] = useState<Tab>("sales");
+  const [tab, setTab] = useState<Tab>("overview");
   const [navOpen, setNavOpen] = useState(false);
 
   useEffect(() => {
@@ -117,9 +129,11 @@ function AdminPage() {
   const isBoss = me.roles.includes("boss");
   const tabs: Tab[] = isBoss
     ? [
+        "overview",
         "sales",
         "products",
         "categories",
+        "blog",
         "pricing",
         "reviews",
         "buyers",
@@ -127,7 +141,7 @@ function AdminPage() {
         "admins",
       ]
     : ["sales"];
-  const activeTab = tabs.includes(tab) ? tab : "sales";
+  const activeTab = tabs.includes(tab) ? tab : isBoss ? "overview" : "sales";
 
   return (
     <div className="min-h-screen bg-cream font-sans text-charcoal">
@@ -207,9 +221,11 @@ function AdminPage() {
       </aside>
 
       <main className="mx-auto max-w-6xl px-6 pb-8 pt-20">
+        {activeTab === "overview" && isBoss && <OverviewPanel />}
         {activeTab === "sales" && <SalesPanel />}
         {activeTab === "products" && isBoss && <ProductsPanel />}
         {activeTab === "categories" && isBoss && <CategoriesPanel />}
+        {activeTab === "blog" && isBoss && <BlogPanel />}
         {activeTab === "reviews" && isBoss && <ReviewsPanel />}
         {activeTab === "buyers" && isBoss && <BuyersPanel />}
         {activeTab === "pricing" && isBoss && <PricingPanel />}
