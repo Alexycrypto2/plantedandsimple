@@ -1385,6 +1385,10 @@ function ProductsPanel() {
       status: p.status,
       seo_title: p.seo_title ?? "",
       seo_description: p.seo_description ?? "",
+      tags: (p.tags ?? []).join(", "),
+      benefits: (p.benefits ?? []).join("\n"),
+      features: (p.features ?? []).join("\n"),
+      gallery_urls: (p.gallery_urls ?? []).join("\n"),
     });
   };
 
@@ -1413,6 +1417,14 @@ function ProductsPanel() {
           status: editing.status,
           seo_title: editing.seo_title || null,
           seo_description: editing.seo_description || null,
+          tags: editing.tags
+            .split(",").map((s) => s.trim()).filter(Boolean),
+          benefits: editing.benefits
+            .split("\n").map((s) => s.trim()).filter(Boolean),
+          features: editing.features
+            .split("\n").map((s) => s.trim()).filter(Boolean),
+          gallery_urls: editing.gallery_urls
+            .split("\n").map((s) => s.trim()).filter(Boolean),
         },
       });
       setEditing(null);
