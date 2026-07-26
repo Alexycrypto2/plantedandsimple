@@ -136,17 +136,17 @@ export const adminUpsertPost = createServerFn({ method: "POST" })
     if (payload.status === "published") {
       payload.published_at = new Date().toISOString();
     }
-    let row;
+    let row: any;
     if (data.id) {
       const { data: r, error } = await supabaseAdmin
-        .from("blog_posts").update(payload).eq("id", data.id)
+        .from("blog_posts" as any).update(payload).eq("id", data.id)
         .select(publicSelect + ", status, created_at").single();
       if (error) throw new Error(error.message);
       row = r;
     } else {
       payload.author_id = context.userId;
       const { data: r, error } = await supabaseAdmin
-        .from("blog_posts").insert(payload)
+        .from("blog_posts" as any).insert(payload)
         .select(publicSelect + ", status, created_at").single();
       if (error) throw new Error(error.message);
       row = r;
