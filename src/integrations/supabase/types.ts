@@ -109,6 +109,60 @@ export type Database = {
         }
         Relationships: []
       }
+      blog_posts: {
+        Row: {
+          author_id: string | null
+          category: string | null
+          content: string
+          created_at: string
+          excerpt: string | null
+          featured_image_url: string | null
+          id: string
+          published_at: string | null
+          seo_description: string | null
+          seo_title: string | null
+          slug: string
+          status: string
+          tags: string[]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          author_id?: string | null
+          category?: string | null
+          content?: string
+          created_at?: string
+          excerpt?: string | null
+          featured_image_url?: string | null
+          id?: string
+          published_at?: string | null
+          seo_description?: string | null
+          seo_title?: string | null
+          slug: string
+          status?: string
+          tags?: string[]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          author_id?: string | null
+          category?: string | null
+          content?: string
+          created_at?: string
+          excerpt?: string | null
+          featured_image_url?: string | null
+          id?: string
+          published_at?: string | null
+          seo_description?: string | null
+          seo_title?: string | null
+          slug?: string
+          status?: string
+          tags?: string[]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       cookbook_downloads: {
         Row: {
           confirmation_email_sent_at: string | null
@@ -226,6 +280,30 @@ export type Database = {
         }
         Relationships: []
       }
+      free_guide_downloads: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          ip_address: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          ip_address?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          ip_address?: string | null
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       pricing_settings: {
         Row: {
           compare_at_cents: number
@@ -282,6 +360,7 @@ export type Database = {
       }
       products: {
         Row: {
+          benefits: Json
           bonus_files: Json
           category_id: string | null
           compare_at_cents: number
@@ -289,12 +368,14 @@ export type Database = {
           created_at: string
           currency: string
           description: string
+          features: Json
           gallery_urls: string[]
           id: string
           is_bestseller: boolean
           is_featured: boolean
           paddle_price_external_id: string | null
           pdf_asset_url: string | null
+          pdf_storage_path: string | null
           pinterest_description: string | null
           price_cents: number
           published_at: string | null
@@ -303,10 +384,12 @@ export type Database = {
           slug: string
           status: string
           subtitle: string | null
+          tags: string[]
           title: string
           updated_at: string
         }
         Insert: {
+          benefits?: Json
           bonus_files?: Json
           category_id?: string | null
           compare_at_cents?: number
@@ -314,12 +397,14 @@ export type Database = {
           created_at?: string
           currency?: string
           description?: string
+          features?: Json
           gallery_urls?: string[]
           id?: string
           is_bestseller?: boolean
           is_featured?: boolean
           paddle_price_external_id?: string | null
           pdf_asset_url?: string | null
+          pdf_storage_path?: string | null
           pinterest_description?: string | null
           price_cents?: number
           published_at?: string | null
@@ -328,10 +413,12 @@ export type Database = {
           slug: string
           status?: string
           subtitle?: string | null
+          tags?: string[]
           title: string
           updated_at?: string
         }
         Update: {
+          benefits?: Json
           bonus_files?: Json
           category_id?: string | null
           compare_at_cents?: number
@@ -339,12 +426,14 @@ export type Database = {
           created_at?: string
           currency?: string
           description?: string
+          features?: Json
           gallery_urls?: string[]
           id?: string
           is_bestseller?: boolean
           is_featured?: boolean
           paddle_price_external_id?: string | null
           pdf_asset_url?: string | null
+          pdf_storage_path?: string | null
           pinterest_description?: string | null
           price_cents?: number
           published_at?: string | null
@@ -353,6 +442,7 @@ export type Database = {
           slug?: string
           status?: string
           subtitle?: string | null
+          tags?: string[]
           title?: string
           updated_at?: string
         }
