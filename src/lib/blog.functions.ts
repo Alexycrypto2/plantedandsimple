@@ -54,7 +54,7 @@ export const listPublishedPosts = createServerFn({ method: "GET" }).handler(
   async (): Promise<PublicPost[]> => {
     const sb = serverPublic();
     const { data, error } = await sb
-      .from("blog_posts")
+      .from("blog_posts" as any)
       .select(publicSelect)
       .eq("status", "published")
       .order("published_at", { ascending: false, nullsFirst: false });
@@ -68,7 +68,7 @@ export const getPublishedPostBySlug = createServerFn({ method: "GET" })
   .handler(async ({ data }): Promise<PublicPost | null> => {
     const sb = serverPublic();
     const { data: row, error } = await sb
-      .from("blog_posts")
+      .from("blog_posts" as any)
       .select(publicSelect)
       .eq("slug", data.slug)
       .eq("status", "published")
@@ -89,7 +89,7 @@ export const adminListPosts = createServerFn({ method: "GET" })
     await requireBoss(context.supabase, context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data, error } = await supabaseAdmin
-      .from("blog_posts")
+      .from("blog_posts" as any)
       .select(publicSelect + ", status, created_at")
       .order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
@@ -160,7 +160,7 @@ export const adminDeletePost = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await requireBoss(context.supabase, context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { error } = await supabaseAdmin.from("blog_posts").delete().eq("id", data.id);
+    const { error } = await supabaseAdmin.from("blog_posts" as any).delete().eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
