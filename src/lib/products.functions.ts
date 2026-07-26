@@ -25,6 +25,9 @@ export type PublicProduct = {
   is_bestseller: boolean;
   seo_title: string | null;
   seo_description: string | null;
+  tags: string[];
+  benefits: string[];
+  features: string[];
 };
 
 export type AdminProduct = PublicProduct & {
@@ -85,6 +88,9 @@ function mapPublic(row: any): PublicProduct {
     is_bestseller: !!row.is_bestseller,
     seo_title: row.seo_title,
     seo_description: row.seo_description,
+    tags: (row.tags as string[] | null) ?? [],
+    benefits: Array.isArray(row.benefits) ? (row.benefits as string[]) : [],
+    features: Array.isArray(row.features) ? (row.features as string[]) : [],
   };
 }
 
@@ -101,7 +107,7 @@ function mapAdmin(row: any): AdminProduct {
 }
 
 const productSelect =
-  "id, slug, title, subtitle, description, category_id, cover_image_url, gallery_urls, price_cents, compare_at_cents, currency, paddle_price_external_id, is_featured, is_bestseller, seo_title, seo_description, category:product_categories(slug, name)";
+  "id, slug, title, subtitle, description, category_id, cover_image_url, gallery_urls, price_cents, compare_at_cents, currency, paddle_price_external_id, is_featured, is_bestseller, seo_title, seo_description, tags, benefits, features, category:product_categories(slug, name)";
 
 const adminSelect = productSelect +
   ", status, pdf_asset_url, bonus_files, pinterest_description, published_at, created_at";
@@ -206,6 +212,9 @@ export type ProductUpsertInput = {
   seo_title?: string | null;
   seo_description?: string | null;
   pinterest_description?: string | null;
+  tags?: string[];
+  benefits?: string[];
+  features?: string[];
 };
 
 function validateUpsert(d: ProductUpsertInput): ProductUpsertInput {
@@ -249,6 +258,9 @@ export const adminUpsertProduct = createServerFn({ method: "POST" })
       seo_title: data.seo_title ?? null,
       seo_description: data.seo_description ?? null,
       pinterest_description: data.pinterest_description ?? null,
+      tags: data.tags ?? [],
+      benefits: data.benefits ?? [],
+      features: data.features ?? [],
     };
     if (payload.status === "published") {
       payload.published_at = new Date().toISOString();

@@ -43,6 +43,16 @@ import {
   type AdminProduct,
   type Category,
 } from "@/lib/products.functions";
+import {
+  adminListPosts,
+  adminUpsertPost,
+  adminDeletePost,
+  type AdminPost,
+} from "@/lib/blog.functions";
+import {
+  getDashboardStats,
+  type DashboardStats,
+} from "@/lib/dashboard.functions";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   component: AdminPage,
@@ -56,9 +66,11 @@ export const Route = createFileRoute("/_authenticated/admin")({
 
 type Me = { userId: string; email: string | null; roles: ("boss" | "admin")[] };
 type Tab =
+  | "overview"
   | "sales"
   | "products"
   | "categories"
+  | "blog"
   | "reviews"
   | "buyers"
   | "pricing"
@@ -69,7 +81,7 @@ function AdminPage() {
   const navigate = useNavigate();
   const [me, setMe] = useState<Me | null>(null);
   const [err, setErr] = useState<string | null>(null);
-  const [tab, setTab] = useState<Tab>("sales");
+  const [tab, setTab] = useState<Tab>("overview");
   const [navOpen, setNavOpen] = useState(false);
 
   useEffect(() => {
@@ -117,9 +129,11 @@ function AdminPage() {
   const isBoss = me.roles.includes("boss");
   const tabs: Tab[] = isBoss
     ? [
+        "overview",
         "sales",
         "products",
         "categories",
+        "blog",
         "pricing",
         "reviews",
         "buyers",
@@ -127,7 +141,7 @@ function AdminPage() {
         "admins",
       ]
     : ["sales"];
-  const activeTab = tabs.includes(tab) ? tab : "sales";
+  const activeTab = tabs.includes(tab) ? tab : isBoss ? "overview" : "sales";
 
   return (
     <div className="min-h-screen bg-cream font-sans text-charcoal">
@@ -207,9 +221,11 @@ function AdminPage() {
       </aside>
 
       <main className="mx-auto max-w-6xl px-6 pb-8 pt-20">
+        {activeTab === "overview" && isBoss && <OverviewPanel />}
         {activeTab === "sales" && <SalesPanel />}
         {activeTab === "products" && isBoss && <ProductsPanel />}
         {activeTab === "categories" && isBoss && <CategoriesPanel />}
+        {activeTab === "blog" && isBoss && <BlogPanel />}
         {activeTab === "reviews" && isBoss && <ReviewsPanel />}
         {activeTab === "buyers" && isBoss && <BuyersPanel />}
         {activeTab === "pricing" && isBoss && <PricingPanel />}
@@ -1300,6 +1316,10 @@ type ProductDraft = {
   status: "draft" | "published";
   seo_title: string;
   seo_description: string;
+  tags: string;
+  benefits: string;
+  features: string;
+  gallery_urls: string;
 };
 
 const emptyDraft: ProductDraft = {
@@ -1319,6 +1339,10 @@ const emptyDraft: ProductDraft = {
   status: "draft",
   seo_title: "",
   seo_description: "",
+  tags: "",
+  benefits: "",
+  features: "",
+  gallery_urls: "",
 };
 
 function ProductsPanel() {
@@ -1361,6 +1385,10 @@ function ProductsPanel() {
       status: p.status,
       seo_title: p.seo_title ?? "",
       seo_description: p.seo_description ?? "",
+      tags: (p.tags ?? []).join(", "),
+      benefits: (p.benefits ?? []).join("\n"),
+      features: (p.features ?? []).join("\n"),
+      gallery_urls: (p.gallery_urls ?? []).join("\n"),
     });
   };
 
@@ -1389,6 +1417,14 @@ function ProductsPanel() {
           status: editing.status,
           seo_title: editing.seo_title || null,
           seo_description: editing.seo_description || null,
+          tags: editing.tags
+            .split(",").map((s) => s.trim()).filter(Boolean),
+          benefits: editing.benefits
+            .split("\n").map((s) => s.trim()).filter(Boolean),
+          features: editing.features
+            .split("\n").map((s) => s.trim()).filter(Boolean),
+          gallery_urls: editing.gallery_urls
+            .split("\n").map((s) => s.trim()).filter(Boolean),
         },
       });
       setEditing(null);
@@ -1799,6 +1835,400 @@ function CategoriesPanel() {
                 </td>
               </tr>
             ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+/* ---------- Overview ---------- */
+function OverviewPanel() {
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+
+  useEffect(() => {
+    getDashboardStats()
+      .then(setStats)
+      .catch((e) => setErr(e instanceof Error ? e.message : String(e)));
+  }, []);
+
+  if (err) return <p className="text-red-600">{err}</p>;
+  if (!stats) return <p className="text-charcoal/60">Loading…</p>;
+
+  const cards: Array<{ label: string; value: string; hint?: string }> = [
+    {
+      label: "Revenue",
+      value: `$${(stats.revenue_total / 100).toFixed(2)}`,
+      hint: `${stats.orders_total} orders`,
+    },
+    { label: "Customers", value: String(stats.customers_total) },
+    { label: "Subscribers", value: String(stats.subscribers_total) },
+    {
+      label: "Products",
+      value: String(stats.products_total),
+      hint: `${stats.products_published} live · ${stats.products_draft} draft`,
+    },
+    {
+      label: "Blog posts",
+      value: String(stats.blog_posts_total),
+      hint: `${stats.blog_posts_published} published`,
+    },
+  ];
+
+  return (
+    <div className="space-y-8">
+      <h2 className="font-display text-3xl italic text-forest-deep">Overview</h2>
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
+        {cards.map((c) => (
+          <div
+            key={c.label}
+            className="rounded-2xl border border-forest/10 bg-cream-warm/60 p-5"
+          >
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-charcoal/50">
+              {c.label}
+            </p>
+            <p className="mt-2 font-display text-3xl italic text-forest-deep">
+              {c.value}
+            </p>
+            {c.hint && <p className="mt-1 text-xs text-charcoal/60">{c.hint}</p>}
+          </div>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <div className="rounded-2xl border border-forest/10 bg-white p-6">
+          <h3 className="font-display text-xl italic text-forest-deep">
+            Recent sales
+          </h3>
+          {stats.recent_sales.length === 0 ? (
+            <p className="mt-4 text-sm text-charcoal/60">No sales yet.</p>
+          ) : (
+            <ul className="mt-4 divide-y divide-forest/5 text-sm">
+              {stats.recent_sales.map((s) => (
+                <li key={s.id} className="flex items-center justify-between py-3">
+                  <div>
+                    <p className="font-semibold text-forest-deep">
+                      {s.email ?? "guest"}
+                    </p>
+                    <p className="text-xs text-charcoal/50">
+                      {s.product_slug ?? "—"} ·{" "}
+                      {new Date(s.created_at).toLocaleDateString()}
+                    </p>
+                  </div>
+                  <span className="font-mono text-sm text-charcoal/80">
+                    {s.amount != null
+                      ? `$${(Number(s.amount) / 100).toFixed(2)}`
+                      : "—"}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        <div className="rounded-2xl border border-forest/10 bg-white p-6">
+          <h3 className="font-display text-xl italic text-forest-deep">
+            Recent downloads
+          </h3>
+          {stats.recent_downloads.length === 0 ? (
+            <p className="mt-4 text-sm text-charcoal/60">No downloads yet.</p>
+          ) : (
+            <ul className="mt-4 divide-y divide-forest/5 text-sm">
+              {stats.recent_downloads.map((d) => (
+                <li key={d.id} className="flex items-center justify-between py-3">
+                  <div>
+                    <p className="font-semibold text-forest-deep">
+                      {d.email ?? "guest"}
+                    </p>
+                    <p className="text-xs text-charcoal/50">
+                      {new Date(d.downloaded_at).toLocaleString()}
+                    </p>
+                  </div>
+                  <span className="text-xs text-charcoal/60">
+                    {d.download_count}×
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ---------- Blog ---------- */
+type PostDraft = {
+  id?: string;
+  slug: string;
+  title: string;
+  excerpt: string;
+  content: string;
+  category: string;
+  featured_image_url: string;
+  tags: string;
+  status: "draft" | "published";
+  seo_title: string;
+  seo_description: string;
+};
+
+const emptyPostDraft: PostDraft = {
+  slug: "",
+  title: "",
+  excerpt: "",
+  content: "",
+  category: "",
+  featured_image_url: "",
+  tags: "",
+  status: "draft",
+  seo_title: "",
+  seo_description: "",
+};
+
+function BlogPanel() {
+  const [posts, setPosts] = useState<AdminPost[]>([]);
+  const [editing, setEditing] = useState<PostDraft | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  const load = () =>
+    adminListPosts()
+      .then(setPosts)
+      .catch((e) => setErr(e instanceof Error ? e.message : String(e)));
+
+  useEffect(() => {
+    load();
+  }, []);
+
+  const startEdit = (p: AdminPost) =>
+    setEditing({
+      id: p.id,
+      slug: p.slug,
+      title: p.title,
+      excerpt: p.excerpt ?? "",
+      content: p.content ?? "",
+      category: p.category ?? "",
+      featured_image_url: p.featured_image_url ?? "",
+      tags: (p.tags ?? []).join(", "),
+      status: p.status,
+      seo_title: p.seo_title ?? "",
+      seo_description: p.seo_description ?? "",
+    });
+
+  const save = async () => {
+    if (!editing) return;
+    setBusy(true);
+    setErr(null);
+    try {
+      await adminUpsertPost({
+        data: {
+          id: editing.id,
+          slug: editing.slug.trim(),
+          title: editing.title.trim(),
+          excerpt: editing.excerpt || null,
+          content: editing.content,
+          category: editing.category || null,
+          featured_image_url: editing.featured_image_url || null,
+          tags: editing.tags
+            .split(",")
+            .map((s) => s.trim())
+            .filter(Boolean),
+          status: editing.status,
+          seo_title: editing.seo_title || null,
+          seo_description: editing.seo_description || null,
+        },
+      });
+      setEditing(null);
+      await load();
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : String(e));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const remove = async (id: string) => {
+    if (!confirm("Delete this post?")) return;
+    await adminDeletePost({ data: { id } });
+    load();
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h2 className="font-display text-3xl italic text-forest-deep">Blog</h2>
+        <button
+          onClick={() => setEditing({ ...emptyPostDraft })}
+          className="rounded-full bg-forest px-5 py-2 text-xs font-bold uppercase tracking-[0.2em] text-cream hover:bg-forest-deep"
+        >
+          + New post
+        </button>
+      </div>
+      {err && <p className="text-sm text-red-600">{err}</p>}
+
+      {editing && (
+        <div className="rounded-2xl border border-forest/15 bg-white p-6 shadow-card">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <Field label="Title">
+              <input
+                className="input"
+                value={editing.title}
+                onChange={(e) => setEditing({ ...editing, title: e.target.value })}
+              />
+            </Field>
+            <Field label="Slug">
+              <input
+                className="input"
+                value={editing.slug}
+                onChange={(e) => setEditing({ ...editing, slug: e.target.value })}
+              />
+            </Field>
+            <Field label="Category">
+              <input
+                className="input"
+                value={editing.category}
+                onChange={(e) =>
+                  setEditing({ ...editing, category: e.target.value })
+                }
+              />
+            </Field>
+            <Field label="Featured image URL">
+              <input
+                className="input"
+                value={editing.featured_image_url}
+                onChange={(e) =>
+                  setEditing({ ...editing, featured_image_url: e.target.value })
+                }
+              />
+            </Field>
+            <Field label="Tags (comma-separated)">
+              <input
+                className="input"
+                value={editing.tags}
+                onChange={(e) => setEditing({ ...editing, tags: e.target.value })}
+              />
+            </Field>
+            <Field label="Status">
+              <select
+                className="input"
+                value={editing.status}
+                onChange={(e) =>
+                  setEditing({
+                    ...editing,
+                    status: e.target.value as "draft" | "published",
+                  })
+                }
+              >
+                <option value="draft">Draft</option>
+                <option value="published">Published</option>
+              </select>
+            </Field>
+          </div>
+          <Field label="Excerpt" className="mt-4">
+            <textarea
+              className="input h-20"
+              value={editing.excerpt}
+              onChange={(e) => setEditing({ ...editing, excerpt: e.target.value })}
+            />
+          </Field>
+          <Field label="Content (HTML supported)" className="mt-4">
+            <textarea
+              className="input h-64 font-mono text-sm"
+              value={editing.content}
+              onChange={(e) => setEditing({ ...editing, content: e.target.value })}
+            />
+          </Field>
+          <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
+            <Field label="SEO title">
+              <input
+                className="input"
+                value={editing.seo_title}
+                onChange={(e) =>
+                  setEditing({ ...editing, seo_title: e.target.value })
+                }
+              />
+            </Field>
+            <Field label="SEO description">
+              <input
+                className="input"
+                value={editing.seo_description}
+                onChange={(e) =>
+                  setEditing({ ...editing, seo_description: e.target.value })
+                }
+              />
+            </Field>
+          </div>
+          <div className="mt-6 flex justify-end gap-3">
+            <button
+              onClick={() => setEditing(null)}
+              className="rounded-full border border-forest/20 px-5 py-2 text-xs font-bold uppercase tracking-[0.2em] text-charcoal/70"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={save}
+              disabled={busy}
+              className="rounded-full bg-forest px-6 py-2 text-xs font-bold uppercase tracking-[0.2em] text-cream hover:bg-forest-deep disabled:opacity-60"
+            >
+              {busy ? "Saving…" : "Save post"}
+            </button>
+          </div>
+        </div>
+      )}
+
+      <div className="overflow-hidden rounded-2xl border border-forest/10 bg-white">
+        <table className="w-full text-sm">
+          <thead className="bg-cream-warm text-left text-xs uppercase tracking-[0.15em] text-charcoal/60">
+            <tr>
+              <th className="px-4 py-3">Title</th>
+              <th className="px-4 py-3">Slug</th>
+              <th className="px-4 py-3">Status</th>
+              <th className="px-4 py-3 text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {posts.map((p) => (
+              <tr key={p.id} className="border-t border-forest/5">
+                <td className="px-4 py-3 font-semibold text-forest-deep">
+                  {p.title}
+                </td>
+                <td className="px-4 py-3 font-mono text-xs text-charcoal/60">
+                  {p.slug}
+                </td>
+                <td className="px-4 py-3">
+                  <span
+                    className={
+                      p.status === "published"
+                        ? "rounded-full bg-forest/10 px-2 py-0.5 text-xs font-semibold text-forest"
+                        : "rounded-full bg-charcoal/10 px-2 py-0.5 text-xs text-charcoal/70"
+                    }
+                  >
+                    {p.status}
+                  </span>
+                </td>
+                <td className="px-4 py-3 text-right">
+                  <button
+                    onClick={() => startEdit(p)}
+                    className="mr-3 text-xs font-semibold text-forest hover:underline"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => remove(p.id)}
+                    className="text-xs font-semibold text-red-600 hover:underline"
+                  >
+                    Delete
+                  </button>
+                </td>
+              </tr>
+            ))}
+            {posts.length === 0 && (
+              <tr>
+                <td colSpan={4} className="px-4 py-8 text-center text-charcoal/60">
+                  No posts yet.
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
