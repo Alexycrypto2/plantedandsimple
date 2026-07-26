@@ -43,12 +43,12 @@ export const getDashboardStats = createServerFn({ method: "GET" })
       supabaseAdmin.from("products").select("id, status"),
       supabaseAdmin.from("subscribers").select("id", { count: "exact", head: true }),
       supabaseAdmin.from("cookbook_downloads").select("*").order("created_at", { ascending: false }).limit(50),
-      supabaseAdmin.from("blog_posts" as any).select("id, status"),
+      (supabaseAdmin as any).from("blog_posts").select("id, status"),
     ]);
 
     const products = (prod.data ?? []) as Array<{ status: string }>;
     const downloads = (dl.data ?? []) as Array<any>;
-    const blogs = ((blog.data ?? []) as Array<{ status: string }>) ?? [];
+    const blogs: Array<{ status: string }> = (blog.data as any) ?? [];
 
     const uniqEmails = new Set<string>();
     downloads.forEach((d) => { if (d.email) uniqEmails.add(d.email.toLowerCase()); });
