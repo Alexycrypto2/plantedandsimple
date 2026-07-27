@@ -90,6 +90,7 @@ function HomePage() {
       <SiteNav />
       <Hero primary={primary} />
       <FeaturedCollection primary={primary} secondary={secondary} />
+      <ShopGrid products={products} />
       <FreeResources />
       <CategoryGrid />
       <BestSellersMarquee bestsellers={products.filter((p) => p.is_bestseller)} />
@@ -324,6 +325,96 @@ function FeaturedCollection({
 /* ---------------- Free resources ---------------- */
 
 function FreeResources() {
+  return null; // moved below; kept for future re-use
+}
+
+/* ---------------- Shop grid (all products) ---------------- */
+
+function ShopGrid({ products }: { products: PublicProduct[] }) {
+  if (!products.length) return null;
+  return (
+    <section className="bg-cream px-6 py-20 md:py-24">
+      <div className="mx-auto max-w-7xl">
+        <div className="mb-10 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+          <div>
+            <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.25em] text-sage">
+              The Shop
+            </p>
+            <h2 className="mt-3 font-display text-4xl italic text-forest-deep md:text-5xl">
+              Every cookbook we make
+            </h2>
+          </div>
+          <Link
+            to="/shop"
+            className="text-[11px] font-bold uppercase tracking-[0.25em] text-forest hover:underline"
+          >
+            Browse the full shop →
+          </Link>
+        </div>
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {products.slice(0, 6).map((p) => (
+            <Link
+              key={p.id}
+              to="/shop/$slug"
+              params={{ slug: p.slug }}
+              className="group flex flex-col overflow-hidden rounded-3xl border border-forest/10 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-card"
+            >
+              <div className="aspect-[4/5] w-full overflow-hidden bg-sage-soft">
+                {p.cover_image_url ? (
+                  <img
+                    src={p.cover_image_url}
+                    alt={p.title}
+                    loading="lazy"
+                    className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
+                  />
+                ) : (
+                  <img
+                    src={heroImg}
+                    alt=""
+                    loading="lazy"
+                    className="h-full w-full object-cover"
+                  />
+                )}
+              </div>
+              <div className="flex flex-1 flex-col p-6">
+                {p.category_name && (
+                  <p className="font-mono text-[10px] font-bold uppercase tracking-[0.25em] text-sage">
+                    {p.category_name}
+                  </p>
+                )}
+                <h3 className="mt-2 font-display text-xl italic text-forest-deep">
+                  {p.title}
+                </h3>
+                {p.subtitle && (
+                  <p className="mt-1 line-clamp-2 text-sm text-charcoal/60">
+                    {p.subtitle}
+                  </p>
+                )}
+                <div className="mt-auto flex items-baseline justify-between pt-5">
+                  <div>
+                    <span className="font-display text-2xl font-bold text-forest-deep">
+                      ${p.price_display}
+                    </span>
+                    {p.compare_at_cents > p.price_cents && (
+                      <span className="ml-2 text-xs text-charcoal/40 line-through">
+                        ${p.compare_at_display}
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-xs font-bold uppercase tracking-[0.2em] text-forest group-hover:underline">
+                    View →
+                  </span>
+                </div>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function _FreeResourcesUnused() {
   const items = [
     {
       title: "Pantry Essentials PDF",
