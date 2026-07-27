@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
+import { SiteLayout } from "@/components/SiteLayout";
 import {
   listPublishedProducts,
   listCategories,
@@ -53,19 +54,7 @@ function ShopPage() {
   });
 
   return (
-    <div className="min-h-screen bg-cream font-sans text-charcoal">
-      <header className="border-b border-forest/10 bg-cream/80 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-5">
-          <Link to="/" className="font-display text-xl font-bold italic text-forest">
-            Planted<span className="text-sage">&amp;</span>Simple
-          </Link>
-          <nav className="flex gap-6 text-sm font-medium text-charcoal/70">
-            <Link to="/" className="hover:text-forest">Home</Link>
-            <Link to="/shop" className="text-forest">Shop</Link>
-          </nav>
-        </div>
-      </header>
-
+    <SiteLayout>
       <section className="mx-auto max-w-6xl px-6 py-14">
         <p className="font-mono text-[11px] font-semibold uppercase tracking-widest text-sage">
           The Shop
@@ -131,7 +120,7 @@ function ShopPage() {
           </div>
         )}
       </section>
-    </div>
+    </SiteLayout>
   );
 }
 

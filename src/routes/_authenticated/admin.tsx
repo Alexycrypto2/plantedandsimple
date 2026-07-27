@@ -1862,7 +1862,21 @@ function OverviewPanel() {
       hint: `${stats.orders_total} orders`,
     },
     { label: "Customers", value: String(stats.customers_total) },
-    { label: "Subscribers", value: String(stats.subscribers_total) },
+    {
+      label: "Subscribers",
+      value: String(stats.subscribers_total),
+      hint: `+${stats.subscribers_last_7d} in 7d · +${stats.subscribers_last_30d} in 30d`,
+    },
+    {
+      label: "Free guide signups",
+      value: String(stats.free_guide_signups_total),
+      hint: `${stats.free_to_checkout_pct}% converted to checkout`,
+    },
+    {
+      label: "Download completion",
+      value: `${stats.download_completion_pct}%`,
+      hint: "Buyers who opened the PDF",
+    },
     {
       label: "Products",
       value: String(stats.products_total),
