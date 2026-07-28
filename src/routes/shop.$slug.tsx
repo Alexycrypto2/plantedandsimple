@@ -14,6 +14,31 @@ import peekMealPrep from "@/assets/peek-meal-prep.jpg.asset.json";
 import peekGrocery from "@/assets/peek-grocery.jpg.asset.json";
 import peekSmoothies from "@/assets/peek-smoothies.jpg.asset.json";
 
+function getStoredAffiliateRef(): string | null {
+  if (typeof window === "undefined") return null;
+  const fromUrl = new URLSearchParams(window.location.search).get("ref");
+  if (fromUrl) {
+    const code = fromUrl.trim().toUpperCase();
+    window.localStorage.setItem("pas_affiliate_ref", code);
+    return code;
+  }
+  return window.localStorage.getItem("pas_affiliate_ref");
+}
+
+function uniqueImages(product: PublicProduct): Array<{ url: string; label: string }> {
+  const seen = new Set<string>();
+  const images: Array<{ url: string; label: string }> = [];
+  const add = (url: string | null | undefined, label: string) => {
+    if (!url || seen.has(url)) return;
+    seen.add(url);
+    images.push({ url, label });
+  };
+  add(product.cover_image_url, "Cookbook cover");
+  product.gallery_urls.forEach((url, index) => add(url, `Preview ${index + 1}`));
+  PREVIEWS.forEach((preview) => add(preview.url, preview.label));
+  return images;
+}
+
 export const Route = createFileRoute("/shop/$slug")({
   loader: async ({ params }): Promise<{ product: PublicProduct; related: PublicProduct[] }> => {
     const product = await getPublishedProductBySlug({ data: { slug: params.slug } });
@@ -23,6 +48,18 @@ export const Route = createFileRoute("/shop/$slug")({
     return { product, related };
   },
   component: ProductDetail,
+  errorComponent: ({ error }) => (
+    <SiteLayout>
+      <div className="grid min-h-[60vh] place-items-center px-6 text-center">
+        <div>
+          <p className="font-mono text-xs uppercase tracking-widest text-sage">Product error</p>
+          <h1 className="mt-2 font-display text-3xl italic text-forest-deep">We couldn't load this product</h1>
+          <p className="mx-auto mt-3 max-w-md text-sm text-charcoal/60">{error.message}</p>
+          <Link to="/shop" className="mt-6 inline-block rounded-full bg-forest px-6 py-3 text-sm font-semibold text-cream">Back to shop</Link>
+        </div>
+      </div>
+    </SiteLayout>
+  ),
   notFoundComponent: () => (
     <SiteLayout>
       <div className="grid min-h-[60vh] place-items-center px-6 text-center">
@@ -39,6 +76,11 @@ export const Route = createFileRoute("/shop/$slug")({
       return {
         meta: [
           { title: "Product unavailable — PlantedAndSimple" },
+          { name: "description", content: "This PlantedAndSimple product is currently unavailable." },
+          { property: "og:title", content: "Product unavailable — PlantedAndSimple" },
+          { property: "og:description", content: "This PlantedAndSimple product is currently unavailable." },
+          { property: "og:type", content: "product" },
+          { name: "twitter:card", content: "summary" },
           { name: "robots", content: "noindex" },
         ],
       };
@@ -97,11 +139,19 @@ const FAQ = [
 ];
 
 function ProductDetail() {
-  const { product: p, related } = Route.useLoaderData();
+  const { product: p, related } = Route.useLoaderData() as {
+    product: PublicProduct;
+    related: PublicProduct[];
+  };
   const { openCheckout, loading } = usePaddleCheckout();
+  const gallery = uniqueImages(p);
+  const included = p.features.length ? p.features : INCLUDED;
+  const benefits = p.benefits.length
+    ? p.benefits.map((body, index) => ({ title: `Benefit ${index + 1}`, body }))
+    : BENEFITS;
   const [showSticky, setShowSticky] = useState(false);
   const [activeImg, setActiveImg] = useState<string>(
-    p.cover_image_url ?? PREVIEWS[0].url,
+    gallery[0]?.url ?? PREVIEWS[0].url,
   );
 
   useEffect(() => {
@@ -113,10 +163,11 @@ function ProductDetail() {
 
   const onBuy = () => {
     if (!p.paddle_price_external_id) return;
+    const ref = getStoredAffiliateRef();
     openCheckout({
       priceId: p.paddle_price_external_id,
       quantity: 1,
-      customData: { productSlug: p.slug },
+      customData: ref ? { productSlug: p.slug, ref } : { productSlug: p.slug },
       successUrl: `${window.location.origin}/thank-you`,
     });
   };
@@ -146,13 +197,14 @@ function ProductDetail() {
               )}
             </div>
             <div className="grid grid-cols-4 gap-3">
-              {(p.cover_image_url ? [p.cover_image_url] : []).concat(PREVIEWS.map((v) => v.url)).slice(0, 4).map((src, i) => (
+              {gallery.slice(0, 4).map((item, i) => (
                 <button
-                  key={src + i}
-                  onClick={() => setActiveImg(src)}
-                  className={`aspect-square overflow-hidden rounded-xl border transition ${activeImg === src ? "border-forest ring-2 ring-forest/30" : "border-forest/10 hover:border-forest/40"}`}
+                  key={item.url + i}
+                  type="button"
+                  onClick={() => setActiveImg(item.url)}
+                  className={`aspect-square overflow-hidden rounded-xl border transition ${activeImg === item.url ? "border-forest ring-2 ring-forest/30" : "border-forest/10 hover:border-forest/40"}`}
                 >
-                  <img src={src} alt="preview" loading="lazy" className="h-full w-full object-cover" />
+                  <img src={item.url} alt={item.label} loading="lazy" className="h-full w-full object-cover" />
                 </button>
               ))}
             </div>
@@ -174,7 +226,7 @@ function ProductDetail() {
             <div className="mt-6 flex flex-wrap items-baseline gap-3">
               <span className="font-display text-4xl font-bold text-forest-deep">${p.price_display}</span>
               {save && <span className="text-lg text-charcoal/40 line-through">${p.compare_at_display}</span>}
-              {save && <span className="rounded-full bg-sage/20 px-3 py-1 text-xs font-semibold text-forest">Save ${save}</span>}
+              {save && <span className="rounded-full bg-sage/20 px-3 py-1 text-xs font-semibold text-forest">🔥 Save 50% – Limited Launch Offer</span>}
             </div>
 
             <button
@@ -182,13 +234,13 @@ function ProductDetail() {
               disabled={loading || !p.paddle_price_external_id}
               className="mt-6 inline-flex w-full items-center justify-center rounded-full bg-forest px-8 py-4 text-sm font-bold uppercase tracking-[0.2em] text-cream shadow-lg transition hover:bg-forest-deep disabled:opacity-60"
             >
-              {loading ? "Opening checkout…" : "Buy now — instant download"}
+              {loading ? "Opening checkout…" : `Get instant access — $${p.price_display}`}
             </button>
 
             <ul className="mt-6 space-y-2 text-sm text-charcoal/70">
               <li>✅ Instant PDF download after checkout</li>
               <li>✅ 60-day money-back guarantee</li>
-              <li>✅ Secure payment via Paddle</li>
+              <li>✅ Secure checkout with card, Apple Pay, and more</li>
             </ul>
 
             {p.description && (
@@ -206,7 +258,7 @@ function ProductDetail() {
           <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.25em] text-sage">What's inside</p>
           <h2 className="mt-3 font-display text-4xl italic text-forest-deep md:text-5xl">Everything included</h2>
           <div className="mt-10 grid grid-cols-1 gap-4 md:grid-cols-2">
-            {INCLUDED.map((it) => (
+            {included.map((it) => (
               <div key={it} className="flex items-start gap-3 rounded-2xl border border-forest/10 bg-white p-5">
                 <span className="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full bg-forest text-cream">✓</span>
                 <p className="text-sm text-charcoal/80">{it}</p>
@@ -222,7 +274,7 @@ function ProductDetail() {
           <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.25em] text-sage">Recipe highlights</p>
           <h2 className="mt-3 font-display text-4xl italic text-forest-deep md:text-5xl">Take a peek inside</h2>
           <div className="mt-10 grid grid-cols-2 gap-4 md:grid-cols-3">
-            {PREVIEWS.map((v) => (
+            {gallery.map((v) => (
               <figure key={v.url} className="overflow-hidden rounded-2xl bg-cream-warm">
                 <img src={v.url} alt={v.label} loading="lazy" className="aspect-[4/5] w-full object-cover" />
                 <figcaption className="px-4 py-3 text-xs font-semibold uppercase tracking-[0.2em] text-charcoal/60">{v.label}</figcaption>
@@ -238,7 +290,7 @@ function ProductDetail() {
           <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.25em] text-sage">Key benefits</p>
           <h2 className="mt-3 font-display text-4xl italic text-forest-deep md:text-5xl">What this cookbook does for you</h2>
           <div className="mt-10 grid grid-cols-1 gap-6 md:grid-cols-2">
-            {BENEFITS.map((b) => (
+            {benefits.map((b) => (
               <div key={b.title} className="rounded-3xl border border-forest/10 bg-cream-warm/30 p-8">
                 <h3 className="font-display text-2xl italic text-forest-deep">{b.title}</h3>
                 <p className="mt-2 text-sm text-charcoal/70">{b.body}</p>

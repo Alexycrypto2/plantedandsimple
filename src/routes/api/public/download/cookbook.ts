@@ -18,7 +18,10 @@ export const Route = createFileRoute("/api/public/download/cookbook")({
     handlers: {
       GET: async ({ request }) => {
         const url = new URL(request.url);
-        const transactionId = url.searchParams.get("session_id");
+        const transactionId =
+          url.searchParams.get("session_id") ??
+          url.searchParams.get("transaction_id") ??
+          url.searchParams.get("_ptxn");
         const envParam = url.searchParams.get("env");
         const environment: PaddleEnv =
           envParam === "live" ? "live" : "sandbox";
@@ -90,7 +93,17 @@ export const Route = createFileRoute("/api/public/download/cookbook")({
           .eq("stripe_session_id", transactionId)
           .maybeSingle();
 
-        const nextCount = (existing?.download_count ?? 0) + 1;
+        if (!existing) {
+          return json(
+            {
+              error:
+                "Your secure download is still being prepared. Please refresh the thank-you page in a moment.",
+            },
+            { status: 403 },
+          );
+        }
+
+        const nextCount = existing.download_count + 1;
         if (nextCount > MAX_DOWNLOADS_PER_SESSION) {
           return json(
             {
@@ -101,23 +114,14 @@ export const Route = createFileRoute("/api/public/download/cookbook")({
           );
         }
 
-        if (existing) {
-          await supabaseAdmin
-            .from("cookbook_downloads")
-            .update({
-              download_count: nextCount,
-              last_downloaded_at: new Date().toISOString(),
-              email,
-            })
-            .eq("stripe_session_id", transactionId);
-        } else {
-          await supabaseAdmin.from("cookbook_downloads").insert({
-            stripe_session_id: transactionId,
-            email,
-            download_count: 1,
+        await supabaseAdmin
+          .from("cookbook_downloads")
+          .update({
+            download_count: nextCount,
             last_downloaded_at: new Date().toISOString(),
-          });
-        }
+            email,
+          })
+          .eq("stripe_session_id", transactionId);
 
         // 3. Also capture the email into subscribers (idempotent).
         if (email) {
