@@ -87,6 +87,20 @@ export const verifyCookbookPayment = createServerFn({ method: "POST" })
           const { supabaseAdmin } = await import(
             "@/integrations/supabase/client.server"
           );
+          const { data: order } = await supabaseAdmin
+            .from("cookbook_downloads")
+            .select("id")
+            .eq("stripe_session_id", data.transactionId)
+            .maybeSingle();
+
+          if (!order) {
+            return {
+              paid: false,
+              reason:
+                "Payment is confirmed, but your secure download is still being prepared. Please wait a moment and refresh this page.",
+            };
+          }
+
           await supabaseAdmin
             .from("subscribers")
             .upsert(
@@ -97,18 +111,37 @@ export const verifyCookbookPayment = createServerFn({ method: "POST" })
               },
               { onConflict: "email", ignoreDuplicates: true },
             );
-          await supabaseAdmin.from("cookbook_downloads").upsert(
-            {
-              stripe_session_id: data.transactionId,
-              email,
-            },
-            {
-              onConflict: "stripe_session_id",
-              ignoreDuplicates: true,
-            },
-          );
+          await supabaseAdmin
+            .from("cookbook_downloads")
+            .update({ email })
+            .eq("stripe_session_id", data.transactionId);
         } catch {
           // Non-fatal — the order is still valid.
+        }
+      } else {
+        try {
+          const { supabaseAdmin } = await import(
+            "@/integrations/supabase/client.server"
+          );
+          const { data: order } = await supabaseAdmin
+            .from("cookbook_downloads")
+            .select("id")
+            .eq("stripe_session_id", data.transactionId)
+            .maybeSingle();
+
+          if (!order) {
+            return {
+              paid: false,
+              reason:
+                "Payment is confirmed, but your secure download is still being prepared. Please wait a moment and refresh this page.",
+            };
+          }
+        } catch {
+          return {
+            paid: false,
+            reason:
+              "Payment is confirmed, but your secure download is still being prepared. Please wait a moment and refresh this page.",
+          };
         }
       }
 

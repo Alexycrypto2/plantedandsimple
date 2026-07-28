@@ -68,13 +68,6 @@ export const Route = createFileRoute("/api/public/payments/webhook")({
           }
         }
 
-        if (!email) {
-          console.warn("No email on Paddle transaction, cannot send", {
-            transactionId,
-          });
-          return Response.json({ ok: true, skipped: "no_email" });
-        }
-
         const { supabaseAdmin } = await import(
           "@/integrations/supabase/client.server"
         );
@@ -101,6 +94,13 @@ export const Route = createFileRoute("/api/public/payments/webhook")({
             email,
             download_count: 0,
           });
+        }
+
+        if (!email) {
+          console.warn("No email on Paddle transaction, download gate created without email", {
+            transactionId,
+          });
+          return Response.json({ ok: true, skipped: "no_email" });
         }
 
         // Capture the email for future promotions.
