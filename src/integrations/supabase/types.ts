@@ -109,6 +109,138 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_generations: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          decided_at: string | null
+          id: string
+          kind: string
+          model: string | null
+          notes: string | null
+          payload: Json
+          preview_url: string | null
+          published_ref_id: string | null
+          quality_score: number | null
+          scheduled_for: string | null
+          seo_score: number | null
+          status: string
+          title: string
+          topic: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          decided_at?: string | null
+          id?: string
+          kind: string
+          model?: string | null
+          notes?: string | null
+          payload?: Json
+          preview_url?: string | null
+          published_ref_id?: string | null
+          quality_score?: number | null
+          scheduled_for?: string | null
+          seo_score?: number | null
+          status?: string
+          title: string
+          topic?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          decided_at?: string | null
+          id?: string
+          kind?: string
+          model?: string | null
+          notes?: string | null
+          payload?: Json
+          preview_url?: string | null
+          published_ref_id?: string | null
+          quality_score?: number | null
+          scheduled_for?: string | null
+          seo_score?: number | null
+          status?: string
+          title?: string
+          topic?: string | null
+        }
+        Relationships: []
+      }
+      ai_topics: {
+        Row: {
+          ai_score: number | null
+          category: string | null
+          competition: string | null
+          discovered_at: string
+          id: string
+          notes: string | null
+          pinterest_score: number | null
+          recommendation: string | null
+          search_volume: number | null
+          seasonal_score: number | null
+          topic: string
+          trend_score: number | null
+        }
+        Insert: {
+          ai_score?: number | null
+          category?: string | null
+          competition?: string | null
+          discovered_at?: string
+          id?: string
+          notes?: string | null
+          pinterest_score?: number | null
+          recommendation?: string | null
+          search_volume?: number | null
+          seasonal_score?: number | null
+          topic: string
+          trend_score?: number | null
+        }
+        Update: {
+          ai_score?: number | null
+          category?: string | null
+          competition?: string | null
+          discovered_at?: string
+          id?: string
+          notes?: string | null
+          pinterest_score?: number | null
+          recommendation?: string | null
+          search_volume?: number | null
+          seasonal_score?: number | null
+          topic?: string
+          trend_score?: number | null
+        }
+        Relationships: []
+      }
+      analytics_events: {
+        Row: {
+          id: string
+          kind: string
+          metadata: Json
+          occurred_at: string
+          ref_id: string | null
+          ref_slug: string | null
+          session_id: string | null
+        }
+        Insert: {
+          id?: string
+          kind: string
+          metadata?: Json
+          occurred_at?: string
+          ref_id?: string | null
+          ref_slug?: string | null
+          session_id?: string | null
+        }
+        Update: {
+          id?: string
+          kind?: string
+          metadata?: Json
+          occurred_at?: string
+          ref_id?: string | null
+          ref_slug?: string | null
+          session_id?: string | null
+        }
+        Relationships: []
+      }
       blog_posts: {
         Row: {
           author_id: string | null
@@ -163,6 +295,39 @@ export type Database = {
         }
         Relationships: []
       }
+      content_schedule: {
+        Row: {
+          created_at: string
+          id: string
+          kind: string
+          notes: string | null
+          ref_id: string | null
+          scheduled_for: string
+          status: string
+          title: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          kind: string
+          notes?: string | null
+          ref_id?: string | null
+          scheduled_for: string
+          status?: string
+          title?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          kind?: string
+          notes?: string | null
+          ref_id?: string | null
+          scheduled_for?: string
+          status?: string
+          title?: string | null
+        }
+        Relationships: []
+      }
       cookbook_downloads: {
         Row: {
           confirmation_email_sent_at: string | null
@@ -190,6 +355,54 @@ export type Database = {
           id?: string
           last_downloaded_at?: string | null
           stripe_session_id?: string
+        }
+        Relationships: []
+      }
+      email_campaigns: {
+        Row: {
+          created_at: string
+          id: string
+          kind: string
+          name: string
+          scheduled_for: string | null
+          segment: string | null
+          sent_at: string | null
+          sequence: string | null
+          stats: Json
+          status: string
+          subject: string
+          template: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          kind?: string
+          name: string
+          scheduled_for?: string | null
+          segment?: string | null
+          sent_at?: string | null
+          sequence?: string | null
+          stats?: Json
+          status?: string
+          subject: string
+          template?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          kind?: string
+          name?: string
+          scheduled_for?: string | null
+          segment?: string | null
+          sent_at?: string | null
+          sequence?: string | null
+          stats?: Json
+          status?: string
+          subject?: string
+          template?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -303,6 +516,104 @@ export type Database = {
           user_agent?: string | null
         }
         Relationships: []
+      }
+      pinterest_accounts: {
+        Row: {
+          access_token_ciphertext: string
+          connected_at: string
+          expires_at: string | null
+          id: string
+          pinterest_user_id: string | null
+          refresh_token_ciphertext: string | null
+          scopes: string | null
+          updated_at: string
+          user_id: string
+          username: string | null
+        }
+        Insert: {
+          access_token_ciphertext: string
+          connected_at?: string
+          expires_at?: string | null
+          id?: string
+          pinterest_user_id?: string | null
+          refresh_token_ciphertext?: string | null
+          scopes?: string | null
+          updated_at?: string
+          user_id: string
+          username?: string | null
+        }
+        Update: {
+          access_token_ciphertext?: string
+          connected_at?: string
+          expires_at?: string | null
+          id?: string
+          pinterest_user_id?: string | null
+          refresh_token_ciphertext?: string | null
+          scopes?: string | null
+          updated_at?: string
+          user_id?: string
+          username?: string | null
+        }
+        Relationships: []
+      }
+      pinterest_pins: {
+        Row: {
+          alt_text: string | null
+          board_id: string | null
+          created_at: string
+          description: string | null
+          error: string | null
+          generation_id: string | null
+          id: string
+          image_url: string
+          link_url: string | null
+          pin_id: string | null
+          published_at: string | null
+          scheduled_for: string | null
+          status: string
+          title: string
+        }
+        Insert: {
+          alt_text?: string | null
+          board_id?: string | null
+          created_at?: string
+          description?: string | null
+          error?: string | null
+          generation_id?: string | null
+          id?: string
+          image_url: string
+          link_url?: string | null
+          pin_id?: string | null
+          published_at?: string | null
+          scheduled_for?: string | null
+          status?: string
+          title: string
+        }
+        Update: {
+          alt_text?: string | null
+          board_id?: string | null
+          created_at?: string
+          description?: string | null
+          error?: string | null
+          generation_id?: string | null
+          id?: string
+          image_url?: string
+          link_url?: string | null
+          pin_id?: string | null
+          published_at?: string | null
+          scheduled_for?: string | null
+          status?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pinterest_pins_generation_id_fkey"
+            columns: ["generation_id"]
+            isOneToOne: false
+            referencedRelation: "ai_generations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       pricing_settings: {
         Row: {
