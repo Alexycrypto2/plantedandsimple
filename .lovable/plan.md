@@ -1,91 +1,84 @@
-# Scalable Cookbook Platform — Phased Build
+# PrimeDownloads AI Studio & Automation Platform
 
-Locked in: no homepage redesign, no visual changes. Everything below is admin + data + wiring so you manage the site from `/admin` without touching code.
+This is a large build. I'll ship it in **approved phases**, each independently usable. You approve, I build, we verify, then move to the next. No phase blocks the site from working.
 
-## Phase 1 — Core Platform (this build)
-
-### 1. Admin Dashboard Overview
-New default tab at `/admin` → **Overview** with live counters + recent activity:
-- Total products (published / draft)
-- Total orders (Paddle transactions from `cookbook_downloads`)
-- Revenue (sum of order amounts, last 30d + all-time)
-- Customers (unique buyer emails)
-- Email subscribers (from `subscribers`)
-- Recent sales (last 10 orders — email, product, amount, date)
-- Recent downloads (last 10 secure downloads)
-
-All powered by one server fn `getDashboardStats` (boss-only, RLS-safe).
-
-### 2. Products CMS (fully DB-driven)
-Extends the existing `products` table — no new hardcoded product anywhere.
-
-New/expanded admin form (`/admin` → Products → Add/Edit):
-- Cover image upload → `product-assets` bucket (new public bucket)
-- Gallery images (multi-upload) → same bucket
-- PDF upload → `product-files` bucket (new private bucket, signed URLs on download)
-- Title, subtitle, description (textarea, markdown-friendly)
-- Benefits (string list) + Features (string list) — stored as `benefits jsonb`, `features jsonb`
-- Category dropdown (from `product_categories`)
-- Tags (string list) → new `tags text[]` column + GIN index
-- Price + compare-at price (cents)
-- Best Seller / Featured toggles
-- Status: Draft / Published
-
-Every consumer surface reads from `listPublishedProducts` (already exists) — no page needs editing when you publish:
-- Homepage Featured strip → `is_featured = true`
-- Homepage Best Sellers strip → `is_bestseller = true`
-- `/shop` grid → all published
-- `/shop/$slug` related products → same category, exclude self
-- Search results (Phase 2) → same query + text filter
-- Category pages (Phase 2) → filtered by category
-
-Homepage currently references the cookbook in a few hardcoded spots — this build replaces those with `listFeaturedProducts()` / `listBestsellers()` calls, keeping the exact same visual cards.
-
-**Paddle note:** each new product still needs a Paddle price created from chat (`payments--create_product`) — Paddle can't be created from your admin. The admin form has a `paddle_price_external_id` field you paste once. I'll create it for you whenever you add a product.
-
-### 3. Blog CMS
-New `blog_posts` table:
-- slug, title, excerpt, content (rich HTML), featured_image_url
-- category, tags[], seo_title, seo_description
-- status (draft/published), published_at, author_id
-- RLS: public SELECT where published; boss full CRUD
-
-Admin → **Blog** tab: list, create, edit, delete, publish/draft toggle. Rich text editor via `@tiptap/react` (headings, bold, italic, lists, links, images, blockquote).
-
-`/blog` route swaps its placeholder cards for a live grid of newest published posts. New `/blog/$slug` route renders the post with SEO head + related links. Categories/tags render as filter chips (Phase 2 makes them clickable filters; Phase 1 just displays them).
-
-### 4. Email Capture (real lead magnet)
-`/free` form becomes production-ready:
-1. Visitor enters email
-2. Server fn `subscribeAndSendFreeGuide` inserts into `subscribers` (source=`free_guide`), dedupes on email
-3. Enqueues a new transactional email template `free-recipe-guide` with a signed download link (24h expiry) to the free-guide PDF in `product-files`
-4. Redirects to `/free/thank-you` (new mini page) confirming delivery
-5. Subscriber row is now visible in admin **Subscribers** tab (already exists — I'll wire the source column)
-
-You upload the free-guide PDF once via admin (new "Free Resources" mini-section) so it's swappable without code.
+## Guiding principles
+- **Approval Queue is mandatory** — nothing AI-generated auto-publishes. Every asset lands in `ai_generations` with status `pending` and needs a human click to go live.
+- **Modular AI provider layer** — one `src/lib/ai/` module wraps the AI gateway (GPT-5.6 for text, Gemini image for images). Swappable without touching feature code.
+- **DB-driven, no hardcoding** — homepage, shop, blog, categories all read from Supabase.
+- **Server-only secrets** — Pinterest tokens, AI keys stay server-side.
 
 ---
 
-## Phase 2 (next approval)
-Search bar in nav, category landing pages (`/shop/category/$slug`), tag pages, filter sidebar on `/shop` (price, category, tag, sort), curated recipe collections table + admin, dynamic Related Products by shared tags.
+## Phase 1 — Foundation (schema + approval queue + AI provider layer)
 
-## Phase 3 (later approval)
-Customer accounts + `/library` (re-download purchases tied to `user_id` on orders), purchase history, coupon codes (`coupons` table + Paddle discount sync), extend existing affiliate system with per-affiliate coupon codes and referral analytics.
+New tables (one migration, RLS + grants):
+- `ai_generations` — universal approval queue: `id, kind (blog|image|pinterest_pin|email|product_desc|social), title, payload jsonb, preview_url, model, topic, seo_score, quality_score, status (pending|approved|rejected|published), created_by, created_at, decided_at, scheduled_for`.
+- `ai_topics` — trending topic cache: `topic, category, search_volume, competition, trend_score, pinterest_score, seasonal_score, ai_score, recommendation, discovered_at`.
+- `pinterest_accounts` — encrypted OAuth tokens.
+- `pinterest_pins` — pin records with schedule/publish state.
+- `email_campaigns` — campaigns + automation definitions.
+- `content_schedule` — unified calendar.
+- `analytics_events` — view/click/save counts.
+
+Code:
+- `src/lib/ai/gateway.ts` — provider abstraction (`generateText`, `generateImage`, `generateJson`).
+- `src/lib/ai/approval.functions.ts` — CRUD for `ai_generations`: list, approve, reject, regenerate, edit, bulk actions.
+- Admin **Approval Queue** page with tabs per kind, preview, approve/reject/edit/schedule.
+
+## Phase 2 — AI Studio: Blog Generator + Image Studio
+- `/admin/ai-studio` with tabs.
+- **Blog Generator:** topic + word count + tone → title, slug, excerpt, markdown, SEO, tags, FAQs, JSON-LD, Pinterest fields → into `ai_generations` (kind=blog). On approve, upserts into `blog_posts` as draft.
+- **Image Studio:** presets (Blog Hero, Pinterest 1000x1500, Instagram, Facebook, Cookbook promo). Brand-styled prompts, Gemini image model, uploads to `ai-images` bucket, result → `ai_generations` (kind=image).
+
+## Phase 3 — Trending Topics + AI Assistant
+- **Trending Topics:** GPT scores N topics for selected categories, upserts to `ai_topics`. Filter chips. "Write Now" pipes topic into Blog Generator.
+- **AI Assistant:** admin chat panel. Server fn streams from gateway with system prompt describing commands (find topics, generate blog, rewrite, SEO improve, etc.).
+
+## Phase 4 — Pinterest OAuth + Pinterest Studio
+
+**Redirect URI to paste into Pinterest Developer dashboard (production):**
+```
+https://primedownloads.store/api/public/pinterest/oauth/callback
+```
+Add the preview URL as a second redirect for testing:
+```
+https://project--52b53015-fb2e-4297-a919-f0cb70f5a6d0.lovable.app/api/public/pinterest/oauth/callback
+```
+
+Setup:
+- I'll request two secrets via `add_secret`: `PINTEREST_APP_ID`, `PINTEREST_APP_SECRET`.
+- Server routes: `/api/public/pinterest/oauth/start` (boss-only, signed state) → Pinterest authorize; `/api/public/pinterest/oauth/callback` → exchanges code, encrypts + stores tokens in `pinterest_accounts`.
+- Auto-refresh when `expires_at` < 5 min away.
+- Admin **Integrations → Pinterest** page: status, connected username, redirect URI (copy button), Connect / Reconnect / Disconnect.
+
+Pinterest Studio:
+- Generate pin (image + title + description + hashtags + alt) → approval queue.
+- On approve: pick board, schedule or publish now → `POST /v5/pins`.
+- Analytics pull (impressions/saves/clicks) into `analytics_events`.
+
+## Phase 5 — Content Calendar + Email Marketing + Analytics + SEO Center
+- **Calendar:** month view from `content_schedule`, drag-drop reschedules. `/api/public/scheduler/tick` (pg_cron every 5 min) publishes items whose time has come and status = approved.
+- **Email Marketing:** subscribers, segments, campaign builder on the existing email queue, automation sequences (free_guide → welcome → tips → cookbook → discount).
+- **Analytics:** widgets from `analytics_events` + existing tables. `/api/public/track` beacon on public pages.
+- **SEO Center:** scans `blog_posts` & `products` for missing meta/alt, checks sitemap/robots, computes SEO Health Score, suggests internal links.
+
+## Phase 6 — Dashboard revamp
+Overview shows every metric requested: revenue, orders, products, blogs, pins, subscribers, visitors, conversion, best sellers, best blog, best pin, recent activity, scheduled content, AI recommendations, today's AI suggestions.
 
 ---
 
 ## Technical notes
-- Migration order per table: CREATE → GRANT → ENABLE RLS → POLICY.
-- New buckets via `supabase--storage_create_bucket` — `product-assets` (public), `product-files` (private, signed URLs only).
-- All admin writes go through `requireSupabaseAuth` + `has_role('boss')` — matches existing pattern in `products.functions.ts`.
-- New columns on `products`: `tags text[] default '{}'`, `benefits jsonb default '[]'`, `features jsonb default '[]'`.
-- Dashboard stats: one server fn returning all counters in a single round-trip.
-- Existing cookbook row keeps working; the Paddle webhook and `/thank-you` flow are untouched.
-- Zero homepage visual changes — only the data source for the Featured/Bestsellers strips swaps to the DB query.
+- AI: Lovable AI Gateway via `@ai-sdk/openai-compatible`, default `openai/gpt-5.6-sol` with `reasoningEffort: "none"`. Image: `google/gemini-3.1-flash-image`.
+- Pinterest scopes: `boards:read pins:read pins:write user_accounts:read`.
+- Token storage: AES-256-GCM ciphertext, key auto-generated as `APP_SECRET`.
+- RLS on every new table; boss role for admin ops via `has_role`.
+- No new edge functions — TanStack server fns / server routes only.
 
-## Verification before handoff
-- `bun run build` clean
-- Playwright: `/admin` Overview loads with real numbers, create-draft-then-publish flow makes the product show on `/shop` and homepage Featured, `/blog` renders a seeded published post, `/free` email submit creates a subscriber + enqueues the email
-- Existing `/thank-you` cookbook download still works with a test transaction id
+---
 
-Approve Phase 1 and I'll ship it in one pass.
+## What I need from you
+
+1. **Approve this plan** (or tell me to trim / reorder).
+2. After approval I'll build **Phase 1 + Phase 2** in one pass so you can try the approval queue, blog generator, and image studio immediately.
+3. When you're ready for Pinterest, I'll wire OAuth and ask for `PINTEREST_APP_ID` / `PINTEREST_APP_SECRET`. Add the redirect URI above to your Pinterest app now so it's ready.
