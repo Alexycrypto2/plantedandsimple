@@ -47,7 +47,19 @@ Return JSON only.`,
         providerOptions: { lovable: { reasoningEffort: "none" } },
       });
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-      const rows = output.topics.map((t) => ({ ...t, model: DEFAULT_CHAT_MODEL, created_by: context.userId }));
+      const bucket = (b: string) => (b === "high" ? 90 : b === "medium" ? 55 : 20);
+      const rows = output.topics.map((t) => ({
+        topic: t.title,
+        category: t.recommended_format,
+        search_volume: bucket(t.search_volume_bucket),
+        competition: t.competition_bucket,
+        trend_score: t.trend_score,
+        pinterest_score: t.pinterest_potential,
+        seasonal_score: null,
+        ai_score: Math.round((t.trend_score + t.conversion_score + t.pinterest_potential) / 3),
+        recommendation: t.angle,
+        notes: `Keyword: ${t.primary_keyword}. Also: ${t.secondary_keywords.join(", ")}. Intent: ${t.intent}. Seasonality: ${t.seasonality}.`,
+      }));
       const { error } = await (supabaseAdmin as any).from("ai_topics").insert(rows);
       if (error) throw new Error(error.message);
       return { ok: true, count: rows.length };
@@ -63,7 +75,7 @@ export const listTopics = createServerFn({ method: "GET" })
     await requireBoss(context.supabase, context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data, error } = await (supabaseAdmin as any).from("ai_topics")
-      .select("*").order("created_at", { ascending: false }).limit(100);
+      .select("*").order("discovered_at", { ascending: false }).limit(100);
     if (error) throw new Error(error.message);
     return data ?? [];
   });

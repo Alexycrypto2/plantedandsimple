@@ -25,6 +25,28 @@ export function createGateway(opts?: { structuredOutputs?: boolean }) {
 
 /** Raw gateway image call — Gemini image via chat completions with image modality. */
 export async function generateImageBase64(prompt: string, model = DEFAULT_IMAGE_MODEL): Promise<{ base64: string; mime: string }> {
+  // If the boss configured their own Gemini API key in admin settings, use it directly.
+  const { getConfig } = await import("../settings.server");
+  const geminiKey = await getConfig("GEMINI_API_KEY");
+  if (geminiKey) {
+    const geminiModel = (await getConfig("GEMINI_IMAGE_MODEL")) || "gemini-2.5-flash-image";
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-goog-api-key": geminiKey },
+        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }),
+      },
+    );
+    const text = await res.text();
+    if (!res.ok) throw new Error(`Gemini ${res.status}: ${text.slice(0, 400)}`);
+    const json: any = JSON.parse(text);
+    const parts: any[] = json?.candidates?.[0]?.content?.parts ?? [];
+    const inline = parts.find((p) => p?.inlineData?.data)?.inlineData;
+    if (!inline) throw new Error("Gemini returned no image data");
+    return { base64: inline.data, mime: inline.mimeType || "image/png" };
+  }
+
   const key = requireApiKey();
   const res = await fetch(`${AI_GATEWAY_URL}/chat/completions`, {
     method: "POST",

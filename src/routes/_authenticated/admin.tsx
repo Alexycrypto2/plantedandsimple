@@ -2,6 +2,12 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import {
+  AiStudioPanel,
+  AssistantPanel,
+  ApprovalQueuePanel,
+  IntegrationsPanel,
+} from "@/components/admin/AiPanels";
+import {
   adminMe,
   adminListReviews,
   adminSetReviewApproval,
@@ -71,6 +77,10 @@ type Tab =
   | "products"
   | "categories"
   | "blog"
+  | "ai-studio"
+  | "assistant"
+  | "approvals"
+  | "integrations"
   | "reviews"
   | "buyers"
   | "pricing"
@@ -134,6 +144,10 @@ function AdminPage() {
         "products",
         "categories",
         "blog",
+        "ai-studio",
+        "assistant",
+        "approvals",
+        "integrations",
         "pricing",
         "reviews",
         "buyers",
@@ -226,6 +240,10 @@ function AdminPage() {
         {activeTab === "products" && isBoss && <ProductsPanel />}
         {activeTab === "categories" && isBoss && <CategoriesPanel />}
         {activeTab === "blog" && isBoss && <BlogPanel />}
+        {activeTab === "ai-studio" && isBoss && <AiStudioPanel />}
+        {activeTab === "assistant" && isBoss && <AssistantPanel />}
+        {activeTab === "approvals" && isBoss && <ApprovalQueuePanel />}
+        {activeTab === "integrations" && isBoss && <IntegrationsPanel />}
         {activeTab === "reviews" && isBoss && <ReviewsPanel />}
         {activeTab === "buyers" && isBoss && <BuyersPanel />}
         {activeTab === "pricing" && isBoss && <PricingPanel />}
