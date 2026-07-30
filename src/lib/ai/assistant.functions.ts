@@ -153,7 +153,7 @@ export const runAssistantCommand = createServerFn({ method: "POST" })
           kind: cfg.kind,
           title: String(title).slice(0, 200),
           topic: data.input,
-          payload: { command: data.command, ...output },
+          payload: { command: data.command, ...(output as Record<string, unknown>) },
           model: DEFAULT_CHAT_MODEL,
           created_by: context.userId,
           status: "pending",
