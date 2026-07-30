@@ -241,6 +241,27 @@ export type Database = {
         }
         Relationships: []
       }
+      app_settings: {
+        Row: {
+          is_secret: boolean
+          key: string
+          updated_at: string
+          value_ciphertext: string
+        }
+        Insert: {
+          is_secret?: boolean
+          key: string
+          updated_at?: string
+          value_ciphertext: string
+        }
+        Update: {
+          is_secret?: boolean
+          key?: string
+          updated_at?: string
+          value_ciphertext?: string
+        }
+        Relationships: []
+      }
       blog_posts: {
         Row: {
           author_id: string | null
