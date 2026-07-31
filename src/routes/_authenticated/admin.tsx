@@ -7,6 +7,7 @@ import {
   ApprovalQueuePanel,
   IntegrationsPanel,
 } from "@/components/admin/AiPanels";
+import { BlogStudioPanel, PinterestStudioPanel } from "@/components/admin/BlogStudio";
 import {
   adminMe,
   adminListReviews,
@@ -78,6 +79,8 @@ type Tab =
   | "categories"
   | "blog"
   | "ai-studio"
+  | "content-studio"
+  | "pinterest"
   | "assistant"
   | "approvals"
   | "integrations"
@@ -144,6 +147,8 @@ function AdminPage() {
         "products",
         "categories",
         "blog",
+        "content-studio",
+        "pinterest",
         "ai-studio",
         "assistant",
         "approvals",
@@ -240,6 +245,8 @@ function AdminPage() {
         {activeTab === "products" && isBoss && <ProductsPanel />}
         {activeTab === "categories" && isBoss && <CategoriesPanel />}
         {activeTab === "blog" && isBoss && <BlogPanel />}
+        {activeTab === "content-studio" && isBoss && <BlogStudioPanel />}
+        {activeTab === "pinterest" && isBoss && <PinterestStudioPanel />}
         {activeTab === "ai-studio" && isBoss && <AiStudioPanel />}
         {activeTab === "assistant" && isBoss && <AssistantPanel />}
         {activeTab === "approvals" && isBoss && <ApprovalQueuePanel />}
