@@ -108,61 +108,54 @@ function HomePage() {
 
 function Hero({ primary }: { primary?: PublicProduct }) {
   return (
-    <header className="px-6 py-14 md:py-20">
-      <div className="mx-auto grid max-w-7xl grid-cols-1 items-center gap-12 lg:grid-cols-12">
-        <div className="space-y-8 lg:col-span-5">
-          <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.25em] text-sage">
-            Simple Plant-Based Meals. Powerful Nutrition.
+    <header className="relative isolate min-h-[88vh] overflow-hidden">
+      <img
+        src={heroEditorial}
+        alt="A luxury plant-based table scene with roasted vegetables, grains and olive oil in warm natural light"
+        width={1920}
+        height={1280}
+        className="absolute inset-0 -z-10 h-full w-full object-cover"
+      />
+      <div className="absolute inset-0 -z-10 bg-gradient-to-r from-charcoal/85 via-charcoal/55 to-transparent" />
+
+      <div className="mx-auto flex min-h-[88vh] max-w-7xl flex-col justify-center px-6 py-24">
+        <div className="max-w-2xl animate-fade-in space-y-8 text-cream">
+          <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.35em] text-cream/70">
+            Simple Plant-Based Meals · Powerful Nutrition
           </p>
-          <h1 className="font-display text-[3.25rem] leading-[0.95] tracking-tight sm:text-6xl md:text-7xl lg:text-[5.5rem]">
-            Eat well <br />
-            <span className="italic text-forest">without the effort.</span>
+          <h1 className="font-display text-[3.4rem] leading-[0.95] tracking-tight sm:text-7xl lg:text-[6rem]">
+            Eat Beautifully.
+            <br />
+            <span className="italic text-sage-soft">Cook Confidently.</span>
           </h1>
-          <p className="max-w-md text-lg leading-relaxed text-charcoal/70">
-            Beautiful, dependable plant-based recipes — designed to make healthy eating feel simple, joyful, and something you actually look forward to.
+          <p className="max-w-lg text-lg leading-relaxed text-cream/80">
+            Digital cookbooks and seasonal meal plans for the intentional kitchen — refined recipes, honest nutrition,
+            and photography worth cooking from.
           </p>
           <div className="flex flex-wrap gap-3 pt-2">
             <Link
               to="/free"
-              className="rounded-full bg-forest px-8 py-4 text-xs font-bold uppercase tracking-[0.2em] text-cream shadow-soft transition hover:-translate-y-0.5 hover:bg-forest-deep"
+              className="rounded-full bg-cream px-8 py-4 text-xs font-bold uppercase tracking-[0.2em] text-forest-deep transition hover:-translate-y-0.5 hover:bg-white"
             >
               Download Free Recipe Book
             </Link>
             <Link
               to="/shop"
-              className="rounded-full border border-forest/30 px-8 py-4 text-xs font-bold uppercase tracking-[0.2em] text-forest-deep transition hover:bg-cream-warm"
+              className="rounded-full border border-cream/40 px-8 py-4 text-xs font-bold uppercase tracking-[0.2em] text-cream transition hover:bg-cream/10"
             >
               Browse Cookbooks
             </Link>
           </div>
-          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 pt-4 text-[11px] font-semibold uppercase tracking-[0.2em] text-charcoal/50">
+          <div className="flex flex-wrap items-center gap-x-8 gap-y-3 pt-6 text-[11px] font-semibold uppercase tracking-[0.22em] text-cream/60">
             <span>✦ 15,000+ home cooks</span>
             <span>✦ 60-day guarantee</span>
-            <span>✦ Instant PDF</span>
+            <span>✦ Instant PDF delivery</span>
           </div>
-        </div>
-        <div className="lg:col-span-7">
-          <div className="relative">
-            <div className="aspect-[16/11] overflow-hidden rounded-[2.5rem] bg-cream-warm shadow-card">
-              <img
-                src={heroImg}
-                alt="A vibrant plant-based grain bowl with roasted vegetables, avocado, chickpeas and tahini"
-                width={1600}
-                height={1104}
-                className="h-full w-full object-cover"
-              />
-            </div>
-            {primary && (
-              <div className="absolute -bottom-6 left-6 hidden max-w-xs rounded-2xl border border-white/60 bg-cream/90 px-6 py-4 shadow-soft backdrop-blur md:block">
-                <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-sage">
-                  Featured Release
-                </p>
-                <p className="mt-1 font-display text-xl italic text-forest-deep">
-                  {primary.title}
-                </p>
-              </div>
-            )}
-          </div>
+          {primary && (
+            <p className="pt-2 font-mono text-[11px] uppercase tracking-[0.25em] text-sage-soft">
+              Featured release — {primary.title}
+            </p>
+          )}
         </div>
       </div>
     </header>
