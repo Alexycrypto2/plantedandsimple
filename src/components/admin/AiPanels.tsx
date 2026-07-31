@@ -9,6 +9,7 @@ import {
   type GenerationStatus,
 } from "@/lib/ai/approval.functions";
 import { generateBlog } from "@/lib/ai/blog-generator.functions";
+import { scheduleGeneration, generatePinsForBlog } from "@/lib/ai/pin-studio.functions";
 import { generateStudioImage, type ImagePreset } from "@/lib/ai/image-studio.functions";
 import { suggestTopics, listTopics } from "@/lib/ai/topics.functions";
 import { runAssistantCommand, ASSISTANT_COMMANDS, type AssistantCommand } from "@/lib/ai/assistant.functions";
@@ -342,6 +343,20 @@ export function ApprovalQueuePanel() {
                   </button>
                 </>
               )}
+              {g.kind === "blog" && (
+                <button className={btnGhost} onClick={() => act(() => generatePinsForBlog({ data: { generationId: g.id } }), "Pinterest pins generated.")}>
+                  Generate 3 pins
+                </button>
+              )}
+              <label className="flex items-center gap-2 text-xs text-charcoal/60">
+                Schedule
+                <input
+                  type="datetime-local"
+                  defaultValue={g.scheduled_for ? g.scheduled_for.slice(0, 16) : ""}
+                  onChange={(e) => act(() => scheduleGeneration({ data: { id: g.id, scheduledFor: e.target.value || null } }), "Schedule updated.")}
+                  className="rounded-lg border border-forest/20 bg-cream/40 px-2 py-1"
+                />
+              </label>
               <button className={btnGhost} onClick={() => act(() => deleteGeneration({ data: { id: g.id } }), "Deleted.")}>
                 Delete
               </button>
