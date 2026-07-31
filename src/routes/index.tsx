@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { SiteNav, SiteFooter } from "@/components/SiteLayout";
 import heroImg from "@/assets/home-hero.jpg";
+import heroEditorial from "@/assets/hero-editorial.jpg";
 import ritualImg from "@/assets/home-ritual.jpg";
 import journalLead from "@/assets/home-journal-lead.jpg";
 import catBreakfast from "@/assets/cat-breakfast.jpg";
