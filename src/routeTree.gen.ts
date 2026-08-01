@@ -27,6 +27,7 @@ import { Route as ShopIndexRouteImport } from './routes/shop.index'
 import { Route as RecipesIndexRouteImport } from './routes/recipes.index'
 import { Route as BlogIndexRouteImport } from './routes/blog.index'
 import { Route as ShopSlugRouteImport } from './routes/shop.$slug'
+import { Route as RecipesSlugRouteImport } from './routes/recipes.$slug'
 import { Route as EmailUnsubscribeRouteImport } from './routes/email/unsubscribe'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as AuthenticatedAffiliateRouteImport } from './routes/_authenticated/affiliate'
@@ -130,6 +131,11 @@ const ShopSlugRoute = ShopSlugRouteImport.update({
   path: '/$slug',
   getParentRoute: () => ShopRoute,
 } as any)
+const RecipesSlugRoute = RecipesSlugRouteImport.update({
+  id: '/$slug',
+  path: '/$slug',
+  getParentRoute: () => RecipesRoute,
+} as any)
 const EmailUnsubscribeRoute = EmailUnsubscribeRouteImport.update({
   id: '/email/unsubscribe',
   path: '/email/unsubscribe',
@@ -220,6 +226,7 @@ export interface FileRoutesByFullPath {
   '/affiliate': typeof AuthenticatedAffiliateRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
+  '/recipes/$slug': typeof RecipesSlugRoute
   '/shop/$slug': typeof ShopSlugRoute
   '/blog/': typeof BlogIndexRoute
   '/recipes/': typeof RecipesIndexRoute
@@ -249,6 +256,7 @@ export interface FileRoutesByTo {
   '/affiliate': typeof AuthenticatedAffiliateRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
+  '/recipes/$slug': typeof RecipesSlugRoute
   '/shop/$slug': typeof ShopSlugRoute
   '/blog': typeof BlogIndexRoute
   '/recipes': typeof RecipesIndexRoute
@@ -283,6 +291,7 @@ export interface FileRoutesById {
   '/_authenticated/affiliate': typeof AuthenticatedAffiliateRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
+  '/recipes/$slug': typeof RecipesSlugRoute
   '/shop/$slug': typeof ShopSlugRoute
   '/blog/': typeof BlogIndexRoute
   '/recipes/': typeof RecipesIndexRoute
@@ -317,6 +326,7 @@ export interface FileRouteTypes {
     | '/affiliate'
     | '/blog/$slug'
     | '/email/unsubscribe'
+    | '/recipes/$slug'
     | '/shop/$slug'
     | '/blog/'
     | '/recipes/'
@@ -346,6 +356,7 @@ export interface FileRouteTypes {
     | '/affiliate'
     | '/blog/$slug'
     | '/email/unsubscribe'
+    | '/recipes/$slug'
     | '/shop/$slug'
     | '/blog'
     | '/recipes'
@@ -379,6 +390,7 @@ export interface FileRouteTypes {
     | '/_authenticated/affiliate'
     | '/blog/$slug'
     | '/email/unsubscribe'
+    | '/recipes/$slug'
     | '/shop/$slug'
     | '/blog/'
     | '/recipes/'
@@ -549,6 +561,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ShopSlugRouteImport
       parentRoute: typeof ShopRoute
     }
+    '/recipes/$slug': {
+      id: '/recipes/$slug'
+      path: '/$slug'
+      fullPath: '/recipes/$slug'
+      preLoaderRoute: typeof RecipesSlugRouteImport
+      parentRoute: typeof RecipesRoute
+    }
     '/email/unsubscribe': {
       id: '/email/unsubscribe'
       path: '/email/unsubscribe'
@@ -669,10 +688,12 @@ const BlogRouteChildren: BlogRouteChildren = {
 const BlogRouteWithChildren = BlogRoute._addFileChildren(BlogRouteChildren)
 
 interface RecipesRouteChildren {
+  RecipesSlugRoute: typeof RecipesSlugRoute
   RecipesIndexRoute: typeof RecipesIndexRoute
 }
 
 const RecipesRouteChildren: RecipesRouteChildren = {
+  RecipesSlugRoute: RecipesSlugRoute,
   RecipesIndexRoute: RecipesIndexRoute,
 }
 
