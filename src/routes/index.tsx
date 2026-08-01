@@ -1,0 +1,376 @@
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect } from "react";
+import { SiteLayout } from "@/components/SiteLayout";
+import { Reveal, SectionHeader, MediaImage, EditorialCard } from "@/components/site/primitives";
+import heroEditorial from "@/assets/hero-editorial.jpg";
+import { listPublishedProducts, type PublicProduct } from "@/lib/products.functions";
+import { listPublishedPosts, type PublicPost } from "@/lib/blog.functions";
+import { getHomepage, listCollections, listPublishedRecipes } from "@/lib/library/library.functions";
+import type { Collection, HomepageSection, Recipe } from "@/lib/library/types";
+import { trackAffiliateClick } from "@/lib/affiliates.functions";
+
+type LoaderData = {
+  sections: HomepageSection[];
+  settings: Record<string, any>;
+  products: PublicProduct[];
+  collections: Collection[];
+  recipes: Recipe[];
+  posts: PublicPost[];
+};
+
+export const Route = createFileRoute("/")({
+  component: HomePage,
+  loader: async (): Promise<LoaderData> => {
+    const [home, products, collections, recipes, posts] = await Promise.all([
+      getHomepage(),
+      listPublishedProducts({ data: {} }),
+      listCollections({ data: { featuredOnly: true } }),
+      listPublishedRecipes({ data: { limit: 6 } }),
+      listPublishedPosts(),
+    ]);
+    return { ...home, products, collections, recipes, posts };
+  },
+  head: () => ({
+    meta: [
+      { title: "PlantedAndSimple — Premium Plant-Based Cookbooks & Recipes" },
+      {
+        name: "description",
+        content:
+          "Digital cookbooks, seasonal meal plans and tested plant-based recipes for the intentional kitchen. Instant PDF downloads, made with care.",
+      },
+      { property: "og:title", content: "PlantedAndSimple — Premium Plant-Based Cookbooks" },
+      {
+        property: "og:description",
+        content: "Simple recipes, refined for the modern home cook. Explore our digital cookbook studio.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+    links: [{ rel: "canonical", href: "/" }],
+  }),
+});
+
+const ICONS: Record<string, string> = {
+  zap: "M13 2L3 14h8l-1 8 10-12h-8l1-8z",
+  sparkles: "M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3z",
+  lock: "M6 10V7a6 6 0 1112 0v3M5 10h14v11H5z",
+  leaf: "M4 20c8 2 16-4 16-16-8 0-16 4-16 16zM4 20c2-6 6-9 10-11",
+  refresh: "M4 12a8 8 0 0113-6m3 6a8 8 0 01-13 6M17 6h4V2M7 18H3v4",
+  book: "M4 4h11a4 4 0 014 4v12H8a4 4 0 01-4-4V4z",
+  download: "M12 3v12m0 0l-4-4m4 4l4-4M4 21h16",
+  heart: "M12 20s-7-4.6-7-9.5A4 4 0 0112 7a4 4 0 017 3.5C19 15.4 12 20 12 20z",
+};
+
+function Icon({ name, className = "" }: { name: string; className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden="true">
+      <path d={ICONS[name] ?? ICONS["sparkles"]} stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function HomePage() {
+  const data = Route.useLoaderData() as LoaderData;
+
+  useEffect(() => {
+    const ref = new URLSearchParams(window.location.search).get("ref");
+    if (ref) {
+      localStorage.setItem("ps_ref", ref);
+      trackAffiliateClick({ data: { code: ref } }).catch(() => {});
+    }
+  }, []);
+
+  return (
+    <SiteLayout>
+      <main>
+        {data.sections.map((section) => (
+          <Section key={section.id} section={section} data={data} />
+        ))}
+      </main>
+    </SiteLayout>
+  );
+}
+
+function Section({ section, data }: { section: HomepageSection; data: LoaderData }) {
+  switch (section.kind) {
+    case "hero":
+      return <HeroSection section={section} />;
+    case "trust_row":
+      return <TrustRow items={data.settings["trust_badges"]?.items ?? []} />;
+    case "featured_collections":
+      return <CollectionsSection section={section} collections={data.collections} />;
+    case "featured_products":
+      return <ProductsSection section={section} products={data.products} />;
+    case "latest_recipes":
+      return <RecipesSection section={section} recipes={data.recipes} />;
+    case "latest_blogs":
+      return <BlogsSection section={section} posts={data.posts} />;
+    case "why_choose":
+      return <WhyChoose section={section} items={data.settings["why_choose"]?.items ?? []} />;
+    case "newsletter":
+      return <Newsletter section={section} />;
+    default:
+      return null;
+  }
+}
+
+function HeroSection({ section }: { section: HomepageSection }) {
+  const c = section.config ?? {};
+  return (
+    <section className="relative isolate min-h-[88vh] overflow-hidden">
+      <img
+        src={c["image_url"] || heroEditorial}
+        alt="A plant-based meal styled on a warm linen table"
+        className="absolute inset-0 -z-10 h-full w-full object-cover"
+      />
+      <div className="absolute inset-0 -z-10 bg-gradient-to-b from-charcoal/65 via-charcoal/40 to-charcoal/75" />
+      <div className="mx-auto flex min-h-[88vh] max-w-5xl flex-col items-center justify-center px-6 py-28 text-center">
+        <Reveal>
+          <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.35em] text-cream/70">
+            Planted &amp; Simple
+          </p>
+        </Reveal>
+        <Reveal delay={120}>
+          <h1 className="mt-6 font-display text-5xl italic leading-[1.02] text-cream md:text-7xl lg:text-[5.5rem]">
+            {section.title ?? "Eat Beautifully. Cook Confidently."}
+          </h1>
+        </Reveal>
+        <Reveal delay={240}>
+          <p className="mx-auto mt-7 max-w-xl text-lg leading-relaxed text-cream/80">{section.subtitle}</p>
+        </Reveal>
+        <Reveal delay={360}>
+          <div className="mt-10 flex flex-col items-center gap-3 sm:flex-row">
+            <Link
+              to={(c["primary_cta_href"] as string) ?? "/shop"}
+              className="rounded-full bg-cream px-9 py-4 text-[11px] font-bold uppercase tracking-[0.22em] text-forest-deep transition hover:bg-white"
+            >
+              {c["primary_cta_label"] ?? "Browse Cookbooks"}
+            </Link>
+            <Link
+              to={(c["secondary_cta_href"] as string) ?? "/free"}
+              className="rounded-full border border-cream/40 px-9 py-4 text-[11px] font-bold uppercase tracking-[0.22em] text-cream transition hover:bg-cream/10"
+            >
+              {c["secondary_cta_label"] ?? "Download Free Recipe Book"}
+            </Link>
+          </div>
+        </Reveal>
+      </div>
+    </section>
+  );
+}
+
+function TrustRow({ items }: { items: Array<{ icon: string; label: string }> }) {
+  if (!items.length) return null;
+  return (
+    <section className="border-b border-forest/10 bg-cream-warm px-6 py-7">
+      <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-center gap-x-10 gap-y-4">
+        {items.map((it) => (
+          <div key={it.label} className="flex min-w-0 items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-charcoal/60">
+            <Icon name={it.icon} className="h-4 w-4 shrink-0 text-forest" />
+            <span className="truncate">{it.label}</span>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function CollectionsSection({ section, collections }: { section: HomepageSection; collections: Collection[] }) {
+  if (!collections.length) return null;
+  const limit = Number(section.config?.["limit"] ?? 6);
+  return (
+    <section className="mx-auto max-w-7xl px-6 py-24">
+      <Reveal>
+        <SectionHeader eyebrow="Collections" title={section.title ?? "Explore the Collections"} subtitle={section.subtitle} />
+      </Reveal>
+      <div className="grid grid-cols-2 gap-5 md:grid-cols-3">
+        {collections.slice(0, limit).map((c, i) => (
+          <Reveal key={c.id} delay={i * 70}>
+            <EditorialCard
+              to="/collections/$slug"
+              params={{ slug: c.slug }}
+              image={c.image_url}
+              alt={c.name}
+              title={c.name}
+              meta={c.description}
+            />
+          </Reveal>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function ProductsSection({ section, products }: { section: HomepageSection; products: PublicProduct[] }) {
+  if (!products.length) return null;
+  const limit = Number(section.config?.["limit"] ?? 3);
+  return (
+    <section className="bg-cream-warm px-6 py-24">
+      <div className="mx-auto max-w-7xl">
+        <Reveal>
+          <SectionHeader
+            eyebrow="The Shop"
+            title={section.title ?? "Featured Cookbooks"}
+            subtitle={section.subtitle}
+            align="left"
+            action={
+              <Link to="/shop" className="text-[11px] font-bold uppercase tracking-[0.2em] text-forest hover:underline">
+                View all
+              </Link>
+            }
+          />
+        </Reveal>
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {products.slice(0, limit).map((p, i) => (
+            <Reveal key={p.id} delay={i * 80}>
+              <Link
+                to="/shop/$slug"
+                params={{ slug: p.slug }}
+                className="group block overflow-hidden rounded-[1.75rem] border border-forest/10 bg-white shadow-[var(--shadow-soft)] transition duration-500 hover:-translate-y-1 hover:shadow-[var(--shadow-card)]"
+              >
+                <MediaImage src={p.cover_image_url} alt={p.title} ratio="aspect-[4/5]" />
+                <div className="p-6">
+                  {p.is_bestseller ? (
+                    <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.24em] text-sage">Bestseller</p>
+                  ) : null}
+                  <h3 className="mt-2 font-display text-2xl italic text-forest-deep">{p.title}</h3>
+                  {p.subtitle ? <p className="mt-2 text-sm text-charcoal/55">{p.subtitle}</p> : null}
+                  <p className="mt-4 flex items-baseline gap-2">
+                    <span className="text-lg font-semibold text-forest-deep">${p.price_display}</span>
+                    {p.compare_at_cents > p.price_cents ? (
+                      <span className="text-sm text-charcoal/40 line-through">${p.compare_at_display}</span>
+                    ) : null}
+                  </p>
+                </div>
+              </Link>
+            </Reveal>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function RecipesSection({ section, recipes }: { section: HomepageSection; recipes: Recipe[] }) {
+  if (!recipes.length) return null;
+  const limit = Number(section.config?.["limit"] ?? 3);
+  return (
+    <section className="mx-auto max-w-7xl px-6 py-24">
+      <Reveal>
+        <SectionHeader
+          eyebrow="Recipes"
+          title={section.title ?? "Fresh From The Kitchen"}
+          subtitle={section.subtitle}
+          align="left"
+          action={
+            <Link to="/recipes" className="text-[11px] font-bold uppercase tracking-[0.2em] text-forest hover:underline">
+              All recipes
+            </Link>
+          }
+        />
+      </Reveal>
+      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        {recipes.slice(0, limit).map((r, i) => (
+          <Reveal key={r.id} delay={i * 80}>
+            <EditorialCard
+              to="/recipes/$slug"
+              params={{ slug: r.slug }}
+              image={r.hero_image_url}
+              alt={r.title}
+              eyebrow={r.difficulty}
+              title={r.title}
+              meta={
+                [r.prep_minutes ? `${r.prep_minutes} min prep` : null, r.servings ? `Serves ${r.servings}` : null]
+                  .filter(Boolean)
+                  .join(" · ") || r.subtitle
+              }
+            />
+          </Reveal>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function BlogsSection({ section, posts }: { section: HomepageSection; posts: PublicPost[] }) {
+  if (!posts.length) return null;
+  const limit = Number(section.config?.["limit"] ?? 3);
+  return (
+    <section className="bg-cream-warm px-6 py-24">
+      <div className="mx-auto max-w-7xl">
+        <Reveal>
+          <SectionHeader
+            eyebrow="The Journal"
+            title={section.title ?? "From The Journal"}
+            subtitle={section.subtitle}
+            align="left"
+            action={
+              <Link to="/blog" className="text-[11px] font-bold uppercase tracking-[0.2em] text-forest hover:underline">
+                Read more
+              </Link>
+            }
+          />
+        </Reveal>
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {posts.slice(0, limit).map((p, i) => (
+            <Reveal key={p.id} delay={i * 80}>
+              <EditorialCard
+                to="/blog/$slug"
+                params={{ slug: p.slug }}
+                image={p.featured_image_url}
+                alt={p.title}
+                eyebrow={p.category}
+                title={p.title}
+                meta={p.excerpt}
+                ratio="aspect-[3/2]"
+              />
+            </Reveal>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function WhyChoose({ section, items }: { section: HomepageSection; items: Array<{ icon: string; title: string; body: string }> }) {
+  if (!items.length) return null;
+  return (
+    <section className="mx-auto max-w-7xl px-6 py-24">
+      <Reveal>
+        <SectionHeader eyebrow="Why us" title={section.title ?? "Why PrimeDownloads"} subtitle={section.subtitle} />
+      </Reveal>
+      <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+        {items.map((it, i) => (
+          <Reveal key={it.title} delay={i * 80}>
+            <div className="rounded-[1.75rem] border border-forest/10 bg-white p-8 text-center shadow-[var(--shadow-soft)]">
+              <div className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-cream-warm text-forest">
+                <Icon name={it.icon} className="h-5 w-5" />
+              </div>
+              <h3 className="mt-5 font-display text-xl italic text-forest-deep">{it.title}</h3>
+              <p className="mt-3 text-sm leading-relaxed text-charcoal/60">{it.body}</p>
+            </div>
+          </Reveal>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function Newsletter({ section }: { section: HomepageSection }) {
+  return (
+    <section className="px-6 pb-28">
+      <Reveal>
+        <div className="mx-auto max-w-5xl rounded-[2.5rem] bg-forest px-8 py-16 text-center text-cream md:px-16">
+          <h2 className="font-display text-4xl italic md:text-5xl">{section.title ?? "Join the table"}</h2>
+          <p className="mx-auto mt-4 max-w-lg text-sm leading-relaxed text-cream/75">{section.subtitle}</p>
+          <Link
+            to="/free"
+            className="mt-8 inline-flex rounded-full bg-cream px-9 py-4 text-[11px] font-bold uppercase tracking-[0.22em] text-forest-deep transition hover:bg-white"
+          >
+            Get the free recipe guide
+          </Link>
+        </div>
+      </Reveal>
+    </section>
+  );
+}
