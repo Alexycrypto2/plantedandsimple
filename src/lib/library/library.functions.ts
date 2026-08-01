@@ -117,8 +117,9 @@ export const listPublishedRecipes = createServerFn({ method: "GET" })
         .select("content_id")
         .eq("content_type", "recipe")
         .eq("category_id", cat.id);
-      ids = (links ?? []).map((l: any) => l.content_id);
-      if (!ids.length) return [];
+      const linked = (links ?? []).map((l: any) => l.content_id as string);
+      if (!linked.length) return [];
+      ids = linked;
     }
     let q = sb
       .from("recipes")
