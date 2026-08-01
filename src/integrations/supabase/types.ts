@@ -265,13 +265,16 @@ export type Database = {
       blog_posts: {
         Row: {
           author_id: string | null
+          author_name: string | null
           category: string | null
           content: string
           created_at: string
           excerpt: string | null
           featured_image_url: string | null
+          hero_image_id: string | null
           id: string
           published_at: string | null
+          read_minutes: number | null
           seo_description: string | null
           seo_title: string | null
           slug: string
@@ -282,13 +285,16 @@ export type Database = {
         }
         Insert: {
           author_id?: string | null
+          author_name?: string | null
           category?: string | null
           content?: string
           created_at?: string
           excerpt?: string | null
           featured_image_url?: string | null
+          hero_image_id?: string | null
           id?: string
           published_at?: string | null
+          read_minutes?: number | null
           seo_description?: string | null
           seo_title?: string | null
           slug: string
@@ -299,13 +305,16 @@ export type Database = {
         }
         Update: {
           author_id?: string | null
+          author_name?: string | null
           category?: string | null
           content?: string
           created_at?: string
           excerpt?: string | null
           featured_image_url?: string | null
+          hero_image_id?: string | null
           id?: string
           published_at?: string | null
+          read_minutes?: number | null
           seo_description?: string | null
           seo_title?: string | null
           slug?: string
@@ -313,6 +322,221 @@ export type Database = {
           tags?: string[]
           title?: string
           updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blog_posts_hero_image_id_fkey"
+            columns: ["hero_image_id"]
+            isOneToOne: false
+            referencedRelation: "media"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      categories: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          image_id: string | null
+          name: string
+          parent_id: string | null
+          seo_description: string | null
+          seo_title: string | null
+          slug: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_id?: string | null
+          name: string
+          parent_id?: string | null
+          seo_description?: string | null
+          seo_title?: string | null
+          slug: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_id?: string | null
+          name?: string
+          parent_id?: string | null
+          seo_description?: string | null
+          seo_title?: string | null
+          slug?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "categories_image_id_fkey"
+            columns: ["image_id"]
+            isOneToOne: false
+            referencedRelation: "media"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "categories_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      collections: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          image_id: string | null
+          is_featured: boolean
+          name: string
+          seo_description: string | null
+          seo_title: string | null
+          slug: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_id?: string | null
+          is_featured?: boolean
+          name: string
+          seo_description?: string | null
+          seo_title?: string | null
+          slug: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_id?: string | null
+          is_featured?: boolean
+          name?: string
+          seo_description?: string | null
+          seo_title?: string | null
+          slug?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "collections_image_id_fkey"
+            columns: ["image_id"]
+            isOneToOne: false
+            referencedRelation: "media"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      content_categories: {
+        Row: {
+          category_id: string
+          content_id: string
+          content_type: string
+          created_at: string
+          id: string
+        }
+        Insert: {
+          category_id: string
+          content_id: string
+          content_type: string
+          created_at?: string
+          id?: string
+        }
+        Update: {
+          category_id?: string
+          content_id?: string
+          content_type?: string
+          created_at?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "content_categories_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      content_collections: {
+        Row: {
+          collection_id: string
+          content_id: string
+          content_type: string
+          created_at: string
+          id: string
+          sort_order: number
+        }
+        Insert: {
+          collection_id: string
+          content_id: string
+          content_type: string
+          created_at?: string
+          id?: string
+          sort_order?: number
+        }
+        Update: {
+          collection_id?: string
+          content_id?: string
+          content_type?: string
+          created_at?: string
+          id?: string
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "content_collections_collection_id_fkey"
+            columns: ["collection_id"]
+            isOneToOne: false
+            referencedRelation: "collections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      content_relations: {
+        Row: {
+          created_at: string
+          from_id: string
+          from_type: string
+          id: string
+          relation: string
+          sort_order: number
+          to_id: string
+          to_type: string
+        }
+        Insert: {
+          created_at?: string
+          from_id: string
+          from_type: string
+          id?: string
+          relation?: string
+          sort_order?: number
+          to_id: string
+          to_type: string
+        }
+        Update: {
+          created_at?: string
+          from_id?: string
+          from_type?: string
+          id?: string
+          relation?: string
+          sort_order?: number
+          to_id?: string
+          to_type?: string
         }
         Relationships: []
       }
@@ -538,6 +762,87 @@ export type Database = {
         }
         Relationships: []
       }
+      homepage_sections: {
+        Row: {
+          config: Json
+          created_at: string
+          enabled: boolean
+          id: string
+          kind: string
+          sort_order: number
+          subtitle: string | null
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          config?: Json
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          kind: string
+          sort_order?: number
+          subtitle?: string | null
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          config?: Json
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          kind?: string
+          sort_order?: number
+          subtitle?: string | null
+          title?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      media: {
+        Row: {
+          alt: string
+          created_at: string
+          created_by: string | null
+          height: number | null
+          id: string
+          mime_type: string | null
+          public_url: string
+          storage_path: string | null
+          tags: string[]
+          title: string | null
+          updated_at: string
+          width: number | null
+        }
+        Insert: {
+          alt?: string
+          created_at?: string
+          created_by?: string | null
+          height?: number | null
+          id?: string
+          mime_type?: string | null
+          public_url: string
+          storage_path?: string | null
+          tags?: string[]
+          title?: string | null
+          updated_at?: string
+          width?: number | null
+        }
+        Update: {
+          alt?: string
+          created_at?: string
+          created_by?: string | null
+          height?: number | null
+          id?: string
+          mime_type?: string | null
+          public_url?: string
+          storage_path?: string | null
+          tags?: string[]
+          title?: string | null
+          updated_at?: string
+          width?: number | null
+        }
+        Relationships: []
+      }
       pinterest_accounts: {
         Row: {
           access_token_ciphertext: string
@@ -696,6 +1001,7 @@ export type Database = {
           bonus_files: Json
           category_id: string | null
           compare_at_cents: number
+          cover_image_id: string | null
           cover_image_url: string | null
           created_at: string
           currency: string
@@ -725,6 +1031,7 @@ export type Database = {
           bonus_files?: Json
           category_id?: string | null
           compare_at_cents?: number
+          cover_image_id?: string | null
           cover_image_url?: string | null
           created_at?: string
           currency?: string
@@ -754,6 +1061,7 @@ export type Database = {
           bonus_files?: Json
           category_id?: string | null
           compare_at_cents?: number
+          cover_image_id?: string | null
           cover_image_url?: string | null
           created_at?: string
           currency?: string
@@ -784,6 +1092,105 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "product_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "products_cover_image_id_fkey"
+            columns: ["cover_image_id"]
+            isOneToOne: false
+            referencedRelation: "media"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      recipes: {
+        Row: {
+          author_id: string | null
+          cook_minutes: number | null
+          created_at: string
+          description: string
+          difficulty: string
+          gallery_ids: string[]
+          hero_image_id: string | null
+          id: string
+          ingredients: Json
+          instructions: Json
+          is_featured: boolean
+          nutrition: Json
+          pinterest_description: string | null
+          prep_minutes: number | null
+          published_at: string | null
+          seo_description: string | null
+          seo_title: string | null
+          servings: string | null
+          slug: string
+          status: string
+          subtitle: string | null
+          tags: string[]
+          tips: Json
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          author_id?: string | null
+          cook_minutes?: number | null
+          created_at?: string
+          description?: string
+          difficulty?: string
+          gallery_ids?: string[]
+          hero_image_id?: string | null
+          id?: string
+          ingredients?: Json
+          instructions?: Json
+          is_featured?: boolean
+          nutrition?: Json
+          pinterest_description?: string | null
+          prep_minutes?: number | null
+          published_at?: string | null
+          seo_description?: string | null
+          seo_title?: string | null
+          servings?: string | null
+          slug: string
+          status?: string
+          subtitle?: string | null
+          tags?: string[]
+          tips?: Json
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          author_id?: string | null
+          cook_minutes?: number | null
+          created_at?: string
+          description?: string
+          difficulty?: string
+          gallery_ids?: string[]
+          hero_image_id?: string | null
+          id?: string
+          ingredients?: Json
+          instructions?: Json
+          is_featured?: boolean
+          nutrition?: Json
+          pinterest_description?: string | null
+          prep_minutes?: number | null
+          published_at?: string | null
+          seo_description?: string | null
+          seo_title?: string | null
+          servings?: string | null
+          slug?: string
+          status?: string
+          subtitle?: string | null
+          tags?: string[]
+          tips?: Json
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recipes_hero_image_id_fkey"
+            columns: ["hero_image_id"]
+            isOneToOne: false
+            referencedRelation: "media"
             referencedColumns: ["id"]
           },
         ]
@@ -840,6 +1247,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      site_settings: {
+        Row: {
+          key: string
+          updated_at: string
+          value: Json
+        }
+        Insert: {
+          key: string
+          updated_at?: string
+          value?: Json
+        }
+        Update: {
+          key?: string
+          updated_at?: string
+          value?: Json
+        }
+        Relationships: []
       }
       subscribers: {
         Row: {
