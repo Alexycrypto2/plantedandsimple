@@ -1,18 +1,35 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import { useState, type ReactNode } from "react";
+import { getSiteSettings } from "@/lib/library/library.functions";
+import { DEFAULT_NAV } from "@/lib/library/types";
 
-const NAV = [
-  { to: "/", label: "Home" },
-  { to: "/shop", label: "Shop" },
-  { to: "/recipes", label: "Recipe Library" },
-  { to: "/blog", label: "Blog" },
-  { to: "/free", label: "Free Resources" },
-  { to: "/about", label: "About" },
-  { to: "/contact", label: "Contact" },
-] as const;
+type NavItem = { label: string; href: string };
+type FooterColumn = { title: string; links: NavItem[] };
+
+function useSiteSettings() {
+  return useQuery({
+    queryKey: ["site-settings"],
+    queryFn: () => getSiteSettings(),
+    staleTime: 5 * 60 * 1000,
+  });
+}
 
 export function SiteNav() {
   const [open, setOpen] = useState(false);
+  const [q, setQ] = useState("");
+  const navigate = useNavigate();
+  const { data } = useSiteSettings();
+  const items: NavItem[] = data?.["nav"]?.items ?? DEFAULT_NAV;
+
+  function submitSearch(e: React.FormEvent) {
+    e.preventDefault();
+    const term = q.trim();
+    if (!term) return;
+    setOpen(false);
+    navigate({ to: "/search", search: { q: term } });
+  }
+
   return (
     <nav className="sticky top-0 z-50 border-b border-forest/10 bg-cream/85 px-6 py-4 backdrop-blur-md">
       <div className="mx-auto grid max-w-7xl grid-cols-[minmax(0,1fr)_auto] items-center gap-4 lg:grid-cols-[auto_1fr_auto]">
@@ -20,10 +37,10 @@ export function SiteNav() {
           Planted<span className="text-sage">&amp;</span>Simple
         </Link>
         <div className="hidden justify-center gap-8 text-[11px] font-semibold uppercase tracking-[0.2em] lg:flex">
-          {NAV.map((n) => (
+          {items.map((n) => (
             <Link
-              key={n.to}
-              to={n.to as any}
+              key={n.href}
+              to={n.href as any}
               activeProps={{ className: "text-forest" }}
               className="text-charcoal/70 transition-colors hover:text-forest"
             >
@@ -32,6 +49,15 @@ export function SiteNav() {
           ))}
         </div>
         <div className="flex items-center gap-2 justify-self-end">
+          <form onSubmit={submitSearch} className="hidden items-center md:flex">
+            <input
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder="Search"
+              aria-label="Search the library"
+              className="w-32 rounded-full border border-forest/15 bg-white/70 px-4 py-2 text-xs text-charcoal placeholder:text-charcoal/40 transition-all focus:w-48 focus:border-forest focus:outline-none"
+            />
+          </form>
           <Link
             to="/auth"
             className="hidden rounded-full border border-forest/20 px-4 py-2 text-xs font-semibold uppercase tracking-widest text-charcoal/70 transition hover:border-forest hover:text-forest sm:inline-flex"
@@ -51,10 +77,19 @@ export function SiteNav() {
       </div>
       {open && (
         <div className="mt-4 grid gap-1 border-t border-forest/10 pt-4 lg:hidden">
-          {NAV.map((n) => (
+          <form onSubmit={submitSearch} className="px-1 pb-2">
+            <input
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder="Search recipes, cookbooks, guides"
+              aria-label="Search the library"
+              className="w-full rounded-full border border-forest/15 bg-white px-4 py-2 text-sm text-charcoal placeholder:text-charcoal/40 focus:border-forest focus:outline-none"
+            />
+          </form>
+          {items.map((n) => (
             <Link
-              key={n.to}
-              to={n.to as any}
+              key={n.href}
+              to={n.href as any}
               onClick={() => setOpen(false)}
               className="rounded-lg px-3 py-2 text-sm font-medium text-charcoal/80 hover:bg-cream-warm"
             >
@@ -68,6 +103,12 @@ export function SiteNav() {
 }
 
 export function SiteFooter() {
+  const { data } = useSiteSettings();
+  const footer = data?.["footer"] ?? null;
+  const columns: FooterColumn[] = footer?.columns ?? [
+    { title: "Explore", links: [{ label: "The Shop", href: "/shop" }, { label: "Recipes", href: "/recipes" }, { label: "Journal", href: "/blog" }, { label: "Free Resources", href: "/free" }] },
+    { title: "Community", links: [{ label: "About", href: "/about" }, { label: "Contact", href: "/contact" }, { label: "Privacy", href: "/privacy" }, { label: "Refund", href: "/refund" }] },
+  ];
   return (
     <footer className="bg-charcoal px-6 py-20 text-cream/70">
       <div className="mx-auto max-w-7xl">
@@ -77,27 +118,33 @@ export function SiteFooter() {
               Planted<span className="text-sage">&amp;</span>Simple
             </div>
             <p className="max-w-sm text-sm leading-relaxed">
-              We believe in the power of plants and the beauty of simplicity. Our digital guides make thoughtful plant-based cooking accessible to everyone.
+              {footer?.tagline ??
+                "We believe in the power of plants and the beauty of simplicity. Our digital guides make thoughtful plant-based cooking accessible to everyone."}
             </p>
+            {footer?.socials?.length ? (
+              <div className="mt-6 flex gap-5 text-[10px] font-bold uppercase tracking-[0.22em]">
+                {footer.socials.map((s: NavItem) => (
+                  <a key={s.href} href={s.href} className="hover:text-cream" rel="noreferrer" target="_blank">
+                    {s.label}
+                  </a>
+                ))}
+              </div>
+            ) : null}
           </div>
-          <div>
-            <h5 className="mb-6 text-[10px] font-bold uppercase tracking-[0.25em] text-cream">Explore</h5>
-            <ul className="space-y-3 text-sm">
-              <li><Link to="/shop" className="hover:text-cream">The Shop</Link></li>
-              <li><Link to="/recipes" className="hover:text-cream">Recipe Library</Link></li>
-              <li><Link to="/blog" className="hover:text-cream">The Journal</Link></li>
-              <li><Link to="/free" className="hover:text-cream">Free Resources</Link></li>
-            </ul>
-          </div>
-          <div>
-            <h5 className="mb-6 text-[10px] font-bold uppercase tracking-[0.25em] text-cream">Community</h5>
-            <ul className="space-y-3 text-sm">
-              <li><Link to="/about" className="hover:text-cream">About Us</Link></li>
-              <li><Link to="/contact" className="hover:text-cream">Contact</Link></li>
-              <li><Link to="/privacy" className="hover:text-cream">Privacy</Link></li>
-              <li><Link to="/refund" className="hover:text-cream">Refund</Link></li>
-            </ul>
-          </div>
+          {columns.slice(0, 2).map((col) => (
+            <div key={col.title}>
+              <h5 className="mb-6 text-[10px] font-bold uppercase tracking-[0.25em] text-cream">{col.title}</h5>
+              <ul className="space-y-3 text-sm">
+                {col.links.map((l) => (
+                  <li key={l.href}>
+                    <Link to={l.href as any} className="hover:text-cream">
+                      {l.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
         </div>
         <div className="flex flex-col items-center justify-between gap-4 border-t border-cream/10 pt-8 text-[10px] uppercase tracking-[0.25em] md:flex-row">
           <p>© {new Date().getFullYear()} PlantedAndSimple. All rights reserved.</p>
