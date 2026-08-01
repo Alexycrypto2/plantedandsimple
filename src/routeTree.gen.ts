@@ -13,6 +13,7 @@ import { Route as ThankYouRouteImport } from './routes/thank-you'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as ShopRouteImport } from './routes/shop'
+import { Route as SearchRouteImport } from './routes/search'
 import { Route as RefundRouteImport } from './routes/refund'
 import { Route as RecipesRouteImport } from './routes/recipes'
 import { Route as PrivacyRouteImport } from './routes/privacy'
@@ -61,6 +62,11 @@ const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
 const ShopRoute = ShopRouteImport.update({
   id: '/shop',
   path: '/shop',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SearchRoute = SearchRouteImport.update({
+  id: '/search',
+  path: '/search',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RefundRoute = RefundRouteImport.update({
@@ -224,6 +230,7 @@ export interface FileRoutesByFullPath {
   '/privacy': typeof PrivacyRoute
   '/recipes': typeof RecipesRouteWithChildren
   '/refund': typeof RefundRoute
+  '/search': typeof SearchRoute
   '/shop': typeof ShopRouteWithChildren
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
@@ -256,6 +263,7 @@ export interface FileRoutesByTo {
   '/free': typeof FreeRoute
   '/privacy': typeof PrivacyRoute
   '/refund': typeof RefundRoute
+  '/search': typeof SearchRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/thank-you': typeof ThankYouRoute
@@ -291,6 +299,7 @@ export interface FileRoutesById {
   '/privacy': typeof PrivacyRoute
   '/recipes': typeof RecipesRouteWithChildren
   '/refund': typeof RefundRoute
+  '/search': typeof SearchRoute
   '/shop': typeof ShopRouteWithChildren
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
@@ -327,6 +336,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/recipes'
     | '/refund'
+    | '/search'
     | '/shop'
     | '/sitemap.xml'
     | '/terms'
@@ -359,6 +369,7 @@ export interface FileRouteTypes {
     | '/free'
     | '/privacy'
     | '/refund'
+    | '/search'
     | '/sitemap.xml'
     | '/terms'
     | '/thank-you'
@@ -393,6 +404,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/recipes'
     | '/refund'
+    | '/search'
     | '/shop'
     | '/sitemap.xml'
     | '/terms'
@@ -429,6 +441,7 @@ export interface RootRouteChildren {
   PrivacyRoute: typeof PrivacyRoute
   RecipesRoute: typeof RecipesRouteWithChildren
   RefundRoute: typeof RefundRoute
+  SearchRoute: typeof SearchRoute
   ShopRoute: typeof ShopRouteWithChildren
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TermsRoute: typeof TermsRoute
@@ -474,6 +487,13 @@ declare module '@tanstack/react-router' {
       path: '/shop'
       fullPath: '/shop'
       preLoaderRoute: typeof ShopRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/search': {
+      id: '/search'
+      path: '/search'
+      fullPath: '/search'
+      preLoaderRoute: typeof SearchRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/refund': {
@@ -743,6 +763,7 @@ const rootRouteChildren: RootRouteChildren = {
   PrivacyRoute: PrivacyRoute,
   RecipesRoute: RecipesRouteWithChildren,
   RefundRoute: RefundRoute,
+  SearchRoute: SearchRoute,
   ShopRoute: ShopRouteWithChildren,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   TermsRoute: TermsRoute,
