@@ -73,7 +73,7 @@ function CollectionPage() {
 
         {recipes.length ? (
           <div className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {recipes.map((r, i) => (
+            {recipes.map((r: any, i: number) => (
               <Reveal key={r.id} delay={i * 60}>
                 <EditorialCard to="/recipes/$slug" params={{ slug: r.slug }} image={r.hero_image_url} alt={r.title} eyebrow="Recipe" title={r.title} meta={r.subtitle} />
               </Reveal>
