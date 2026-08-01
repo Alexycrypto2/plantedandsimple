@@ -1,25 +1,34 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect } from "react";
-import { SiteNav, SiteFooter } from "@/components/SiteLayout";
-import heroImg from "@/assets/home-hero.jpg";
+import { SiteLayout } from "@/components/SiteLayout";
+import { Reveal, SectionHeader, MediaImage, EditorialCard } from "@/components/site/primitives";
 import heroEditorial from "@/assets/hero-editorial.jpg";
-import ritualImg from "@/assets/home-ritual.jpg";
-import journalLead from "@/assets/home-journal-lead.jpg";
-import catBreakfast from "@/assets/cat-breakfast.jpg";
-import catProtein from "@/assets/cat-protein.jpg";
-import catDesserts from "@/assets/cat-desserts.jpg";
-import catDinners from "@/assets/cat-dinners.jpg";
-import peekMealPrep from "@/assets/peek-meal-prep.jpg.asset.json";
-import peekSmoothies from "@/assets/peek-smoothies.jpg.asset.json";
-import peekRecipe from "@/assets/peek-recipe.jpg.asset.json";
 import { listPublishedProducts, type PublicProduct } from "@/lib/products.functions";
+import { listPublishedPosts, type PublicPost } from "@/lib/blog.functions";
+import { getHomepage, listCollections, listPublishedRecipes } from "@/lib/library/library.functions";
+import type { Collection, HomepageSection, Recipe } from "@/lib/library/types";
 import { trackAffiliateClick } from "@/lib/affiliates.functions";
+
+type LoaderData = {
+  sections: HomepageSection[];
+  settings: Record<string, any>;
+  products: PublicProduct[];
+  collections: Collection[];
+  recipes: Recipe[];
+  posts: PublicPost[];
+};
 
 export const Route = createFileRoute("/")({
   component: HomePage,
-  loader: async (): Promise<{ products: PublicProduct[] }> => {
-    const products = await listPublishedProducts({ data: {} });
-    return { products };
+  loader: async (): Promise<LoaderData> => {
+    const [home, products, collections, recipes, posts] = await Promise.all([
+      getHomepage(),
+      listPublishedProducts({ data: {} }),
+      listCollections({ data: { featuredOnly: true } }),
+      listPublishedRecipes({ data: { limit: 6 } }),
+      listPublishedPosts(),
+    ]);
+    return { ...home, products, collections, recipes, posts };
   },
   head: () => ({
     meta: [
@@ -27,13 +36,12 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "Digital cookbooks, seasonal meal plans, and recipes for the intentional plant-based kitchen. Instant PDF downloads made with care.",
+          "Digital cookbooks, seasonal meal plans and tested plant-based recipes for the intentional kitchen. Instant PDF downloads, made with care.",
       },
       { property: "og:title", content: "PlantedAndSimple — Premium Plant-Based Cookbooks" },
       {
         property: "og:description",
-        content:
-          "Simple recipes, refined for the modern home cook. Explore our digital cookbook studio.",
+        content: "Simple recipes, refined for the modern home cook. Explore our digital cookbook studio.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -42,365 +50,200 @@ export const Route = createFileRoute("/")({
   }),
 });
 
-const CATEGORIES = [
-  { name: "Breakfast", img: catBreakfast },
-  { name: "High-Protein", img: catProtein },
-  { name: "Meal Prep", img: peekMealPrep.url },
-  { name: "Smoothies", img: peekSmoothies.url },
-  { name: "Desserts", img: catDesserts },
-  { name: "Quick Dinners", img: catDinners },
-];
+const ICONS: Record<string, string> = {
+  zap: "M13 2L3 14h8l-1 8 10-12h-8l1-8z",
+  sparkles: "M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3z",
+  lock: "M6 10V7a6 6 0 1112 0v3M5 10h14v11H5z",
+  leaf: "M4 20c8 2 16-4 16-16-8 0-16 4-16 16zM4 20c2-6 6-9 10-11",
+  refresh: "M4 12a8 8 0 0113-6m3 6a8 8 0 01-13 6M17 6h4V2M7 18H3v4",
+  book: "M4 4h11a4 4 0 014 4v12H8a4 4 0 01-4-4V4z",
+  download: "M12 3v12m0 0l-4-4m4 4l4-4M4 21h16",
+  heart: "M12 20s-7-4.6-7-9.5A4 4 0 0112 7a4 4 0 017 3.5C19 15.4 12 20 12 20z",
+};
 
-const BLOG = [
-  {
-    kind: "Technique",
-    title: "Mastering Plant-Based Umami: The Secret to Depth of Flavor",
-    excerpt:
-      "Why mushrooms, miso, and liquid aminos are the foundation of every savory dish we create.",
-    img: journalLead,
-    featured: true,
-  },
-  {
-    kind: "Seasonal",
-    title: "Seasonal Eating: An Autumn Guide",
-    img: peekRecipe.url,
-  },
-  {
-    kind: "Rituals",
-    title: "5 Rituals for a Grounded Morning",
-    img: ritualImg,
-  },
-];
+function Icon({ name, className = "" }: { name: string; className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden="true">
+      <path d={ICONS[name] ?? ICONS["sparkles"]} stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
 
 function HomePage() {
-  const { products } = Route.useLoaderData() as { products: PublicProduct[] };
-  const featured = products.filter((p) => p.is_featured);
-  const rest = products.filter((p) => !p.is_featured);
-  const primary: PublicProduct | undefined = featured[0] ?? products[0];
-  const secondary: PublicProduct | undefined =
-    featured[1] ?? rest[0] ?? products[1];
+  const data = Route.useLoaderData() as LoaderData;
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
     const ref = new URLSearchParams(window.location.search).get("ref");
-    if (ref) trackAffiliateClick({ data: { code: ref } }).catch(() => {});
+    if (ref) {
+      localStorage.setItem("ps_ref", ref);
+      trackAffiliateClick({ data: { code: ref } }).catch(() => {});
+    }
   }, []);
 
   return (
-    <div className="min-h-screen bg-cream font-sans text-charcoal antialiased">
-      <SiteNav />
-      <Hero primary={primary} />
-      <FeaturedCollection primary={primary} secondary={secondary} />
-      <ShopGrid products={products} />
-      <FreeResources />
-      <CategoryGrid />
-      <BestSellersMarquee bestsellers={products.filter((p) => p.is_bestseller)} />
-      <WhyChoose />
-      <Testimonial />
-      <JournalBento />
-      <Newsletter />
-      <SiteFooter />
-    </div>
+    <SiteLayout>
+      <main>
+        {data.sections.map((section) => (
+          <Section key={section.id} section={section} data={data} />
+        ))}
+      </main>
+    </SiteLayout>
   );
 }
 
-/* ---------------- Hero ---------------- */
+function Section({ section, data }: { section: HomepageSection; data: LoaderData }) {
+  switch (section.kind) {
+    case "hero":
+      return <HeroSection section={section} />;
+    case "trust_row":
+      return <TrustRow items={data.settings["trust_badges"]?.items ?? []} />;
+    case "featured_collections":
+      return <CollectionsSection section={section} collections={data.collections} />;
+    case "featured_products":
+      return <ProductsSection section={section} products={data.products} />;
+    case "latest_recipes":
+      return <RecipesSection section={section} recipes={data.recipes} />;
+    case "latest_blogs":
+      return <BlogsSection section={section} posts={data.posts} />;
+    case "why_choose":
+      return <WhyChoose section={section} items={data.settings["why_choose"]?.items ?? []} />;
+    case "newsletter":
+      return <Newsletter section={section} />;
+    default:
+      return null;
+  }
+}
 
-function Hero({ primary }: { primary?: PublicProduct }) {
+function HeroSection({ section }: { section: HomepageSection }) {
+  const c = section.config ?? {};
   return (
-    <header className="relative isolate min-h-[88vh] overflow-hidden">
+    <section className="relative isolate min-h-[88vh] overflow-hidden">
       <img
-        src={heroEditorial}
-        alt="A luxury plant-based table scene with roasted vegetables, grains and olive oil in warm natural light"
-        width={1920}
-        height={1280}
+        src={c["image_url"] || heroEditorial}
+        alt="A plant-based meal styled on a warm linen table"
         className="absolute inset-0 -z-10 h-full w-full object-cover"
       />
-      <div className="absolute inset-0 -z-10 bg-gradient-to-r from-charcoal/85 via-charcoal/55 to-transparent" />
-
-      <div className="mx-auto flex min-h-[88vh] max-w-7xl flex-col justify-center px-6 py-24">
-        <div className="max-w-2xl animate-fade-in space-y-8 text-cream">
+      <div className="absolute inset-0 -z-10 bg-gradient-to-b from-charcoal/65 via-charcoal/40 to-charcoal/75" />
+      <div className="mx-auto flex min-h-[88vh] max-w-5xl flex-col items-center justify-center px-6 py-28 text-center">
+        <Reveal>
           <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.35em] text-cream/70">
-            Simple Plant-Based Meals · Powerful Nutrition
+            Planted &amp; Simple
           </p>
-          <h1 className="font-display text-[3.4rem] leading-[0.95] tracking-tight sm:text-7xl lg:text-[6rem]">
-            Eat Beautifully.
-            <br />
-            <span className="italic text-sage-soft">Cook Confidently.</span>
+        </Reveal>
+        <Reveal delay={120}>
+          <h1 className="mt-6 font-display text-5xl italic leading-[1.02] text-cream md:text-7xl lg:text-[5.5rem]">
+            {section.title ?? "Eat Beautifully. Cook Confidently."}
           </h1>
-          <p className="max-w-lg text-lg leading-relaxed text-cream/80">
-            Digital cookbooks and seasonal meal plans for the intentional kitchen — refined recipes, honest nutrition,
-            and photography worth cooking from.
-          </p>
-          <div className="flex flex-wrap gap-3 pt-2">
+        </Reveal>
+        <Reveal delay={240}>
+          <p className="mx-auto mt-7 max-w-xl text-lg leading-relaxed text-cream/80">{section.subtitle}</p>
+        </Reveal>
+        <Reveal delay={360}>
+          <div className="mt-10 flex flex-col items-center gap-3 sm:flex-row">
             <Link
-              to="/free"
-              className="rounded-full bg-cream px-8 py-4 text-xs font-bold uppercase tracking-[0.2em] text-forest-deep transition hover:-translate-y-0.5 hover:bg-white"
+              to={(c["primary_cta_href"] as string) ?? "/shop"}
+              className="rounded-full bg-cream px-9 py-4 text-[11px] font-bold uppercase tracking-[0.22em] text-forest-deep transition hover:bg-white"
             >
-              Download Free Recipe Book
+              {c["primary_cta_label"] ?? "Browse Cookbooks"}
             </Link>
             <Link
-              to="/shop"
-              className="rounded-full border border-cream/40 px-8 py-4 text-xs font-bold uppercase tracking-[0.2em] text-cream transition hover:bg-cream/10"
+              to={(c["secondary_cta_href"] as string) ?? "/free"}
+              className="rounded-full border border-cream/40 px-9 py-4 text-[11px] font-bold uppercase tracking-[0.22em] text-cream transition hover:bg-cream/10"
             >
-              Browse Cookbooks
+              {c["secondary_cta_label"] ?? "Download Free Recipe Book"}
             </Link>
           </div>
-          <div className="flex flex-wrap items-center gap-x-8 gap-y-3 pt-6 text-[11px] font-semibold uppercase tracking-[0.22em] text-cream/60">
-            <span>✦ 15,000+ home cooks</span>
-            <span>✦ 60-day guarantee</span>
-            <span>✦ Instant PDF delivery</span>
-          </div>
-          {primary && (
-            <p className="pt-2 font-mono text-[11px] uppercase tracking-[0.25em] text-sage-soft">
-              Featured release — {primary.title}
-            </p>
-          )}
-        </div>
+        </Reveal>
       </div>
-    </header>
+    </section>
   );
 }
 
-/* ---------------- Featured collection bento ---------------- */
-
-function FeaturedCollection({
-  primary,
-  secondary,
-}: {
-  primary?: PublicProduct;
-  secondary?: PublicProduct;
-}) {
+function TrustRow({ items }: { items: Array<{ icon: string; label: string }> }) {
+  if (!items.length) return null;
   return (
-    <section className="bg-white px-6 py-20 md:py-24">
-      <div className="mx-auto max-w-7xl">
-        <div className="mb-12 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-          <h2 className="font-display text-4xl italic text-forest-deep md:text-5xl">
-            Digital Collections
-          </h2>
-          <p className="max-w-xs text-sm text-charcoal/60">
-            Our premium digital cookbooks live beautifully on your tablet, phone, or printed for the kitchen.
-          </p>
-        </div>
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-          {/* Big card */}
-          <article className="lg:col-span-2">
-            <div className="flex h-full flex-col overflow-hidden rounded-[2.5rem] border border-forest/10 bg-cream-warm/50 md:flex-row">
-              <div className="flex flex-1 flex-col justify-center gap-5 p-8 md:p-12">
-                <span className="font-mono text-[10px] font-bold uppercase tracking-[0.25em] text-forest">
-                  {primary?.is_bestseller ? "The Best Seller" : "Featured"}
-                </span>
-                <h3 className="font-display text-3xl italic text-forest-deep md:text-[2.5rem]">
-                  {primary?.title ?? "The Foundation"}
-                </h3>
-                <p className="text-sm leading-relaxed text-charcoal/70">
-                  {primary?.subtitle ??
-                    "Recipes to build a sustainable plant-based lifestyle without the complexity."}
-                </p>
-                <div className="flex items-baseline gap-3 pt-2">
-                  {primary && (
-                    <>
-                      <span className="font-display text-3xl text-forest-deep">
-                        ${primary.price_display}
-                      </span>
-                      {primary.compare_at_cents > primary.price_cents && (
-                        <span className="text-sm text-charcoal/40 line-through">
-                          ${primary.compare_at_display}
-                        </span>
-                      )}
-                    </>
-                  )}
-                </div>
-                <div className="pt-2">
-                  {primary ? (
-                    <Link
-                      to="/shop/$slug"
-                      params={{ slug: primary.slug }}
-                      className="inline-flex rounded-full bg-charcoal px-8 py-3 text-xs font-bold uppercase tracking-[0.2em] text-cream transition hover:bg-forest"
-                    >
-                      View Cookbook
-                    </Link>
-                  ) : (
-                    <Link
-                      to="/shop"
-                      className="inline-flex rounded-full bg-charcoal px-8 py-3 text-xs font-bold uppercase tracking-[0.2em] text-cream"
-                    >
-                      Browse Shop
-                    </Link>
-                  )}
-                </div>
-              </div>
-              <div className="min-h-[280px] w-full bg-sage-soft md:min-h-[420px] md:w-1/2">
-                {primary?.cover_image_url ? (
-                  <img
-                    src={primary.cover_image_url}
-                    alt={primary.title}
-                    loading="lazy"
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  <img
-                    src={heroImg}
-                    alt=""
-                    loading="lazy"
-                    className="h-full w-full object-cover"
-                  />
-                )}
-              </div>
-            </div>
-          </article>
+    <section className="border-b border-forest/10 bg-cream-warm px-6 py-7">
+      <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-center gap-x-10 gap-y-4">
+        {items.map((it) => (
+          <div key={it.label} className="flex min-w-0 items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-charcoal/60">
+            <Icon name={it.icon} className="h-4 w-4 shrink-0 text-forest" />
+            <span className="truncate">{it.label}</span>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
 
-          {/* Dark green card */}
-          <article className="lg:col-span-1">
-            {secondary ? (
+function CollectionsSection({ section, collections }: { section: HomepageSection; collections: Collection[] }) {
+  if (!collections.length) return null;
+  const limit = Number(section.config?.["limit"] ?? 6);
+  return (
+    <section className="mx-auto max-w-7xl px-6 py-24">
+      <Reveal>
+        <SectionHeader eyebrow="Collections" title={section.title ?? "Explore the Collections"} subtitle={section.subtitle} />
+      </Reveal>
+      <div className="grid grid-cols-2 gap-5 md:grid-cols-3">
+        {collections.slice(0, limit).map((c, i) => (
+          <Reveal key={c.id} delay={i * 70}>
+            <EditorialCard
+              to="/collections/$slug"
+              params={{ slug: c.slug }}
+              image={c.image_url}
+              alt={c.name}
+              title={c.name}
+              meta={c.description}
+            />
+          </Reveal>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function ProductsSection({ section, products }: { section: HomepageSection; products: PublicProduct[] }) {
+  if (!products.length) return null;
+  const limit = Number(section.config?.["limit"] ?? 3);
+  return (
+    <section className="bg-cream-warm px-6 py-24">
+      <div className="mx-auto max-w-7xl">
+        <Reveal>
+          <SectionHeader
+            eyebrow="The Shop"
+            title={section.title ?? "Featured Cookbooks"}
+            subtitle={section.subtitle}
+            align="left"
+            action={
+              <Link to="/shop" className="text-[11px] font-bold uppercase tracking-[0.2em] text-forest hover:underline">
+                View all
+              </Link>
+            }
+          />
+        </Reveal>
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {products.slice(0, limit).map((p, i) => (
+            <Reveal key={p.id} delay={i * 80}>
               <Link
                 to="/shop/$slug"
-                params={{ slug: secondary.slug }}
-                className="group flex h-full flex-col rounded-[2.5rem] bg-forest p-6 text-cream md:p-8"
+                params={{ slug: p.slug }}
+                className="group block overflow-hidden rounded-[1.75rem] border border-forest/10 bg-white shadow-[var(--shadow-soft)] transition duration-500 hover:-translate-y-1 hover:shadow-[var(--shadow-card)]"
               >
-                <div className="aspect-square overflow-hidden rounded-2xl bg-forest-deep">
-                  {secondary.cover_image_url ? (
-                    <img
-                      src={secondary.cover_image_url}
-                      alt={secondary.title}
-                      loading="lazy"
-                      className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
-                    />
-                  ) : (
-                    <img
-                      src={ritualImg}
-                      alt=""
-                      loading="lazy"
-                      className="h-full w-full object-cover"
-                    />
-                  )}
+                <MediaImage src={p.cover_image_url} alt={p.title} ratio="aspect-[4/5]" />
+                <div className="p-6">
+                  {p.is_bestseller ? (
+                    <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.24em] text-sage">Bestseller</p>
+                  ) : null}
+                  <h3 className="mt-2 font-display text-2xl italic text-forest-deep">{p.title}</h3>
+                  {p.subtitle ? <p className="mt-2 text-sm text-charcoal/55">{p.subtitle}</p> : null}
+                  <p className="mt-4 flex items-baseline gap-2">
+                    <span className="text-lg font-semibold text-forest-deep">${p.price_display}</span>
+                    {p.compare_at_cents > p.price_cents ? (
+                      <span className="text-sm text-charcoal/40 line-through">${p.compare_at_display}</span>
+                    ) : null}
+                  </p>
                 </div>
-                <h3 className="mt-6 font-display text-3xl italic">{secondary.title}</h3>
-                <p className="mt-3 text-sm text-cream/70">
-                  {secondary.subtitle ?? "A new plant-based release."}
-                </p>
-                <span className="mt-auto inline-flex w-full items-center justify-center rounded-full border border-cream/25 py-3.5 text-xs font-bold uppercase tracking-[0.2em] transition group-hover:bg-cream/10">
-                  Explore →
-                </span>
               </Link>
-            ) : (
-              <div className="flex h-full flex-col rounded-[2.5rem] bg-forest p-8 text-cream">
-                <div className="aspect-square overflow-hidden rounded-2xl bg-forest-deep">
-                  <img
-                    src={ritualImg}
-                    alt="Green morning ritual smoothie"
-                    loading="lazy"
-                    width={1200}
-                    height={1200}
-                    className="h-full w-full object-cover"
-                  />
-                </div>
-                <h3 className="mt-6 font-display text-3xl italic">
-                  7-Day Morning Ritual
-                </h3>
-                <p className="mt-3 text-sm text-cream/70">
-                  High-protein smoothies &amp; morning habits — coming soon.
-                </p>
-                <Link
-                  to="/shop"
-                  className="mt-auto inline-flex w-full items-center justify-center rounded-full border border-cream/25 py-3.5 text-xs font-bold uppercase tracking-[0.2em] hover:bg-cream/10"
-                >
-                  Browse Shop
-                </Link>
-              </div>
-            )}
-          </article>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/* ---------------- Free resources ---------------- */
-
-function FreeResources() {
-  return null; // moved below; kept for future re-use
-}
-
-/* ---------------- Shop grid (all products) ---------------- */
-
-function ShopGrid({ products }: { products: PublicProduct[] }) {
-  if (!products.length) return null;
-  return (
-    <section className="bg-cream px-6 py-20 md:py-24">
-      <div className="mx-auto max-w-7xl">
-        <div className="mb-10 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-          <div>
-            <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.25em] text-sage">
-              The Shop
-            </p>
-            <h2 className="mt-3 font-display text-4xl italic text-forest-deep md:text-5xl">
-              Every cookbook we make
-            </h2>
-          </div>
-          <Link
-            to="/shop"
-            className="text-[11px] font-bold uppercase tracking-[0.25em] text-forest hover:underline"
-          >
-            Browse the full shop →
-          </Link>
-        </div>
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {products.slice(0, 6).map((p) => (
-            <Link
-              key={p.id}
-              to="/shop/$slug"
-              params={{ slug: p.slug }}
-              className="group flex flex-col overflow-hidden rounded-3xl border border-forest/10 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-card"
-            >
-              <div className="aspect-[4/5] w-full overflow-hidden bg-sage-soft">
-                {p.cover_image_url ? (
-                  <img
-                    src={p.cover_image_url}
-                    alt={p.title}
-                    loading="lazy"
-                    className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
-                  />
-                ) : (
-                  <img
-                    src={heroImg}
-                    alt=""
-                    loading="lazy"
-                    className="h-full w-full object-cover"
-                  />
-                )}
-              </div>
-              <div className="flex flex-1 flex-col p-6">
-                {p.category_name && (
-                  <p className="font-mono text-[10px] font-bold uppercase tracking-[0.25em] text-sage">
-                    {p.category_name}
-                  </p>
-                )}
-                <h3 className="mt-2 font-display text-xl italic text-forest-deep">
-                  {p.title}
-                </h3>
-                {p.subtitle && (
-                  <p className="mt-1 line-clamp-2 text-sm text-charcoal/60">
-                    {p.subtitle}
-                  </p>
-                )}
-                <div className="mt-auto flex items-baseline justify-between pt-5">
-                  <div>
-                    <span className="font-display text-2xl font-bold text-forest-deep">
-                      ${p.price_display}
-                    </span>
-                    {p.compare_at_cents > p.price_cents && (
-                      <span className="ml-2 text-xs text-charcoal/40 line-through">
-                        ${p.compare_at_display}
-                      </span>
-                    )}
-                  </div>
-                  <span className="text-xs font-bold uppercase tracking-[0.2em] text-forest group-hover:underline">
-                    View →
-                  </span>
-                </div>
-              </div>
-            </Link>
+            </Reveal>
           ))}
         </div>
       </div>
@@ -408,308 +251,126 @@ function ShopGrid({ products }: { products: PublicProduct[] }) {
   );
 }
 
-function _FreeResourcesUnused() {
-  const items = [
-    {
-      title: "Pantry Essentials PDF",
-      body: "A complete list of must-have plant-based ingredients for a vibrant kitchen.",
-    },
-    {
-      title: "Weekly Prep Sheet",
-      body: "A printable batch-cooking template for your busiest weeks.",
-    },
-  ];
+function RecipesSection({ section, recipes }: { section: HomepageSection; recipes: Recipe[] }) {
+  if (!recipes.length) return null;
+  const limit = Number(section.config?.["limit"] ?? 3);
   return (
-    <section id="free-resources" className="bg-cream-warm/40 px-6 py-20 md:py-24">
-      <div className="mx-auto grid max-w-7xl grid-cols-1 gap-6 md:grid-cols-4">
-        <div className="py-2 md:col-span-1">
-          <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.25em] text-sage">
-            Free & lovely
-          </p>
-          <h2 className="mt-3 font-display text-3xl italic text-forest-deep md:text-4xl">
-            Free Pantry Tools
-          </h2>
-          <p className="mt-3 text-sm leading-relaxed text-charcoal/60">
-            Downloadable guides to help you master the plant-based kitchen essentials.
-          </p>
-        </div>
-        {items.map((it) => (
-          <div
-            key={it.title}
-            className="flex flex-col rounded-3xl border border-forest/10 bg-white p-8 transition hover:-translate-y-1 hover:shadow-card"
-          >
-            <div className="grid h-12 w-12 place-items-center rounded-xl bg-cream">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-                <path
-                  d="M12 3v13m0 0l-4-4m4 4l4-4M5 21h14"
-                  stroke="var(--forest)"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </div>
-            <h3 className="mt-6 font-display text-xl text-forest-deep">{it.title}</h3>
-            <p className="mt-2 text-xs leading-relaxed text-charcoal/60">{it.body}</p>
-            <a
-              href="#free-resources"
-              className="mt-6 self-start border-b-2 border-forest pb-1 text-[11px] font-bold uppercase tracking-[0.2em] text-forest"
-            >
-              Download free
-            </a>
-          </div>
-        ))}
-        <div className="flex flex-col items-center justify-center rounded-3xl bg-forest p-8 text-center text-cream">
-          <p className="font-display text-2xl italic">Join 15,000+ others</p>
-          <p className="mt-2 text-xs text-cream/70">Access every free guide.</p>
-          <a
-            href="#newsletter"
-            className="mt-6 rounded-full bg-cream px-6 py-2.5 text-[11px] font-bold uppercase tracking-[0.2em] text-forest-deep hover:bg-white"
-          >
-            Sign up
-          </a>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/* ---------------- Category grid ---------------- */
-
-function CategoryGrid() {
-  return (
-    <section className="bg-white px-6 py-20 md:py-24">
-      <div className="mx-auto max-w-7xl">
-        <div className="mb-12 text-center">
-          <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.25em] text-sage">
-            The Recipe Library
-          </p>
-          <h2 className="mt-3 font-display text-4xl italic text-forest-deep md:text-5xl">
-            Explore the Library
-          </h2>
-        </div>
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
-          {CATEGORIES.map((c) => (
-            <Link
-              key={c.name}
-              to="/recipes"
-              className="group block space-y-3"
-            >
-              <div className="aspect-square overflow-hidden rounded-2xl bg-cream-warm">
-                <img
-                  src={c.img}
-                  alt={c.name}
-                  loading="lazy"
-                  className="h-full w-full object-cover transition duration-700 group-hover:scale-110"
-                />
-              </div>
-              <p className="text-center text-sm font-medium text-charcoal/80 group-hover:text-forest">
-                {c.name}
-              </p>
+    <section className="mx-auto max-w-7xl px-6 py-24">
+      <Reveal>
+        <SectionHeader
+          eyebrow="Recipes"
+          title={section.title ?? "Fresh From The Kitchen"}
+          subtitle={section.subtitle}
+          align="left"
+          action={
+            <Link to="/recipes" className="text-[11px] font-bold uppercase tracking-[0.2em] text-forest hover:underline">
+              All recipes
             </Link>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/* ---------------- Bestsellers marquee ---------------- */
-
-function BestSellersMarquee({ bestsellers }: { bestsellers: PublicProduct[] }) {
-  const labels =
-    bestsellers.length > 0
-      ? bestsellers.map((b) => b.title)
-      : [
-          "The Green Kitchen Handbook",
-          "7-Day Ritual Masterclass",
-          "High-Protein Vegan Fuel",
-          "Seasonal Dinner Guide",
-        ];
-  const loop = [...labels, ...labels, ...labels];
-  return (
-    <div className="overflow-hidden bg-charcoal py-6 text-cream">
-      <div className="animate-marquee flex gap-12 whitespace-nowrap text-sm font-medium uppercase tracking-[0.3em]">
-        {loop.map((label, i) => (
-          <span key={i} className="flex items-center gap-12">
-            {label}
-            <span className="text-cream/30">/</span>
-          </span>
+          }
+        />
+      </Reveal>
+      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        {recipes.slice(0, limit).map((r, i) => (
+          <Reveal key={r.id} delay={i * 80}>
+            <EditorialCard
+              to="/recipes/$slug"
+              params={{ slug: r.slug }}
+              image={r.hero_image_url}
+              alt={r.title}
+              eyebrow={r.difficulty}
+              title={r.title}
+              meta={
+                [r.prep_minutes ? `${r.prep_minutes} min prep` : null, r.servings ? `Serves ${r.servings}` : null]
+                  .filter(Boolean)
+                  .join(" · ") || r.subtitle
+              }
+            />
+          </Reveal>
         ))}
       </div>
-      <style>{`
-        @keyframes marquee { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
-        .animate-marquee { display:flex; width:max-content; animation: marquee 40s linear infinite; }
-      `}</style>
-    </div>
-  );
-}
-
-/* ---------------- Testimonial ---------------- */
-
-function Testimonial() {
-  return (
-    <section className="bg-cream px-6 py-24 md:py-32">
-      <div className="mx-auto max-w-4xl text-center">
-        <div className="mb-8 flex justify-center gap-1 text-forest">
-          {Array.from({ length: 5 }).map((_, i) => (
-            <svg key={i} width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
-              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-            </svg>
-          ))}
-        </div>
-        <blockquote className="font-display text-3xl italic leading-tight text-forest-deep sm:text-4xl md:text-5xl">
-          &ldquo;PlantedAndSimple has completely removed the guesswork from my weekly meal prep. The recipes are approachable yet feel like they came from a professional kitchen.&rdquo;
-        </blockquote>
-        <cite className="mt-10 block text-[11px] font-bold uppercase not-italic tracking-[0.25em] text-charcoal/50">
-          Emma Richardson &middot; Home Cook
-        </cite>
-      </div>
     </section>
   );
 }
 
-/* ---------------- Journal / Blog bento ---------------- */
-
-function JournalBento() {
-  const [lead, ...side] = BLOG;
+function BlogsSection({ section, posts }: { section: HomepageSection; posts: PublicPost[] }) {
+  if (!posts.length) return null;
+  const limit = Number(section.config?.["limit"] ?? 3);
   return (
-    <section className="bg-white px-6 py-20 md:py-24">
+    <section className="bg-cream-warm px-6 py-24">
       <div className="mx-auto max-w-7xl">
-        <div className="mb-12 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-          <div>
-            <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.25em] text-sage">
-              From the kitchen
-            </p>
-            <h2 className="mt-3 font-display text-4xl italic text-forest-deep md:text-5xl">
-              The Journal
-            </h2>
-          </div>
-          <Link
-            to="/blog"
-            className="text-[11px] font-bold uppercase tracking-[0.25em] text-forest hover:underline"
-          >
-            Read all articles →
-          </Link>
-        </div>
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-12">
-          <article className="group cursor-pointer md:col-span-8">
-            <div className="mb-6 aspect-[16/9] overflow-hidden rounded-[2rem] bg-cream-warm">
-              <img
-                src={lead.img}
-                alt={lead.title}
-                loading="lazy"
-                className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
-              />
-            </div>
-            <div className="max-w-xl">
-              <span className="font-mono text-[10px] font-bold uppercase tracking-[0.25em] text-charcoal/50">
-                {lead.kind}
-              </span>
-              <h3 className="mt-2 font-display text-3xl italic text-forest-deep">
-                {lead.title}
-              </h3>
-              <p className="mt-4 text-sm leading-relaxed text-charcoal/60">
-                {lead.excerpt}
-              </p>
-            </div>
-          </article>
-          <div className="space-y-10 md:col-span-4">
-            {side.map((a) => (
-              <article key={a.title} className="group cursor-pointer">
-                <div className="mb-4 aspect-[4/3] overflow-hidden rounded-2xl bg-cream-warm">
-                  <img
-                    src={a.img}
-                    alt={a.title}
-                    loading="lazy"
-                    className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
-                  />
-                </div>
-                <span className="font-mono text-[10px] font-bold uppercase tracking-[0.25em] text-charcoal/50">
-                  {a.kind}
-                </span>
-                <h4 className="mt-1 font-display text-xl italic text-forest-deep">
-                  {a.title}
-                </h4>
-              </article>
-            ))}
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/* ---------------- Newsletter ---------------- */
-
-function Newsletter() {
-  return (
-    <section id="newsletter" className="px-6 py-24">
-      <div className="mx-auto max-w-4xl rounded-[3rem] bg-cream-warm/70 p-10 text-center shadow-soft md:p-20">
-        <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.25em] text-sage">
-          The Sunday Table
-        </p>
-        <h2 className="mt-3 font-display text-4xl italic text-forest-deep md:text-6xl">
-          Gather with us.
-        </h2>
-        <p className="mx-auto mt-6 max-w-lg text-base leading-relaxed text-charcoal/70">
-          Join our weekly digest for seasonal recipes, cookbook previews, and intentional kitchen inspiration.
-        </p>
-        <form
-          onSubmit={(e) => e.preventDefault()}
-          className="mx-auto mt-10 flex max-w-md flex-col gap-2 sm:flex-row"
-        >
-          <input
-            type="email"
-            required
-            placeholder="Your email address"
-            className="flex-1 rounded-full border border-forest/15 bg-white px-6 py-4 text-sm text-charcoal placeholder:text-charcoal/40 focus:border-forest focus:outline-none"
+        <Reveal>
+          <SectionHeader
+            eyebrow="The Journal"
+            title={section.title ?? "From The Journal"}
+            subtitle={section.subtitle}
+            align="left"
+            action={
+              <Link to="/blog" className="text-[11px] font-bold uppercase tracking-[0.2em] text-forest hover:underline">
+                Read more
+              </Link>
+            }
           />
-          <button
-            type="submit"
-            className="rounded-full bg-forest px-8 py-4 text-xs font-bold uppercase tracking-[0.2em] text-cream transition hover:bg-forest-deep"
-          >
-            Join now
-          </button>
-        </form>
+        </Reveal>
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {posts.slice(0, limit).map((p, i) => (
+            <Reveal key={p.id} delay={i * 80}>
+              <EditorialCard
+                to="/blog/$slug"
+                params={{ slug: p.slug }}
+                image={p.featured_image_url}
+                alt={p.title}
+                eyebrow={p.category}
+                title={p.title}
+                meta={p.excerpt}
+                ratio="aspect-[3/2]"
+              />
+            </Reveal>
+          ))}
+        </div>
       </div>
     </section>
   );
 }
 
-/* ---------------- Footer ---------------- */
-/* SiteFooter provided by @/components/SiteLayout */
-
-function WhyChoose() {
-  const items = [
-    { title: "Tested, Not Guessed", body: "Every recipe is developed and re-tested in a real home kitchen before it ever ships." },
-    { title: "Simple Ingredients", body: "Whole, easy-to-find pantry staples — no obscure powders or specialty grocery runs." },
-    { title: "Nutrition That Fits Life", body: "Balanced, protein-forward meals designed for people with jobs, kids, and busy weeks." },
-    { title: "Beautifully Photographed", body: "Full-color photos with every recipe, so you always know exactly what you're cooking toward." },
-    { title: "Instant Digital Delivery", body: "Download your cookbook as a premium PDF — read it on phone, tablet, or print it out." },
-    { title: "60-Day Money-Back", body: "Cook the recipes. If you don't love them, we'll refund every cent. No questions." },
-  ];
+function WhyChoose({ section, items }: { section: HomepageSection; items: Array<{ icon: string; title: string; body: string }> }) {
+  if (!items.length) return null;
   return (
-    <section className="bg-cream-warm/40 px-6 py-24">
-      <div className="mx-auto max-w-6xl">
-        <div className="mb-14 text-center">
-          <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.25em] text-sage">Why home cooks trust us</p>
-          <h2 className="mt-3 font-display text-4xl italic text-forest-deep md:text-5xl">
-            Why Choose Our Cookbooks
-          </h2>
-        </div>
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {items.map((it) => (
-            <div key={it.title} className="rounded-3xl border border-forest/10 bg-white p-8 transition hover:-translate-y-1 hover:shadow-card">
-              <div className="grid h-11 w-11 place-items-center rounded-xl bg-cream text-forest">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M5 12l5 5L20 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+    <section className="mx-auto max-w-7xl px-6 py-24">
+      <Reveal>
+        <SectionHeader eyebrow="Why us" title={section.title ?? "Why PrimeDownloads"} subtitle={section.subtitle} />
+      </Reveal>
+      <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+        {items.map((it, i) => (
+          <Reveal key={it.title} delay={i * 80}>
+            <div className="rounded-[1.75rem] border border-forest/10 bg-white p-8 text-center shadow-[var(--shadow-soft)]">
+              <div className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-cream-warm text-forest">
+                <Icon name={it.icon} className="h-5 w-5" />
               </div>
-              <h3 className="mt-5 font-display text-xl text-forest-deep">{it.title}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-charcoal/65">{it.body}</p>
+              <h3 className="mt-5 font-display text-xl italic text-forest-deep">{it.title}</h3>
+              <p className="mt-3 text-sm leading-relaxed text-charcoal/60">{it.body}</p>
             </div>
-          ))}
-        </div>
+          </Reveal>
+        ))}
       </div>
+    </section>
+  );
+}
+
+function Newsletter({ section }: { section: HomepageSection }) {
+  return (
+    <section className="px-6 pb-28">
+      <Reveal>
+        <div className="mx-auto max-w-5xl rounded-[2.5rem] bg-forest px-8 py-16 text-center text-cream md:px-16">
+          <h2 className="font-display text-4xl italic md:text-5xl">{section.title ?? "Join the table"}</h2>
+          <p className="mx-auto mt-4 max-w-lg text-sm leading-relaxed text-cream/75">{section.subtitle}</p>
+          <Link
+            to="/free"
+            className="mt-8 inline-flex rounded-full bg-cream px-9 py-4 text-[11px] font-bold uppercase tracking-[0.22em] text-forest-deep transition hover:bg-white"
+          >
+            Get the free recipe guide
+          </Link>
+        </div>
+      </Reveal>
     </section>
   );
 }
