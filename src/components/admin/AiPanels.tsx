@@ -360,6 +360,18 @@ export function ApprovalQueuePanel() {
               <button className={btnGhost} onClick={() => act(() => deleteGeneration({ data: { id: g.id } }), "Deleted.")}>
                 Delete
               </button>
+              <button
+                className={btnGhost}
+                onClick={() =>
+                  act(async () => {
+                    const { brandCheckGeneration } = await import("@/lib/learning/learning.functions");
+                    const res: any = await brandCheckGeneration({ data: { generationId: g.id } });
+                    setMsg(`Brand score ${res.score}/100${res.notes ? ` — ${res.notes}` : ""}`);
+                  }, "Brand check complete.")
+                }
+              >
+                Brand check
+              </button>
             </div>
             {open === g.id && (
               <pre className="mt-4 max-h-96 overflow-auto whitespace-pre-wrap rounded-xl bg-cream/70 p-4 font-mono text-[11px] text-charcoal/70">
