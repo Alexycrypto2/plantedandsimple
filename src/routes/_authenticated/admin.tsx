@@ -9,6 +9,11 @@ import {
 } from "@/components/admin/AiPanels";
 import { BlogStudioPanel, PinterestStudioPanel } from "@/components/admin/BlogStudio";
 import {
+  IntelligencePanel,
+  ExperimentsPanel,
+  BrandPanel,
+} from "@/components/admin/LearningPanels";
+import {
   adminMe,
   adminListReviews,
   adminSetReviewApproval,
@@ -75,6 +80,9 @@ type Me = { userId: string; email: string | null; roles: ("boss" | "admin")[] };
 type Tab =
   | "overview"
   | "sales"
+  | "intelligence"
+  | "experiments"
+  | "brand"
   | "products"
   | "categories"
   | "blog"
@@ -143,6 +151,9 @@ function AdminPage() {
   const tabs: Tab[] = isBoss
     ? [
         "overview",
+        "intelligence",
+        "experiments",
+        "brand",
         "sales",
         "products",
         "categories",
@@ -241,6 +252,9 @@ function AdminPage() {
 
       <main className="mx-auto max-w-6xl px-6 pb-8 pt-20">
         {activeTab === "overview" && isBoss && <OverviewPanel />}
+        {activeTab === "intelligence" && isBoss && <IntelligencePanel />}
+        {activeTab === "experiments" && isBoss && <ExperimentsPanel />}
+        {activeTab === "brand" && isBoss && <BrandPanel />}
         {activeTab === "sales" && <SalesPanel />}
         {activeTab === "products" && isBoss && <ProductsPanel />}
         {activeTab === "categories" && isBoss && <CategoriesPanel />}
