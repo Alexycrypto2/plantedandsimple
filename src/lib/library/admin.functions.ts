@@ -158,11 +158,19 @@ export const adminSaveEntity = createServerFn({ method: "POST" })
     if (data.id) {
       const { data: row, error } = await sb.from(data.entity).update(values).eq("id", data.id).select("*").single();
       if (error) throw new Error(error.message);
+      if (data.entity === "recipes") {
+        const { syncContentGraph } = await import("./graph.server");
+        await syncContentGraph("recipe", row.id);
+      }
       return row;
     }
     if (data.entity === "recipes") values.author_id = context.userId;
     const { data: row, error } = await sb.from(data.entity).insert(values).select("*").single();
     if (error) throw new Error(error.message);
+    if (data.entity === "recipes") {
+      const { syncContentGraph } = await import("./graph.server");
+      await syncContentGraph("recipe", row.id);
+    }
     return row;
   });
 
@@ -259,6 +267,8 @@ export const adminSetLinks = createServerFn({ method: "POST" })
         await sb.from("content_relations").upsert(rows, { onConflict: "from_type,from_id,to_type,to_id,relation" });
       }
     }
+    const { syncContentGraph } = await import("./graph.server");
+    await syncContentGraph(data.contentType, data.contentId);
     return { ok: true };
   });
 

@@ -1,7 +1,9 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { useEffect } from "react";
 import { SiteLayout } from "@/components/SiteLayout";
 import { MediaImage, Pill } from "@/components/site/primitives";
 import { getRecipeBySlug } from "@/lib/library/library.functions";
+import { trackEvent } from "@/lib/analytics";
 import type { Recipe } from "@/lib/library/types";
 
 type Data = { recipe: Recipe; related: { recipes: any[]; blogs: any[]; products: any[] } };
@@ -74,6 +76,10 @@ function RecipeMissing() {
 function RecipeDetail() {
   const { recipe: r, related } = Route.useLoaderData() as Data;
   const total = (r.prep_minutes ?? 0) + (r.cook_minutes ?? 0);
+
+  useEffect(() => {
+    void trackEvent("recipe_view", { refId: (r as any).id ?? null, refSlug: r.slug });
+  }, [r.slug]);
 
   return (
     <SiteLayout>

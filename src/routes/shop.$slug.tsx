@@ -1,6 +1,7 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { usePaddleCheckout } from "@/hooks/usePaddleCheckout";
+import { trackEvent } from "@/lib/analytics";
 import {
   getPublishedProductBySlug,
   listPublishedProducts,
@@ -161,9 +162,14 @@ function ProductDetail() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  useEffect(() => {
+    void trackEvent("product_view", { refId: p.id, refSlug: p.slug });
+  }, [p.id, p.slug]);
+
   const onBuy = () => {
     if (!p.paddle_price_external_id) return;
     const ref = getStoredAffiliateRef();
+    void trackEvent("checkout_start", { refId: p.id, refSlug: p.slug, metadata: { cta: "product_page", price: p.price_cents } });
     openCheckout({
       priceId: p.paddle_price_external_id,
       quantity: 1,

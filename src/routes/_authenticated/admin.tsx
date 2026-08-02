@@ -8,6 +8,7 @@ import {
   IntegrationsPanel,
 } from "@/components/admin/AiPanels";
 import { BlogStudioPanel, PinterestStudioPanel } from "@/components/admin/BlogStudio";
+import { AnalyticsDashboard } from "@/components/admin/AnalyticsPanel";
 import { AiBlogWriterModal, type AiBlogDraft } from "@/components/admin/AiBlogWriter";
 import {
   IntelligencePanel,
@@ -309,12 +310,14 @@ function AnalyticsSection({ isBoss }: { isBoss: boolean }) {
   return (
     <Section
       tabs={[
+        { id: "traffic", label: "Traffic & channels", icon: TrendingUp },
         { id: "performance", label: "Performance", icon: TrendingUp },
         { id: "learning", label: "Learned patterns", icon: Brain },
       ]}
     >
       {(t) => (
         <>
+          {t === "traffic" && <AnalyticsDashboard />}
           {t === "performance" && <SalesPanel />}
           {t === "learning" && <IntelligencePanel />}
         </>

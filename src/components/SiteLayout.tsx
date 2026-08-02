@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useState, type ReactNode } from "react";
 import { getSiteSettings } from "@/lib/library/library.functions";
 import { DEFAULT_NAV } from "@/lib/library/types";
+import { usePageTracking } from "@/hooks/usePageTracking";
 
 type NavItem = { label: string; href: string };
 type FooterColumn = { title: string; links: NavItem[] };
@@ -160,6 +161,7 @@ export function SiteFooter() {
 }
 
 export function SiteLayout({ children }: { children: ReactNode }) {
+  usePageTracking();
   return (
     <div className="min-h-screen bg-cream font-sans text-charcoal antialiased">
       <SiteNav />
