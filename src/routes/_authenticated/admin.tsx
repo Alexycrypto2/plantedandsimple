@@ -8,6 +8,7 @@ import {
   IntegrationsPanel,
 } from "@/components/admin/AiPanels";
 import { BlogStudioPanel, PinterestStudioPanel } from "@/components/admin/BlogStudio";
+import { AiBlogWriterModal, type AiBlogDraft } from "@/components/admin/AiBlogWriter";
 import {
   IntelligencePanel,
   ExperimentsPanel,
