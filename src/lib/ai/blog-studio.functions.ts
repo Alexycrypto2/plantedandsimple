@@ -176,7 +176,12 @@ export const generateStudioBlog = createServerFn({ method: "POST" })
     await requireBoss(context.supabase, context.userId);
     const model = createGateway({ structuredOutputs: true })(DEFAULT_CHAT_MODEL);
 
+    const { getMemoryContext } = await import("@/lib/learning/engine.server");
+    const memory = await getMemoryContext("blog");
+
     const prompt = `Write a production-ready editorial blog article for PlantedAndSimple, a premium plant-based cookbook brand.
+
+${memory}
 
 Topic: "${data.topic}"
 ${data.category ? `Category: ${data.category}` : ""}
