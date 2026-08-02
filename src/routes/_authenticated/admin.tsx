@@ -309,12 +309,14 @@ function AnalyticsSection({ isBoss }: { isBoss: boolean }) {
   return (
     <Section
       tabs={[
+        { id: "traffic", label: "Traffic & channels", icon: TrendingUp },
         { id: "performance", label: "Performance", icon: TrendingUp },
         { id: "learning", label: "Learned patterns", icon: Brain },
       ]}
     >
       {(t) => (
         <>
+          {t === "traffic" && <AnalyticsDashboard />}
           {t === "performance" && <SalesPanel />}
           {t === "learning" && <IntelligencePanel />}
         </>
