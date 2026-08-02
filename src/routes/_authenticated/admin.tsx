@@ -65,9 +65,7 @@ import {
   getDashboardStats,
   type DashboardStats,
 } from "@/lib/dashboard.functions";
-import { AdminShell, MetricCard, PanelCard } from "@/components/admin/AdminShell";
-import { AdminShell as _Shell } from "@/components/admin/AdminShell";
-import { SectionTabs } from "@/components/admin/AdminShell";
+import { AdminShell, MetricCard, PanelCard, SectionTabs } from "@/components/admin/AdminShell";
 import { LibrarySection } from "@/components/admin/LibraryPanel";
 import { RecipesSection } from "@/components/admin/RecipesPanel";
 import {
