@@ -164,6 +164,7 @@ function ProductDetail() {
   const onBuy = () => {
     if (!p.paddle_price_external_id) return;
     const ref = getStoredAffiliateRef();
+    void trackEvent("checkout_start", { refId: p.id, refSlug: p.slug, metadata: { cta: "product_page", price: p.price_cents } });
     openCheckout({
       priceId: p.paddle_price_external_id,
       quantity: 1,
