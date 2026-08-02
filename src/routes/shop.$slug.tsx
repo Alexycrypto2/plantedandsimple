@@ -1,6 +1,7 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { usePaddleCheckout } from "@/hooks/usePaddleCheckout";
+import { trackEvent } from "@/lib/analytics";
 import {
   getPublishedProductBySlug,
   listPublishedProducts,
