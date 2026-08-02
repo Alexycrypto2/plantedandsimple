@@ -31,7 +31,7 @@ export const Route = createFileRoute("/thank-you")({
       },
       { name: "robots", content: "noindex" },
     ],
-    links: [{ rel: "canonical", href: "/thank-you" }],
+    links: [{ rel: "canonical", href: "https://www.primedownloads.store/thank-you" }],
   }),
 });
 

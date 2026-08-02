@@ -19,7 +19,7 @@ export const Route = createFileRoute("/terms")({
       },
       { name: "robots", content: "index,follow" },
     ],
-    links: [{ rel: "canonical", href: "/terms" }],
+    links: [{ rel: "canonical", href: "https://www.primedownloads.store/terms" }],
   }),
 });
 

@@ -19,7 +19,7 @@ export const Route = createFileRoute("/privacy")({
       },
       { name: "robots", content: "index,follow" },
     ],
-    links: [{ rel: "canonical", href: "/privacy" }],
+    links: [{ rel: "canonical", href: "https://www.primedownloads.store/privacy" }],
   }),
 });
 

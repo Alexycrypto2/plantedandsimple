@@ -27,7 +27,7 @@ export const Route = createFileRoute("/recipes/")({
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
-    links: [{ rel: "canonical", href: "/recipes" }],
+    links: [{ rel: "canonical", href: "https://www.primedownloads.store/recipes" }],
   }),
 });
 
