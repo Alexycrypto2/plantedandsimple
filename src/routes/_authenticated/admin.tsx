@@ -179,7 +179,7 @@ function AdminPage() {
       {activeTab === "library" && isBoss && <LibrarySection onNavigate={(t) => setTab(t as Tab)} />}
       {activeTab === "recipes" && isBoss && <RecipesSection />}
       {activeTab === "blogs" && isBoss && <BlogsSection />}
-      {activeTab === "ai-studio" && isBoss && <AiStudioSection />}
+      {activeTab === "ai-studio" && isBoss && <AiStudioSection onNavigate={(t) => setTab(t as Tab)} />}
       {activeTab === "pinterest" && isBoss && <PinterestStudioPanel />}
       {activeTab === "products" && isBoss && <ProductsSection />}
       {activeTab === "audience" && isBoss && <AudienceSection />}
@@ -245,10 +245,11 @@ function BlogsSection() {
   );
 }
 
-function AiStudioSection() {
+function AiStudioSection({ onNavigate }: { onNavigate: (t: string) => void }) {
   return (
     <Section
       tabs={[
+        { id: "trending", label: "Trend Radar", icon: TrendingUp },
         { id: "assistant", label: "Assistant", icon: Bot },
         { id: "images", label: "Image Studio", icon: ImageIcon },
         { id: "experiments", label: "Experiments", icon: FlaskConical },
@@ -256,6 +257,14 @@ function AiStudioSection() {
     >
       {(t) => (
         <>
+          {t === "trending" && (
+            <TrendingPanel
+              onWriteBlog={(topic, keywords) => {
+                sessionStorage.setItem("ps_ai_blog_seed", JSON.stringify({ topic, keywords }));
+                onNavigate("blogs");
+              }}
+            />
+          )}
           {t === "assistant" && <AssistantPanel />}
           {t === "images" && <AiStudioPanel />}
           {t === "experiments" && <ExperimentsPanel />}
