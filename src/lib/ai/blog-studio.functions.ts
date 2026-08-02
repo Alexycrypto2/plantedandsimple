@@ -169,7 +169,7 @@ export const generateStudioBlog = createServerFn({ method: "POST" })
     includeInternalLinks: d.includeInternalLinks ?? true,
     includeProduct: d.includeProduct ?? true,
     includeCta: d.includeCta ?? true,
-    imageCount: Math.min(Math.max(Number(d.imageCount ?? 5), 0), 8),
+    imageCount: Math.min(Math.max(Number(d.imageCount ?? 7), 0), 8),
     research: d.research ?? null,
   }))
   .handler(async ({ data, context }) => {
@@ -196,7 +196,8 @@ Rules:
 - Never include an <h1> in HTML; h1 is returned separately as "h1".
 - sections: 5-9 items. Each html uses <p>, <h3>, <ul>/<ol>, <strong> only — no <h2> (the heading field is the H2).
 - callout: a short highlighted tip, or null.
-- image_prompt: only on the 3-4 most visual sections, otherwise null. Photorealistic food photography brief, no text in image.
+- image_prompt: decide yourself where a photo genuinely helps the reader (typically the 4-5 most visual/instructional sections); leave the rest null. Each brief must be photorealistic editorial food photography, natural light, cream + forest palette, no text or logos in the image, and must describe the exact dish/step for that section so no two images look alike.
+- Write like a senior food editor: specific sensory detail, real technique, numbers and timings, no filler or generic AI phrasing. Every H2 must deliver new information; vary sentence length; use short scannable paragraphs.
 - ${data.includeRecipe ? "recipe: full recipe card with realistic nutrition per serving." : "recipe: null."}
 - ${data.includeFaq ? "faqs: 5-6 items answering real People Also Ask questions." : "faqs: []."}
 - ${data.includeProduct ? "related_product_html: a short HTML block recommending the PlantedAndSimple digital cookbook." : "related_product_html: null."}
