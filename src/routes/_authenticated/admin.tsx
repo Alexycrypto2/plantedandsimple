@@ -2021,9 +2021,9 @@ function OverviewPanel({ onNavigate }: { onNavigate: (t: string) => void }) {
   ];
 
   const quick = [
-    { label: "Write a blog with AI", desc: "Research → article → images", icon: Sparkles, tab: "content-studio", tone: "from-forest to-sage" },
+    { label: "Write a blog with AI", desc: "Research → article → images", icon: Sparkles, tab: "blogs", tone: "from-forest to-sage" },
     { label: "Generate Pinterest pins", desc: "3 branded pin variants", icon: ImageIcon, tab: "pinterest", tone: "from-rose-400 to-pink-500" },
-    { label: "Ask the AI assistant", desc: "Commands & quick drafts", icon: Bot, tab: "assistant", tone: "from-violet-400 to-indigo-500" },
+    { label: "Ask the AI assistant", desc: "Commands & quick drafts", icon: Bot, tab: "ai-studio", tone: "from-violet-400 to-indigo-500" },
     { label: "Approve pending work", desc: "Review before it goes live", icon: ShoppingBag, tab: "approvals", tone: "from-amber-400 to-orange-500" },
   ];
 
