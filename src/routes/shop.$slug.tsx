@@ -102,7 +102,7 @@ export const Route = createFileRoute("/shop/$slug")({
       meta.push({ property: "og:image", content: p.cover_image_url });
       meta.push({ name: "twitter:image", content: p.cover_image_url });
     }
-    return { meta, links: [{ rel: "canonical", href: `/shop/${p.slug}` }] };
+    return { meta, links: [{ rel: "canonical", href: `https://www.primedownloads.store/shop/${p.slug}` }] };
   },
 });
 

@@ -19,7 +19,7 @@ export const Route = createFileRoute("/refund")({
       },
       { name: "robots", content: "index,follow" },
     ],
-    links: [{ rel: "canonical", href: "/refund" }],
+    links: [{ rel: "canonical", href: "https://www.primedownloads.store/refund" }],
   }),
 });
 

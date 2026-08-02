@@ -33,7 +33,7 @@ export const Route = createFileRoute("/shop/")({
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
-    links: [{ rel: "canonical", href: "/shop" }],
+    links: [{ rel: "canonical", href: "https://www.primedownloads.store/shop" }],
   }),
 });
 
