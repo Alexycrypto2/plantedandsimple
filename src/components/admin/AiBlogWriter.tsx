@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Sparkles, X, Globe, HelpCircle, TrendingUp, ListChecks, Image as ImageIcon, Search, Wand2, Target, Loader2 } from "lucide-react";
 import {
   generateStudioBlog,
@@ -34,22 +34,31 @@ export function AiBlogWriterModal({
   onClose,
   onDraft,
   categories = [],
+  initialTopic = "",
+  initialKeywords = "",
 }: {
   open: boolean;
   onClose: () => void;
   onDraft: (draft: AiBlogDraft) => void;
   categories?: string[];
+  initialTopic?: string;
+  initialKeywords?: string;
 }) {
   const [topic, setTopic] = useState("");
   const [category, setCategory] = useState("");
   const [keywords, setKeywords] = useState("");
   const [tone, setTone] = useState<string>("Editorial");
   const [wordCount, setWordCount] = useState(1500);
-  const [imageCount, setImageCount] = useState(6);
   const [titles, setTitles] = useState<string[]>([]);
   const [busy, setBusy] = useState<null | "titles" | "generate">(null);
   const [stage, setStage] = useState("");
   const [err, setErr] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    if (initialTopic) setTopic(initialTopic);
+    if (initialKeywords) setKeywords(initialKeywords);
+  }, [open, initialTopic, initialKeywords]);
 
   if (!open) return null;
 
@@ -76,7 +85,7 @@ export function AiBlogWriterModal({
       } catch {
         research = null;
       }
-      setStage(`Writing a ~${wordCount}-word article and shooting ${imageCount} photos…`);
+      setStage(`Writing a ~${wordCount}-word article and shooting the photos it needs…`);
       const res: any = await generateStudioBlog({
         data: {
           topic,
@@ -85,7 +94,6 @@ export function AiBlogWriterModal({
           secondaryKeywords: keywords || undefined,
           tone,
           wordCount,
-          imageCount,
           research,
           includeRecipe: true,
           includeFaq: true,
