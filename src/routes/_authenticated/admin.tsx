@@ -10,6 +10,7 @@ import {
 import { BlogStudioPanel, PinterestStudioPanel } from "@/components/admin/BlogStudio";
 import { AnalyticsDashboard } from "@/components/admin/AnalyticsPanel";
 import { AiBlogWriterModal, type AiBlogDraft } from "@/components/admin/AiBlogWriter";
+import { TrendingPanel } from "@/components/admin/TrendingPanel";
 import {
   IntelligencePanel,
   ExperimentsPanel,
@@ -179,7 +180,7 @@ function AdminPage() {
       {activeTab === "library" && isBoss && <LibrarySection onNavigate={(t) => setTab(t as Tab)} />}
       {activeTab === "recipes" && isBoss && <RecipesSection />}
       {activeTab === "blogs" && isBoss && <BlogsSection />}
-      {activeTab === "ai-studio" && isBoss && <AiStudioSection />}
+      {activeTab === "ai-studio" && isBoss && <AiStudioSection onNavigate={(t) => setTab(t as Tab)} />}
       {activeTab === "pinterest" && isBoss && <PinterestStudioPanel />}
       {activeTab === "products" && isBoss && <ProductsSection />}
       {activeTab === "audience" && isBoss && <AudienceSection />}
@@ -245,10 +246,11 @@ function BlogsSection() {
   );
 }
 
-function AiStudioSection() {
+function AiStudioSection({ onNavigate }: { onNavigate: (t: string) => void }) {
   return (
     <Section
       tabs={[
+        { id: "trending", label: "Trend Radar", icon: TrendingUp },
         { id: "assistant", label: "Assistant", icon: Bot },
         { id: "images", label: "Image Studio", icon: ImageIcon },
         { id: "experiments", label: "Experiments", icon: FlaskConical },
@@ -256,6 +258,14 @@ function AiStudioSection() {
     >
       {(t) => (
         <>
+          {t === "trending" && (
+            <TrendingPanel
+              onWriteBlog={(topic, keywords) => {
+                sessionStorage.setItem("ps_ai_blog_seed", JSON.stringify({ topic, keywords }));
+                onNavigate("blogs");
+              }}
+            />
+          )}
           {t === "assistant" && <AssistantPanel />}
           {t === "images" && <AiStudioPanel />}
           {t === "experiments" && <ExperimentsPanel />}
@@ -2160,6 +2170,7 @@ function BlogPanel() {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [aiOpen, setAiOpen] = useState(false);
+  const [aiSeed, setAiSeed] = useState<{ topic: string; keywords: string }>({ topic: "", keywords: "" });
 
   const load = () =>
     adminListPosts()
@@ -2168,6 +2179,20 @@ function BlogPanel() {
 
   useEffect(() => {
     load();
+  }, []);
+
+  // A topic handed over from the Trend Radar opens the AI writer pre-filled.
+  useEffect(() => {
+    const raw = sessionStorage.getItem("ps_ai_blog_seed");
+    if (!raw) return;
+    sessionStorage.removeItem("ps_ai_blog_seed");
+    try {
+      const seed = JSON.parse(raw);
+      setAiSeed({ topic: seed.topic ?? "", keywords: seed.keywords ?? "" });
+      setAiOpen(true);
+    } catch {
+      /* ignore malformed handoff */
+    }
   }, []);
 
   const startEdit = (p: AdminPost) =>
@@ -2247,6 +2272,8 @@ function BlogPanel() {
       <AiBlogWriterModal
         open={aiOpen}
         onClose={() => setAiOpen(false)}
+        initialTopic={aiSeed.topic}
+        initialKeywords={aiSeed.keywords}
         categories={Array.from(new Set(posts.map((p) => p.category).filter(Boolean) as string[]))}
         onDraft={(d: AiBlogDraft) =>
           setEditing({

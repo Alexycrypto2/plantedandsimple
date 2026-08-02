@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Sparkles, X, Globe, HelpCircle, TrendingUp, ListChecks, Image as ImageIcon, Search, Wand2, Target, Loader2 } from "lucide-react";
 import {
   generateStudioBlog,
@@ -34,22 +34,31 @@ export function AiBlogWriterModal({
   onClose,
   onDraft,
   categories = [],
+  initialTopic = "",
+  initialKeywords = "",
 }: {
   open: boolean;
   onClose: () => void;
   onDraft: (draft: AiBlogDraft) => void;
   categories?: string[];
+  initialTopic?: string;
+  initialKeywords?: string;
 }) {
   const [topic, setTopic] = useState("");
   const [category, setCategory] = useState("");
   const [keywords, setKeywords] = useState("");
   const [tone, setTone] = useState<string>("Editorial");
   const [wordCount, setWordCount] = useState(1500);
-  const [imageCount, setImageCount] = useState(6);
   const [titles, setTitles] = useState<string[]>([]);
   const [busy, setBusy] = useState<null | "titles" | "generate">(null);
   const [stage, setStage] = useState("");
   const [err, setErr] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    if (initialTopic) setTopic(initialTopic);
+    if (initialKeywords) setKeywords(initialKeywords);
+  }, [open, initialTopic, initialKeywords]);
 
   if (!open) return null;
 
@@ -76,7 +85,7 @@ export function AiBlogWriterModal({
       } catch {
         research = null;
       }
-      setStage(`Writing a ~${wordCount}-word article and shooting ${imageCount} photos…`);
+      setStage(`Writing a ~${wordCount}-word article and shooting the photos it needs…`);
       const res: any = await generateStudioBlog({
         data: {
           topic,
@@ -85,7 +94,6 @@ export function AiBlogWriterModal({
           secondaryKeywords: keywords || undefined,
           tone,
           wordCount,
-          imageCount,
           research,
           includeRecipe: true,
           includeFaq: true,
@@ -219,25 +227,15 @@ export function AiBlogWriterModal({
             </div>
           </div>
 
-          <div>
-            <div className="flex items-center justify-between">
-              <span className="flex items-center gap-2 text-sm font-semibold text-forest-deep">
-                <ImageIcon className="h-4 w-4" /> AI images (auto-placed)
-              </span>
-              <span className="font-semibold text-forest">{imageCount}</span>
+          <div className="flex gap-3 rounded-2xl bg-white p-4">
+            <ImageIcon className="mt-0.5 h-4 w-4 shrink-0 text-forest" />
+            <div>
+              <p className="text-sm font-semibold text-forest-deep">Photography: automatic</p>
+              <p className="mt-0.5 text-[11px] text-charcoal/60">
+                The AI decides how many photos the article needs and where they genuinely help, then writes a unique
+                brief and alt text for each.
+              </p>
             </div>
-            <input
-              type="range"
-              min={0}
-              max={8}
-              step={1}
-              value={imageCount}
-              onChange={(e) => setImageCount(Number(e.target.value))}
-              className="mt-3 w-full accent-forest"
-            />
-            <p className="mt-1 text-[11px] text-charcoal/50">
-              The AI decides where photos genuinely help and writes a unique brief + alt text for each.
-            </p>
           </div>
 
           <div className="rounded-2xl bg-white p-4">
