@@ -2245,7 +2245,7 @@ function BlogPanel() {
         open={aiOpen}
         onClose={() => setAiOpen(false)}
         categories={Array.from(new Set(posts.map((p) => p.category).filter(Boolean) as string[]))}
-        onDraft={(d) =>
+        onDraft={(d: AiBlogDraft) =>
           setEditing({
             ...emptyPostDraft,
             ...d,
