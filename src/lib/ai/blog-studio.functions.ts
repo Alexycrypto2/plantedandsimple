@@ -220,7 +220,10 @@ export const generateStudioBlog = createServerFn({ method: "POST" })
     includeInternalLinks: d.includeInternalLinks ?? true,
     includeProduct: d.includeProduct ?? true,
     includeCta: d.includeCta ?? true,
-    imageCount: Math.min(Math.max(Number(d.imageCount ?? 7), 0), 8),
+    imageCount:
+      d.imageCount === undefined || d.imageCount === null
+        ? null
+        : Math.min(Math.max(Number(d.imageCount), 0), 10),
     research: d.research ?? null,
   }))
   .handler(async ({ data, context }) => {
@@ -298,7 +301,9 @@ Rules:
     if (firstPin) jobs.push({ key: "pinterest", prompt: firstPin.image_prompt, framing: FRAMING.pin, alt: firstPin.alt });
 
     const images: Record<string, { url: string | null; path: string; alt: string }> = {};
-    for (const job of jobs.slice(0, data.imageCount)) {
+    // When no explicit count is given, the AI's own image plan decides how many photos the article gets.
+    const imageBudget = data.imageCount ?? Math.min(jobs.length, 10);
+    for (const job of jobs.slice(0, imageBudget)) {
       const r = await renderImageSafe(job.prompt, folder, job.framing);
       if (r) images[job.key] = { url: r.url, path: r.path, alt: job.alt };
     }
