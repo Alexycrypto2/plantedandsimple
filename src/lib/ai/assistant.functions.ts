@@ -139,10 +139,14 @@ export const runAssistantCommand = createServerFn({ method: "POST" })
 
     const gateway = createGateway({ structuredOutputs: true });
     try {
+      const { getMemoryContext } = await import("@/lib/learning/engine.server");
+      const memoryKind =
+        data.command === "pinterest_pin" ? "pinterest" : data.command === "product_desc" ? "product" : "general";
+      const memory = await getMemoryContext(memoryKind as any);
       const { output } = await generateText({
         model: gateway(DEFAULT_CHAT_MODEL),
         output: Output.object({ schema: cfg.schema as any }),
-        prompt: `${BRAND_CONTEXT}\n\n${(cfg.prompt as any)(data.input, siteContext)}`,
+        prompt: `${BRAND_CONTEXT}\n\n${memory}\n\n${(cfg.prompt as any)(data.input, siteContext)}`,
         providerOptions: { lovable: { reasoningEffort: "none" } },
       });
 

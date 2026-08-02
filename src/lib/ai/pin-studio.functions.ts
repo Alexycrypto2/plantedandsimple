@@ -36,12 +36,17 @@ export const generatePinSet = createServerFn({ method: "POST" })
     await requireBoss(context.supabase, context.userId);
     const model = createGateway({ structuredOutputs: true })(DEFAULT_CHAT_MODEL);
 
+    const { getMemoryContext } = await import("@/lib/learning/engine.server");
+    const memory = await getMemoryContext("pinterest");
+
     let output: z.infer<typeof PinSchema>;
     try {
       const res = await generateText({
         model,
         output: Output.object({ schema: PinSchema }),
-        prompt: `Create ${data.count} Pinterest pins for PlantedAndSimple, a premium plant-based cookbook brand.
+        prompt: `${memory}
+
+Create ${data.count} Pinterest pins for PlantedAndSimple, a premium plant-based cookbook brand.
 Subject: "${data.subject}"
 ${data.styles.length ? `Use these visual styles, one per pin: ${data.styles.join(", ")}.` : `Use ${data.count} clearly different visual styles from: ${PIN_STYLES.join(", ")}.`}
 Rules: title <= 100 chars, overlay_text <= 8 punchy words, description <= 480 chars written for Pinterest SEO, 4-5 hashtags, image_prompt is a photorealistic vertical food photography brief with clean space at the top for text (never describe text inside the image). Return JSON only.`,

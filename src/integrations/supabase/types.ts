@@ -109,6 +109,48 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_experiments: {
+        Row: {
+          decided_at: string | null
+          dimension: string
+          hypothesis: string
+          id: string
+          metric: string
+          name: string
+          results: Json
+          started_at: string
+          status: string
+          variants: Json
+          winner: string | null
+        }
+        Insert: {
+          decided_at?: string | null
+          dimension: string
+          hypothesis?: string
+          id?: string
+          metric?: string
+          name: string
+          results?: Json
+          started_at?: string
+          status?: string
+          variants?: Json
+          winner?: string | null
+        }
+        Update: {
+          decided_at?: string | null
+          dimension?: string
+          hypothesis?: string
+          id?: string
+          metric?: string
+          name?: string
+          results?: Json
+          started_at?: string
+          status?: string
+          variants?: Json
+          winner?: string | null
+        }
+        Relationships: []
+      }
       ai_generations: {
         Row: {
           created_at: string
@@ -163,6 +205,45 @@ export type Database = {
           status?: string
           title?: string
           topic?: string | null
+        }
+        Relationships: []
+      }
+      ai_recommendations: {
+        Row: {
+          action: Json
+          created_at: string
+          evidence: Json
+          for_date: string
+          id: string
+          kind: string
+          priority: number
+          reasoning: string
+          status: string
+          title: string
+        }
+        Insert: {
+          action?: Json
+          created_at?: string
+          evidence?: Json
+          for_date?: string
+          id?: string
+          kind?: string
+          priority?: number
+          reasoning: string
+          status?: string
+          title: string
+        }
+        Update: {
+          action?: Json
+          created_at?: string
+          evidence?: Json
+          for_date?: string
+          id?: string
+          kind?: string
+          priority?: number
+          reasoning?: string
+          status?: string
+          title?: string
         }
         Relationships: []
       }
@@ -332,6 +413,71 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      brand_checks: {
+        Row: {
+          checked_at: string
+          generation_id: string | null
+          id: string
+          issues: Json
+          notes: string | null
+          score: number
+        }
+        Insert: {
+          checked_at?: string
+          generation_id?: string | null
+          id?: string
+          issues?: Json
+          notes?: string | null
+          score?: number
+        }
+        Update: {
+          checked_at?: string
+          generation_id?: string | null
+          id?: string
+          issues?: Json
+          notes?: string | null
+          score?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "brand_checks_generation_id_fkey"
+            columns: ["generation_id"]
+            isOneToOne: false
+            referencedRelation: "ai_generations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      brand_rules: {
+        Row: {
+          active: boolean
+          category: string
+          created_at: string
+          id: string
+          rule: string
+          updated_at: string
+          weight: number
+        }
+        Insert: {
+          active?: boolean
+          category: string
+          created_at?: string
+          id?: string
+          rule: string
+          updated_at?: string
+          weight?: number
+        }
+        Update: {
+          active?: boolean
+          category?: string
+          created_at?: string
+          id?: string
+          rule?: string
+          updated_at?: string
+          weight?: number
+        }
+        Relationships: []
       }
       categories: {
         Row: {
@@ -795,6 +941,93 @@ export type Database = {
           subtitle?: string | null
           title?: string | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      learning_insights: {
+        Row: {
+          computed_at: string
+          confidence: number
+          dimension: string
+          dimension_value: string
+          evidence: Json
+          id: string
+          lift_pct: number
+          metric: string
+          sample_size: number
+          score: number
+          status: string
+          summary: string
+          window_days: number
+        }
+        Insert: {
+          computed_at?: string
+          confidence?: number
+          dimension: string
+          dimension_value: string
+          evidence?: Json
+          id?: string
+          lift_pct?: number
+          metric: string
+          sample_size?: number
+          score?: number
+          status?: string
+          summary: string
+          window_days?: number
+        }
+        Update: {
+          computed_at?: string
+          confidence?: number
+          dimension?: string
+          dimension_value?: string
+          evidence?: Json
+          id?: string
+          lift_pct?: number
+          metric?: string
+          sample_size?: number
+          score?: number
+          status?: string
+          summary?: string
+          window_days?: number
+        }
+        Relationships: []
+      }
+      learning_signals: {
+        Row: {
+          created_at: string
+          dimensions: Json
+          entity_id: string | null
+          entity_ref: string | null
+          entity_type: string
+          id: string
+          metric: string
+          occurred_at: string
+          source: string
+          value: number
+        }
+        Insert: {
+          created_at?: string
+          dimensions?: Json
+          entity_id?: string | null
+          entity_ref?: string | null
+          entity_type?: string
+          id?: string
+          metric: string
+          occurred_at?: string
+          source: string
+          value?: number
+        }
+        Update: {
+          created_at?: string
+          dimensions?: Json
+          entity_id?: string | null
+          entity_ref?: string | null
+          entity_type?: string
+          id?: string
+          metric?: string
+          occurred_at?: string
+          source?: string
+          value?: number
         }
         Relationships: []
       }
