@@ -94,6 +94,57 @@ Give realistic, specific estimates. difficulty and popularity are 0-100. Return 
 
 /* ------------------------------- generation -------------------------------- */
 
+export const suggestTitles = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { topic: string; keywords?: string }) => ({
+    topic: String(d.topic || "").slice(0, 240),
+    keywords: d.keywords ? String(d.keywords).slice(0, 240) : undefined,
+  }))
+  .handler(async ({ data, context }): Promise<string[]> => {
+    await requireBoss(context.supabase, context.userId);
+    const model = createGateway({ structuredOutputs: true })(DEFAULT_CHAT_MODEL);
+    try {
+      const { output } = await generateText({
+        model,
+        output: Output.object({ schema: z.object({ titles: z.array(z.string()) }) }),
+        prompt: `Write 6 click-worthy, SEO-strong blog headlines for a premium plant-based food brand.
+Topic: "${data.topic}"${data.keywords ? `\nTarget keywords: ${data.keywords}` : ""}
+Each headline under 60 characters, specific, no clickbait, no numbering. Return JSON only.`,
+        providerOptions: { lovable: { reasoningEffort: "none" } },
+      });
+      return output.titles.slice(0, 6);
+    } catch (err: any) {
+      if (NoObjectGeneratedError.isInstance(err)) throw new Error("Could not generate titles — try again.");
+      throw err;
+    }
+  });
+
+export const getGenerationDraft = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { id: string }) => ({ id: String(d.id) }))
+  .handler(async ({ data, context }) => {
+    await requireBoss(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: row, error } = await (supabaseAdmin as any)
+      .from("ai_generations")
+      .select("id,payload,title")
+      .eq("id", data.id)
+      .single();
+    if (error) throw new Error(error.message);
+    const p = row.payload ?? {};
+    return {
+      title: p.title ?? row.title ?? "",
+      slug: p.slug ?? "",
+      excerpt: p.excerpt ?? "",
+      content: p.content ?? "",
+      category: p.category ?? "",
+      tags: Array.isArray(p.tags) ? p.tags.join(", ") : "",
+      featured_image_url: p.cover_image_url ?? "",
+      seo_title: p.seo_title ?? "",
+      seo_description: p.seo_description ?? "",
+    };
+  });
+
 const ArticleSchema = z.object({
   slug: z.string(),
   h1: z.string(),

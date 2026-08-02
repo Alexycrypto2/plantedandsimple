@@ -8,6 +8,7 @@ import {
   IntegrationsPanel,
 } from "@/components/admin/AiPanels";
 import { BlogStudioPanel, PinterestStudioPanel } from "@/components/admin/BlogStudio";
+import { AiBlogWriterModal, type AiBlogDraft } from "@/components/admin/AiBlogWriter";
 import {
   IntelligencePanel,
   ExperimentsPanel,
@@ -2155,6 +2156,7 @@ function BlogPanel() {
   const [editing, setEditing] = useState<PostDraft | null>(null);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const [aiOpen, setAiOpen] = useState(false);
 
   const load = () =>
     adminListPosts()
@@ -2222,14 +2224,35 @@ function BlogPanel() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="font-display text-3xl italic text-forest-deep">Blog</h2>
-        <button
-          onClick={() => setEditing({ ...emptyPostDraft })}
-          className="rounded-full bg-forest px-5 py-2 text-xs font-bold uppercase tracking-[0.2em] text-cream hover:bg-forest-deep"
-        >
-          + New post
-        </button>
+        <div className="flex flex-wrap justify-end gap-2">
+          <button
+            onClick={() => setAiOpen(true)}
+            className="flex items-center gap-2 rounded-full bg-gradient-to-r from-forest to-sage px-5 py-2 text-xs font-bold uppercase tracking-[0.2em] text-cream shadow-sm hover:opacity-90"
+          >
+            <Sparkles className="h-3.5 w-3.5" /> Write with AI
+          </button>
+          <button
+            onClick={() => setEditing({ ...emptyPostDraft })}
+            className="rounded-full border border-forest/25 px-5 py-2 text-xs font-bold uppercase tracking-[0.2em] text-forest hover:bg-forest/5"
+          >
+            + New post
+          </button>
+        </div>
       </div>
       {err && <p className="text-sm text-red-600">{err}</p>}
+
+      <AiBlogWriterModal
+        open={aiOpen}
+        onClose={() => setAiOpen(false)}
+        categories={Array.from(new Set(posts.map((p) => p.category).filter(Boolean) as string[]))}
+        onDraft={(d: AiBlogDraft) =>
+          setEditing({
+            ...emptyPostDraft,
+            ...d,
+            status: "draft",
+          })
+        }
+      />
 
       {editing && (
         <div className="rounded-2xl border border-forest/15 bg-white p-6 shadow-card">
