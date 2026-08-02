@@ -35,7 +35,9 @@ export const generateStudioImage = createServerFn({ method: "POST" })
     await requireBoss(context.supabase, context.userId);
     const preset = PRESETS[data.preset];
     if (!preset) throw new Error("Unknown preset");
-    const prompt = `${data.subject}. ${preset.framing}. ${BRAND}. No text overlay, no watermark.`;
+    const { getMemoryContext } = await import("@/lib/learning/engine.server");
+    const memory = await getMemoryContext("image");
+    const prompt = `${data.subject}. ${preset.framing}. ${BRAND}. No text overlay, no watermark.\n\n${memory}`;
 
     const { base64, mime } = await generateImageBase64(prompt);
     const ext = mime === "image/jpeg" ? "jpg" : mime === "image/webp" ? "webp" : "png";
