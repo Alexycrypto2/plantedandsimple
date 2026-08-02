@@ -182,7 +182,7 @@ export function AdminShell({
                 {active?.group ?? "Admin"}
               </p>
               <h1 className="truncate font-display text-xl italic text-forest-deep sm:text-2xl">
-                {activeTab === "overview" ? `${greeting()} ✨` : (active?.label ?? activeTab)}
+                {activeTab === "dashboard" ? `${greeting()} ✨` : (active?.label ?? activeTab)}
               </h1>
             </div>
             <a
