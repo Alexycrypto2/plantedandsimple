@@ -1815,7 +1815,7 @@ function CategoriesPanel() {
   );
 }
 /* ---------- Overview ---------- */
-function OverviewPanel() {
+function OverviewPanel({ onNavigate }: { onNavigate: (t: string) => void }) {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [err, setErr] = useState<string | null>(null);
 
@@ -1826,83 +1826,131 @@ function OverviewPanel() {
   }, []);
 
   if (err) return <p className="text-red-600">{err}</p>;
-  if (!stats) return <p className="text-charcoal/60">Loading…</p>;
+  if (!stats)
+    return (
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {Array.from({ length: 8 }).map((_, i) => (
+          <div key={i} className="h-28 animate-pulse rounded-2xl border border-forest/10 bg-white/60" />
+        ))}
+      </div>
+    );
 
-  const cards: Array<{ label: string; value: string; hint?: string }> = [
+  const cards: Array<{
+    label: string;
+    value: string;
+    hint?: string;
+    icon: typeof DollarSign;
+    tone: string;
+  }> = [
     {
       label: "Revenue",
       value: `$${(stats.revenue_total / 100).toFixed(2)}`,
       hint: `${stats.orders_total} orders`,
+      icon: DollarSign,
+      tone: "forest",
     },
-    { label: "Customers", value: String(stats.customers_total) },
+    { label: "Customers", value: String(stats.customers_total), icon: Users, tone: "sage" },
     {
       label: "Subscribers",
       value: String(stats.subscribers_total),
       hint: `+${stats.subscribers_last_7d} in 7d · +${stats.subscribers_last_30d} in 30d`,
+      icon: Mail,
+      tone: "sky",
     },
     {
       label: "Free guide signups",
       value: String(stats.free_guide_signups_total),
       hint: `${stats.free_to_checkout_pct}% converted to checkout`,
+      icon: Gift,
+      tone: "amber",
     },
     {
       label: "Download completion",
       value: `${stats.download_completion_pct}%`,
       hint: "Buyers who opened the PDF",
+      icon: Download,
+      tone: "violet",
     },
     {
       label: "Products",
       value: String(stats.products_total),
       hint: `${stats.products_published} live · ${stats.products_draft} draft`,
+      icon: Package,
+      tone: "rose",
     },
     {
       label: "Blog posts",
       value: String(stats.blog_posts_total),
       hint: `${stats.blog_posts_published} published`,
+      icon: FileText,
+      tone: "sage",
     },
+  ];
+
+  const quick = [
+    { label: "Write a blog with AI", desc: "Research → article → images", icon: Sparkles, tab: "content-studio", tone: "from-forest to-sage" },
+    { label: "Generate Pinterest pins", desc: "3 branded pin variants", icon: ImageIcon, tab: "pinterest", tone: "from-rose-400 to-pink-500" },
+    { label: "Ask the AI assistant", desc: "Commands & quick drafts", icon: Bot, tab: "assistant", tone: "from-violet-400 to-indigo-500" },
+    { label: "Approve pending work", desc: "Review before it goes live", icon: ShoppingBag, tab: "approvals", tone: "from-amber-400 to-orange-500" },
   ];
 
   return (
     <div className="space-y-8">
-      <h2 className="font-display text-3xl italic text-forest-deep">Overview</h2>
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
-        {cards.map((c) => (
-          <div
+      <p className="-mt-2 text-sm text-charcoal/60">
+        Here's everything happening across PlantedAndSimple today.
+      </p>
+
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+        {cards.map((c, i) => (
+          <MetricCard
             key={c.label}
-            className="rounded-2xl border border-forest/10 bg-cream-warm/60 p-5"
+            label={c.label}
+            value={c.value}
+            hint={c.hint}
+            icon={c.icon}
+            tone={c.tone}
+            delay={i * 60}
+          />
+        ))}
+      </div>
+
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        {quick.map((a) => (
+          <button
+            key={a.label}
+            onClick={() => onNavigate(a.tab)}
+            className="group grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 rounded-2xl border border-forest/10 bg-white/90 p-4 text-left shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-forest/10"
           >
-            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-charcoal/50">
-              {c.label}
-            </p>
-            <p className="mt-2 font-display text-3xl italic text-forest-deep">
-              {c.value}
-            </p>
-            {c.hint && <p className="mt-1 text-xs text-charcoal/60">{c.hint}</p>}
-          </div>
+            <span className={`grid size-10 shrink-0 place-items-center rounded-xl bg-gradient-to-br text-white shadow-md transition-transform duration-300 group-hover:scale-110 ${a.tone}`}>
+              <a.icon className="size-4.5" />
+            </span>
+            <span className="min-w-0">
+              <span className="block truncate text-[13px] font-bold text-forest-deep">{a.label}</span>
+              <span className="block truncate text-[11px] text-charcoal/55">{a.desc}</span>
+            </span>
+            <ArrowUpRight className="size-4 shrink-0 text-charcoal/30 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-forest" />
+          </button>
         ))}
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <div className="rounded-2xl border border-forest/10 bg-white p-6">
-          <h3 className="font-display text-xl italic text-forest-deep">
-            Recent sales
-          </h3>
+        <PanelCard title="Recent sales" icon={DollarSign}>
           {stats.recent_sales.length === 0 ? (
-            <p className="mt-4 text-sm text-charcoal/60">No sales yet.</p>
+            <p className="text-sm text-charcoal/60">No sales yet.</p>
           ) : (
-            <ul className="mt-4 divide-y divide-forest/5 text-sm">
+            <ul className="divide-y divide-forest/5 text-sm">
               {stats.recent_sales.map((s) => (
-                <li key={s.id} className="flex items-center justify-between py-3">
-                  <div>
-                    <p className="font-semibold text-forest-deep">
+                <li key={s.id} className="flex items-center justify-between gap-3 rounded-lg py-3 transition hover:bg-forest/[0.03]">
+                  <div className="min-w-0">
+                    <p className="truncate font-semibold text-forest-deep">
                       {s.email ?? "guest"}
                     </p>
-                    <p className="text-xs text-charcoal/50">
+                    <p className="truncate text-xs text-charcoal/50">
                       {s.product_slug ?? "—"} ·{" "}
                       {new Date(s.created_at).toLocaleDateString()}
                     </p>
                   </div>
-                  <span className="font-mono text-sm text-charcoal/80">
+                  <span className="shrink-0 rounded-full bg-forest/8 px-2.5 py-1 font-mono text-xs font-semibold text-forest-deep">
                     {s.amount != null
                       ? `$${(Number(s.amount) / 100).toFixed(2)}`
                       : "—"}
@@ -1911,34 +1959,31 @@ function OverviewPanel() {
               ))}
             </ul>
           )}
-        </div>
+        </PanelCard>
 
-        <div className="rounded-2xl border border-forest/10 bg-white p-6">
-          <h3 className="font-display text-xl italic text-forest-deep">
-            Recent downloads
-          </h3>
+        <PanelCard title="Recent downloads" icon={Download}>
           {stats.recent_downloads.length === 0 ? (
-            <p className="mt-4 text-sm text-charcoal/60">No downloads yet.</p>
+            <p className="text-sm text-charcoal/60">No downloads yet.</p>
           ) : (
-            <ul className="mt-4 divide-y divide-forest/5 text-sm">
+            <ul className="divide-y divide-forest/5 text-sm">
               {stats.recent_downloads.map((d) => (
-                <li key={d.id} className="flex items-center justify-between py-3">
-                  <div>
-                    <p className="font-semibold text-forest-deep">
+                <li key={d.id} className="flex items-center justify-between gap-3 rounded-lg py-3 transition hover:bg-forest/[0.03]">
+                  <div className="min-w-0">
+                    <p className="truncate font-semibold text-forest-deep">
                       {d.email ?? "guest"}
                     </p>
-                    <p className="text-xs text-charcoal/50">
+                    <p className="truncate text-xs text-charcoal/50">
                       {new Date(d.downloaded_at).toLocaleString()}
                     </p>
                   </div>
-                  <span className="text-xs text-charcoal/60">
+                  <span className="shrink-0 rounded-full bg-sage/20 px-2.5 py-1 text-xs font-semibold text-forest-deep">
                     {d.download_count}×
                   </span>
                 </li>
               ))}
             </ul>
           )}
-        </div>
+        </PanelCard>
       </div>
     </div>
   );
