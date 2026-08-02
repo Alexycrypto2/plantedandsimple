@@ -227,25 +227,15 @@ export function AiBlogWriterModal({
             </div>
           </div>
 
-          <div>
-            <div className="flex items-center justify-between">
-              <span className="flex items-center gap-2 text-sm font-semibold text-forest-deep">
-                <ImageIcon className="h-4 w-4" /> AI images (auto-placed)
-              </span>
-              <span className="font-semibold text-forest">{imageCount}</span>
+          <div className="flex gap-3 rounded-2xl bg-white p-4">
+            <ImageIcon className="mt-0.5 h-4 w-4 shrink-0 text-forest" />
+            <div>
+              <p className="text-sm font-semibold text-forest-deep">Photography: automatic</p>
+              <p className="mt-0.5 text-[11px] text-charcoal/60">
+                The AI decides how many photos the article needs and where they genuinely help, then writes a unique
+                brief and alt text for each.
+              </p>
             </div>
-            <input
-              type="range"
-              min={0}
-              max={8}
-              step={1}
-              value={imageCount}
-              onChange={(e) => setImageCount(Number(e.target.value))}
-              className="mt-3 w-full accent-forest"
-            />
-            <p className="mt-1 text-[11px] text-charcoal/50">
-              The AI decides where photos genuinely help and writes a unique brief + alt text for each.
-            </p>
           </div>
 
           <div className="rounded-2xl bg-white p-4">
