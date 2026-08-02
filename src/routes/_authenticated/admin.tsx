@@ -65,6 +65,11 @@ import {
   getDashboardStats,
   type DashboardStats,
 } from "@/lib/dashboard.functions";
+import { AdminShell, MetricCard, PanelCard } from "@/components/admin/AdminShell";
+import {
+  DollarSign, Users, Mail, Gift, Download, Package, FileText,
+  Sparkles, ShoppingBag, ArrowUpRight, Image as ImageIcon, Bot,
+} from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   component: AdminPage,
@@ -103,7 +108,6 @@ function AdminPage() {
   const [me, setMe] = useState<Me | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [tab, setTab] = useState<Tab>("overview");
-  const [navOpen, setNavOpen] = useState(false);
 
   useEffect(() => {
     adminMe()
@@ -174,84 +178,15 @@ function AdminPage() {
   const activeTab = tabs.includes(tab) ? tab : isBoss ? "overview" : "sales";
 
   return (
-    <div className="min-h-screen bg-cream font-sans text-charcoal">
-      {/* Floating hamburger — the only chrome on the page until the sidebar is opened */}
-      <button
-        onClick={() => setNavOpen(true)}
-        aria-label="Open menu"
-        className="fixed left-4 top-4 z-30 grid size-11 place-items-center rounded-full border border-forest/20 bg-white text-forest shadow-md hover:bg-forest/5"
-      >
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-          <path d="M4 6h16M4 12h16M4 18h16" />
-        </svg>
-      </button>
-
-      {/* Slide-in left sidebar */}
-      {navOpen && (
-        <div
-          className="fixed inset-0 z-40 bg-black/30"
-          onClick={() => setNavOpen(false)}
-          aria-hidden
-        />
-      )}
-      <aside
-        className={`fixed inset-y-0 left-0 z-50 flex w-72 transform flex-col border-r border-forest/10 bg-white shadow-xl transition-transform ${
-          navOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
-      >
-        <div className="flex items-start justify-between border-b border-forest/10 px-5 py-4">
-          <div>
-            <p className="font-mono text-[10px] font-semibold uppercase tracking-widest text-sage">
-              PrimeDownloads
-            </p>
-            <p className="font-display text-lg italic text-forest-deep">
-              Admin dashboard
-            </p>
-          </div>
-          <button
-            onClick={() => setNavOpen(false)}
-            aria-label="Close menu"
-            className="grid size-8 place-items-center rounded-full text-charcoal/60 hover:bg-forest/5"
-          >
-            ✕
-          </button>
-        </div>
-        <nav className="flex flex-1 flex-col gap-1 p-3">
-          {tabs.map((t) => (
-            <button
-              key={t}
-              onClick={() => {
-                setTab(t);
-                setNavOpen(false);
-              }}
-              className={`rounded-lg px-4 py-3 text-left text-sm font-semibold capitalize ${
-                activeTab === t
-                  ? "bg-forest text-cream"
-                  : "text-charcoal/70 hover:bg-forest/5"
-              }`}
-            >
-              {t}
-            </button>
-          ))}
-        </nav>
-        <div className="border-t border-forest/10 p-4 text-xs">
-          <p className="truncate text-charcoal/70">
-            {me.email}
-            <span className="ml-2 rounded-full bg-sage/20 px-2 py-0.5 font-semibold uppercase tracking-widest text-forest">
-              {isBoss ? "boss" : "admin"}
-            </span>
-          </p>
-          <button
-            onClick={logout}
-            className="mt-3 w-full rounded-full border border-forest/20 px-4 py-2 font-semibold text-charcoal/70 hover:bg-forest/5"
-          >
-            Sign out
-          </button>
-        </div>
-      </aside>
-
-      <main className="mx-auto max-w-6xl px-6 pb-8 pt-20">
-        {activeTab === "overview" && isBoss && <OverviewPanel />}
+    <AdminShell
+      tabs={tabs}
+      activeTab={activeTab}
+      onSelect={(t) => setTab(t as Tab)}
+      email={me.email}
+      isBoss={isBoss}
+      onLogout={logout}
+    >
+        {activeTab === "overview" && isBoss && <OverviewPanel onNavigate={(t) => setTab(t as Tab)} />}
         {activeTab === "intelligence" && isBoss && <IntelligencePanel />}
         {activeTab === "experiments" && isBoss && <ExperimentsPanel />}
         {activeTab === "brand" && isBoss && <BrandPanel />}
@@ -270,8 +205,7 @@ function AdminPage() {
         {activeTab === "pricing" && isBoss && <PricingPanel />}
         {activeTab === "affiliates" && isBoss && <AffiliatesPanel />}
         {activeTab === "admins" && isBoss && <AdminsPanel meId={me.userId} />}
-      </main>
-    </div>
+    </AdminShell>
   );
 }
 
