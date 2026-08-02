@@ -162,6 +162,10 @@ function ProductDetail() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  useEffect(() => {
+    void trackEvent("product_view", { refId: p.id, refSlug: p.slug });
+  }, [p.id, p.slug]);
+
   const onBuy = () => {
     if (!p.paddle_price_external_id) return;
     const ref = getStoredAffiliateRef();
