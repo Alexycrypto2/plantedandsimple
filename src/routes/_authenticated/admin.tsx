@@ -65,10 +65,13 @@ import {
   getDashboardStats,
   type DashboardStats,
 } from "@/lib/dashboard.functions";
-import { AdminShell, MetricCard, PanelCard } from "@/components/admin/AdminShell";
+import { AdminShell, MetricCard, PanelCard, SectionTabs } from "@/components/admin/AdminShell";
+import { LibrarySection } from "@/components/admin/LibraryPanel";
+import { RecipesSection } from "@/components/admin/RecipesPanel";
 import {
   DollarSign, Users, Mail, Gift, Download, Package, FileText,
   Sparkles, ShoppingBag, ArrowUpRight, Image as ImageIcon, Bot,
+  Tags, Star, Handshake, ShieldCheck, Plug, Palette, FlaskConical, Brain, TrendingUp,
 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin")({
@@ -83,31 +86,23 @@ export const Route = createFileRoute("/_authenticated/admin")({
 
 type Me = { userId: string; email: string | null; roles: ("boss" | "admin")[] };
 type Tab =
-  | "overview"
-  | "sales"
-  | "intelligence"
-  | "experiments"
-  | "brand"
-  | "products"
-  | "categories"
-  | "blog"
+  | "dashboard"
+  | "library"
+  | "recipes"
+  | "blogs"
   | "ai-studio"
-  | "content-studio"
   | "pinterest"
-  | "assistant"
+  | "products"
+  | "audience"
   | "approvals"
-  | "integrations"
-  | "reviews"
-  | "buyers"
-  | "pricing"
-  | "affiliates"
-  | "admins";
+  | "analytics"
+  | "settings";
 
 function AdminPage() {
   const navigate = useNavigate();
   const [me, setMe] = useState<Me | null>(null);
   const [err, setErr] = useState<string | null>(null);
-  const [tab, setTab] = useState<Tab>("overview");
+  const [tab, setTab] = useState<Tab>("dashboard");
 
   useEffect(() => {
     adminMe()
@@ -154,28 +149,20 @@ function AdminPage() {
   const isBoss = me.roles.includes("boss");
   const tabs: Tab[] = isBoss
     ? [
-        "overview",
-        "intelligence",
-        "experiments",
-        "brand",
-        "sales",
-        "products",
-        "categories",
-        "blog",
-        "content-studio",
-        "pinterest",
+        "dashboard",
+        "library",
+        "recipes",
+        "blogs",
         "ai-studio",
-        "assistant",
+        "pinterest",
+        "products",
+        "audience",
         "approvals",
-        "integrations",
-        "pricing",
-        "reviews",
-        "buyers",
-        "affiliates",
-        "admins",
+        "analytics",
+        "settings",
       ]
-    : ["sales"];
-  const activeTab = tabs.includes(tab) ? tab : isBoss ? "overview" : "sales";
+    : ["analytics"];
+  const activeTab = tabs.includes(tab) ? tab : isBoss ? "dashboard" : "analytics";
 
   return (
     <AdminShell
@@ -186,26 +173,172 @@ function AdminPage() {
       isBoss={isBoss}
       onLogout={logout}
     >
-        {activeTab === "overview" && isBoss && <OverviewPanel onNavigate={(t) => setTab(t as Tab)} />}
-        {activeTab === "intelligence" && isBoss && <IntelligencePanel />}
-        {activeTab === "experiments" && isBoss && <ExperimentsPanel />}
-        {activeTab === "brand" && isBoss && <BrandPanel />}
-        {activeTab === "sales" && <SalesPanel />}
-        {activeTab === "products" && isBoss && <ProductsPanel />}
-        {activeTab === "categories" && isBoss && <CategoriesPanel />}
-        {activeTab === "blog" && isBoss && <BlogPanel />}
-        {activeTab === "content-studio" && isBoss && <BlogStudioPanel />}
-        {activeTab === "pinterest" && isBoss && <PinterestStudioPanel />}
-        {activeTab === "ai-studio" && isBoss && <AiStudioPanel />}
-        {activeTab === "assistant" && isBoss && <AssistantPanel />}
-        {activeTab === "approvals" && isBoss && <ApprovalQueuePanel />}
-        {activeTab === "integrations" && isBoss && <IntegrationsPanel />}
-        {activeTab === "reviews" && isBoss && <ReviewsPanel />}
-        {activeTab === "buyers" && isBoss && <BuyersPanel />}
-        {activeTab === "pricing" && isBoss && <PricingPanel />}
-        {activeTab === "affiliates" && isBoss && <AffiliatesPanel />}
-        {activeTab === "admins" && isBoss && <AdminsPanel meId={me.userId} />}
+      {activeTab === "dashboard" && isBoss && <DashboardSection onNavigate={(t) => setTab(t as Tab)} />}
+      {activeTab === "library" && isBoss && <LibrarySection onNavigate={(t) => setTab(t as Tab)} />}
+      {activeTab === "recipes" && isBoss && <RecipesSection />}
+      {activeTab === "blogs" && isBoss && <BlogsSection />}
+      {activeTab === "ai-studio" && isBoss && <AiStudioSection />}
+      {activeTab === "pinterest" && isBoss && <PinterestStudioPanel />}
+      {activeTab === "products" && isBoss && <ProductsSection />}
+      {activeTab === "audience" && isBoss && <AudienceSection />}
+      {activeTab === "approvals" && isBoss && <ApprovalQueuePanel />}
+      {activeTab === "analytics" && <AnalyticsSection isBoss={isBoss} />}
+      {activeTab === "settings" && isBoss && <SettingsSection meId={me.userId} />}
     </AdminShell>
+  );
+}
+
+/* ---------------------------------------------------------------- sections */
+
+function Section({
+  tabs, children,
+}: {
+  tabs: { id: string; label: string; icon?: any }[];
+  children: (tab: string) => React.ReactNode;
+}) {
+  const [tab, setTab] = useState(tabs[0]!.id);
+  return (
+    <div>
+      {tabs.length > 1 && <SectionTabs tabs={tabs} active={tab} onSelect={setTab} />}
+      <div key={tab} className="duration-300 animate-in fade-in slide-in-from-bottom-1">
+        {children(tab)}
+      </div>
+    </div>
+  );
+}
+
+function DashboardSection({ onNavigate }: { onNavigate: (t: string) => void }) {
+  return (
+    <Section
+      tabs={[
+        { id: "today", label: "Today", icon: Sparkles },
+        { id: "intelligence", label: "AI Intelligence", icon: Brain },
+      ]}
+    >
+      {(t) => (
+        <>
+          {t === "today" && <OverviewPanel onNavigate={onNavigate} />}
+          {t === "intelligence" && <IntelligencePanel />}
+        </>
+      )}
+    </Section>
+  );
+}
+
+function BlogsSection() {
+  return (
+    <Section
+      tabs={[
+        { id: "posts", label: "All posts", icon: FileText },
+        { id: "writer", label: "AI Blog Assistant", icon: Sparkles },
+      ]}
+    >
+      {(t) => (
+        <>
+          {t === "posts" && <BlogPanel />}
+          {t === "writer" && <BlogStudioPanel />}
+        </>
+      )}
+    </Section>
+  );
+}
+
+function AiStudioSection() {
+  return (
+    <Section
+      tabs={[
+        { id: "assistant", label: "Assistant", icon: Bot },
+        { id: "images", label: "Image Studio", icon: ImageIcon },
+        { id: "experiments", label: "Experiments", icon: FlaskConical },
+      ]}
+    >
+      {(t) => (
+        <>
+          {t === "assistant" && <AssistantPanel />}
+          {t === "images" && <AiStudioPanel />}
+          {t === "experiments" && <ExperimentsPanel />}
+        </>
+      )}
+    </Section>
+  );
+}
+
+function ProductsSection() {
+  return (
+    <Section
+      tabs={[
+        { id: "catalog", label: "Catalog", icon: Package },
+        { id: "categories", label: "Categories", icon: Tags },
+        { id: "pricing", label: "Pricing", icon: DollarSign },
+      ]}
+    >
+      {(t) => (
+        <>
+          {t === "catalog" && <ProductsPanel />}
+          {t === "categories" && <CategoriesPanel />}
+          {t === "pricing" && <PricingPanel />}
+        </>
+      )}
+    </Section>
+  );
+}
+
+function AudienceSection() {
+  return (
+    <Section
+      tabs={[
+        { id: "subscribers", label: "Subscribers", icon: Users },
+        { id: "reviews", label: "Reviews", icon: Star },
+        { id: "affiliates", label: "Affiliates", icon: Handshake },
+      ]}
+    >
+      {(t) => (
+        <>
+          {t === "subscribers" && <BuyersPanel />}
+          {t === "reviews" && <ReviewsPanel />}
+          {t === "affiliates" && <AffiliatesPanel />}
+        </>
+      )}
+    </Section>
+  );
+}
+
+function AnalyticsSection({ isBoss }: { isBoss: boolean }) {
+  if (!isBoss) return <SalesPanel />;
+  return (
+    <Section
+      tabs={[
+        { id: "performance", label: "Performance", icon: TrendingUp },
+        { id: "learning", label: "Learned patterns", icon: Brain },
+      ]}
+    >
+      {(t) => (
+        <>
+          {t === "performance" && <SalesPanel />}
+          {t === "learning" && <IntelligencePanel />}
+        </>
+      )}
+    </Section>
+  );
+}
+
+function SettingsSection({ meId }: { meId: string }) {
+  return (
+    <Section
+      tabs={[
+        { id: "integrations", label: "Integrations & keys", icon: Plug },
+        { id: "brand", label: "Brand rules", icon: Palette },
+        { id: "team", label: "Team & roles", icon: ShieldCheck },
+      ]}
+    >
+      {(t) => (
+        <>
+          {t === "integrations" && <IntegrationsPanel />}
+          {t === "brand" && <BrandPanel />}
+          {t === "team" && <AdminsPanel meId={meId} />}
+        </>
+      )}
+    </Section>
   );
 }
 
@@ -1888,9 +2021,9 @@ function OverviewPanel({ onNavigate }: { onNavigate: (t: string) => void }) {
   ];
 
   const quick = [
-    { label: "Write a blog with AI", desc: "Research → article → images", icon: Sparkles, tab: "content-studio", tone: "from-forest to-sage" },
+    { label: "Write a blog with AI", desc: "Research → article → images", icon: Sparkles, tab: "blogs", tone: "from-forest to-sage" },
     { label: "Generate Pinterest pins", desc: "3 branded pin variants", icon: ImageIcon, tab: "pinterest", tone: "from-rose-400 to-pink-500" },
-    { label: "Ask the AI assistant", desc: "Commands & quick drafts", icon: Bot, tab: "assistant", tone: "from-violet-400 to-indigo-500" },
+    { label: "Ask the AI assistant", desc: "Commands & quick drafts", icon: Bot, tab: "ai-studio", tone: "from-violet-400 to-indigo-500" },
     { label: "Approve pending work", desc: "Review before it goes live", icon: ShoppingBag, tab: "approvals", tone: "from-amber-400 to-orange-500" },
   ];
 

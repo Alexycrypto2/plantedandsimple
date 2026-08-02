@@ -1,40 +1,28 @@
 import { useEffect, useState, type ReactNode } from "react";
 import {
-  LayoutDashboard, Brain, FlaskConical, Palette, TrendingUp, Package, Tags,
-  FileText, Sparkles, Image as ImageIcon, Bot, CheckCircle2, Plug, DollarSign,
-  Star, Users, Handshake, ShieldCheck, LogOut, ExternalLink, Search, X, Menu,
+  LayoutDashboard, TrendingUp, Package, LibraryBig, ChefHat,
+  FileText, Sparkles, Image as ImageIcon, CheckCircle2, Settings2,
+  Users, LogOut, ExternalLink, Search, X, Menu,
   type LucideIcon,
 } from "lucide-react";
 
 export type NavItem = { id: string; label: string; icon: LucideIcon; group: string };
 
 export const NAV_META: Record<string, { label: string; icon: LucideIcon; group: string }> = {
-  overview: { label: "Dashboard", icon: LayoutDashboard, group: "Command" },
-  intelligence: { label: "Intelligence", icon: Brain, group: "Command" },
-  experiments: { label: "Experiments", icon: FlaskConical, group: "Command" },
-  brand: { label: "Brand", icon: Palette, group: "Command" },
-  sales: { label: "Analytics", icon: TrendingUp, group: "Command" },
-
-  blog: { label: "All Posts", icon: FileText, group: "Content" },
-  "content-studio": { label: "AI Content Studio", icon: Sparkles, group: "Content" },
+  dashboard: { label: "Dashboard", icon: LayoutDashboard, group: "Overview" },
+  library: { label: "Content Library", icon: LibraryBig, group: "Content" },
+  recipes: { label: "Recipes", icon: ChefHat, group: "Content" },
+  blogs: { label: "Blogs", icon: FileText, group: "Content" },
+  "ai-studio": { label: "AI Studio", icon: Sparkles, group: "Content" },
   pinterest: { label: "Pinterest Studio", icon: ImageIcon, group: "Content" },
-  "ai-studio": { label: "Image Studio", icon: ImageIcon, group: "Content" },
-  assistant: { label: "AI Assistant", icon: Bot, group: "Content" },
-  approvals: { label: "Approval Queue", icon: CheckCircle2, group: "Content" },
-
-  products: { label: "Products", icon: Package, group: "Commerce" },
-  categories: { label: "Categories", icon: Tags, group: "Commerce" },
-  pricing: { label: "Pricing", icon: DollarSign, group: "Commerce" },
-  affiliates: { label: "Affiliates", icon: Handshake, group: "Commerce" },
-
-  reviews: { label: "Reviews", icon: Star, group: "Audience" },
-  buyers: { label: "Subscribers", icon: Users, group: "Audience" },
-
-  integrations: { label: "Integrations", icon: Plug, group: "Configure" },
-  admins: { label: "Team & Roles", icon: ShieldCheck, group: "Configure" },
+  products: { label: "Products", icon: Package, group: "Growth" },
+  audience: { label: "Audience", icon: Users, group: "Growth" },
+  approvals: { label: "Approval Queue", icon: CheckCircle2, group: "Growth" },
+  analytics: { label: "Analytics", icon: TrendingUp, group: "Growth" },
+  settings: { label: "Settings", icon: Settings2, group: "Configure" },
 };
 
-const GROUP_ORDER = ["Command", "Content", "Commerce", "Audience", "Configure"];
+const GROUP_ORDER = ["Overview", "Content", "Growth", "Configure"];
 
 function greeting() {
   const h = new Date().getHours();
@@ -194,7 +182,7 @@ export function AdminShell({
                 {active?.group ?? "Admin"}
               </p>
               <h1 className="truncate font-display text-xl italic text-forest-deep sm:text-2xl">
-                {activeTab === "overview" ? `${greeting()} ✨` : (active?.label ?? activeTab)}
+                {activeTab === "dashboard" ? `${greeting()} ✨` : (active?.label ?? activeTab)}
               </h1>
             </div>
             <a
@@ -212,6 +200,63 @@ export function AdminShell({
           {children}
         </main>
       </div>
+    </div>
+  );
+}
+
+/* ------------------------------ sub navigation ----------------------------- */
+
+export function SectionTabs({
+  tabs, active, onSelect,
+}: {
+  tabs: { id: string; label: string; icon?: LucideIcon }[];
+  active: string;
+  onSelect: (id: string) => void;
+}) {
+  return (
+    <div className="-mx-1 mb-6 flex gap-1.5 overflow-x-auto rounded-2xl border border-forest/10 bg-white/70 p-1.5 backdrop-blur-xl [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      {tabs.map((t) => {
+        const Icon = t.icon;
+        const on = active === t.id;
+        return (
+          <button
+            key={t.id}
+            onClick={() => onSelect(t.id)}
+            className={`inline-flex shrink-0 items-center gap-2 rounded-xl px-3.5 py-2 text-[12px] font-semibold transition-all duration-200 ${
+              on
+                ? "bg-forest text-cream shadow-md shadow-forest/20"
+                : "text-charcoal/60 hover:bg-forest/[0.06] hover:text-forest-deep"
+            }`}
+          >
+            {Icon && <Icon className="size-3.5" />}
+            {t.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+export function Skeleton({ className = "" }: { className?: string }) {
+  return <div className={`animate-pulse rounded-xl bg-forest/[0.07] ${className}`} />;
+}
+
+export function SkeletonList({ rows = 4 }: { rows?: number }) {
+  return (
+    <div className="space-y-2.5">
+      {Array.from({ length: rows }).map((_, i) => (
+        <Skeleton key={i} className="h-16 w-full" />
+      ))}
+    </div>
+  );
+}
+
+export function EmptyState({ title, hint, action }: { title: string; hint?: string; action?: ReactNode }) {
+  return (
+    <div className="grid place-items-center rounded-2xl border border-dashed border-forest/15 bg-cream-warm/40 px-6 py-12 text-center">
+      <p className="font-display text-lg italic text-forest-deep">{title}</p>
+      {hint && <p className="mt-1 max-w-sm text-xs text-charcoal/55">{hint}</p>}
+      {action && <div className="mt-4">{action}</div>}
     </div>
   );
 }
