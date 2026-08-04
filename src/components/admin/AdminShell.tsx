@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
   LayoutDashboard, TrendingUp, Package, LibraryBig, ChefHat,
   FileText, Sparkles, Image as ImageIcon, CheckCircle2, Settings2,
-  Users, LogOut, ExternalLink, Search, X, Menu, Waves, Zap,
+  Users, LogOut, ExternalLink, Search, X, Menu, Waves, Zap, Palette,
   type LucideIcon,
 } from "lucide-react";
 
@@ -41,6 +41,40 @@ export const WORKSPACE_THEME: Record<string, { accent: string; tint: string; moo
 
 function theme(tab: string) {
   return WORKSPACE_THEME[tab] ?? WORKSPACE_THEME["dashboard"]!;
+}
+
+/* --------------------------------- themes --------------------------------- */
+
+export type AdminThemeId = "cream" | "ink" | "gold" | "snow";
+
+export const ADMIN_THEMES: Record<
+  AdminThemeId,
+  { label: string; swatch: string[]; accent?: { accent: string; tint: string } }
+> = {
+  cream: { label: "Cream editorial", swatch: ["#faf8f3", "#2e5e3b", "#7fa77a"] },
+  ink: { label: "Ink black", swatch: ["#080a08", "#86e0a4", "#4e7d5e"], accent: { accent: "#86e0a4", tint: "#3f7a55" } },
+  gold: { label: "Gold luxe", swatch: ["#0c0a06", "#e3c273", "#8a6a1f"], accent: { accent: "#e3c273", tint: "#8a6a1f" } },
+  snow: { label: "Snow white", swatch: ["#ffffff", "#14181c", "#8c959e"], accent: { accent: "#1f2429", tint: "#8c959e" } },
+};
+
+/** Persisted admin skin. Scoped to the admin surface only. */
+function useAdminTheme() {
+  const [id, setId] = useState<AdminThemeId>("cream");
+  useEffect(() => {
+    const saved = (typeof window !== "undefined" ? window.localStorage.getItem("pd-admin-theme") : null) as AdminThemeId | null;
+    const next = saved && saved in ADMIN_THEMES ? saved : "cream";
+    setId(next);
+    document.documentElement.dataset["adminTheme"] = next;
+    return () => {
+      delete document.documentElement.dataset["adminTheme"];
+    };
+  }, []);
+  const set = (next: AdminThemeId) => {
+    setId(next);
+    document.documentElement.dataset["adminTheme"] = next;
+    try { window.localStorage.setItem("pd-admin-theme", next); } catch { /* ignore */ }
+  };
+  return { id, set };
 }
 
 /** Every workspace opens with its own inspiring introduction. */
