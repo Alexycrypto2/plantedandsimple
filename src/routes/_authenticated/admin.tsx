@@ -68,13 +68,14 @@ import {
   getDashboardStats,
   type DashboardStats,
 } from "@/lib/dashboard.functions";
-import { AdminShell, MetricCard, PanelCard, SectionTabs } from "@/components/admin/AdminShell";
+import { AdminShell, MetricCard, PanelCard, SectionTabs, FlowRibbon } from "@/components/admin/AdminShell";
 import { LibrarySection } from "@/components/admin/LibraryPanel";
 import { RecipesSection } from "@/components/admin/RecipesPanel";
 import {
   DollarSign, Users, Mail, Gift, Download, Package, FileText,
   Sparkles, ShoppingBag, ArrowUpRight, Image as ImageIcon, Bot,
   Tags, Star, Handshake, ShieldCheck, Plug, Palette, FlaskConical, Brain, TrendingUp,
+  ChefHat, Megaphone, BookOpen,
 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin")({
@@ -2043,9 +2044,23 @@ function OverviewPanel({ onNavigate }: { onNavigate: (t: string) => void }) {
 
   return (
     <div className="space-y-8">
-      <p className="-mt-2 text-sm text-charcoal/60">
-        Here's everything happening across PlantedAndSimple today.
-      </p>
+      <section className="relative overflow-hidden rounded-[2rem] border border-white/60 bg-white/45 px-6 py-8 backdrop-blur-xl animate-blur-in sm:px-9 sm:py-10">
+        <div
+          aria-hidden
+          className="animate-float pointer-events-none absolute -right-16 -top-16 size-64 rounded-full blur-3xl"
+          style={{ background: "color-mix(in oklab, var(--ws-accent) 22%, transparent)" }}
+        />
+        <p className="relative flex items-center gap-2 font-mono text-[10px] font-bold uppercase tracking-[0.28em] text-[var(--ws-accent)]">
+          <span className="size-1.5 rounded-full bg-[var(--ws-accent)] animate-live" /> Live
+        </p>
+        <h2 className="relative mt-3 max-w-2xl font-display text-3xl italic leading-[1.1] text-forest-deep sm:text-5xl">
+          Your brand is awake and working.
+        </h2>
+        <p className="relative mt-3 max-w-xl text-sm leading-relaxed text-charcoal/60">
+          Everything happening across PlantedAndSimple today — content moving, people arriving,
+          recipes becoming stories, stories becoming sales.
+        </p>
+      </section>
 
       <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         {cards.map((c, i) => (
@@ -2061,14 +2076,30 @@ function OverviewPanel({ onNavigate }: { onNavigate: (t: string) => void }) {
         ))}
       </div>
 
+      <div>
+        <p className="mb-3 px-1 font-mono text-[10px] font-bold uppercase tracking-[0.24em] text-charcoal/40">
+          How your content travels
+        </p>
+        <FlowRibbon
+          steps={[
+            { label: "Recipe", icon: ChefHat, hint: "Kitchen origin" },
+            { label: "Blog", icon: FileText, hint: "The story" },
+            { label: "Pins", icon: ImageIcon, hint: "Discovery" },
+            { label: "Cookbook", icon: BookOpen, hint: "The product" },
+            { label: "Campaign", icon: Megaphone, hint: "The push" },
+            { label: "Analytics", icon: TrendingUp, hint: "The proof" },
+          ]}
+        />
+      </div>
+
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {quick.map((a) => (
           <button
             key={a.label}
             onClick={() => onNavigate(a.tab)}
-            className="group grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 rounded-2xl border border-forest/10 bg-white/90 p-4 text-left shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-forest/10"
+            className="sheen-on-hover group relative grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 overflow-hidden rounded-[1.5rem] border border-white/60 bg-white/55 p-4 text-left shadow-[0_18px_40px_-34px_rgba(0,0,0,0.5)] backdrop-blur-xl transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-1.5 hover:bg-white/80"
           >
-            <span className={`grid size-10 shrink-0 place-items-center rounded-xl bg-gradient-to-br text-white shadow-md transition-transform duration-300 group-hover:scale-110 ${a.tone}`}>
+            <span className={`grid size-11 shrink-0 place-items-center rounded-2xl bg-gradient-to-br text-white shadow-md transition-all duration-500 group-hover:-rotate-6 group-hover:scale-110 ${a.tone}`}>
               <a.icon className="size-4.5" />
             </span>
             <span className="min-w-0">
