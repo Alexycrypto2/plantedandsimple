@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
   LayoutDashboard, TrendingUp, Package, LibraryBig, ChefHat,
   FileText, Sparkles, Image as ImageIcon, CheckCircle2, Settings2,
-  Users, LogOut, ExternalLink, Search, X, Menu,
+  Users, LogOut, ExternalLink, Search, X, Menu, Waves, Zap,
   type LucideIcon,
 } from "lucide-react";
 
@@ -41,6 +41,65 @@ export const WORKSPACE_THEME: Record<string, { accent: string; tint: string; moo
 
 function theme(tab: string) {
   return WORKSPACE_THEME[tab] ?? WORKSPACE_THEME["dashboard"]!;
+}
+
+/** Every workspace opens with its own inspiring introduction. */
+export const WORKSPACE_INTRO: Record<string, { headline: string; sub: string }> = {
+  library:     { headline: "Everything you've created lives here.", sub: "Recipes, stories, pins and products — one connected library." },
+  recipes:     { headline: "What are we cooking next?", sub: "Every recipe becomes a blog, a pin, a campaign and a chapter." },
+  blogs:       { headline: "Tell a story worth reading.", sub: "Research, draft, illustrate and optimise — with AI beside you." },
+  "ai-studio": { headline: "What would you like to create today?", sub: "Trends, drafts, images and experiments, all in one room." },
+  pinterest:   { headline: "Design Pinterest content that gets saved.", sub: "Branded pins, best posting windows, real discovery." },
+  products:    { headline: "The shelf that pays the bills.", sub: "Cookbooks, bundles and offers your readers actually buy." },
+  audience:    { headline: "The people on the other side.", sub: "Subscribers, buyers and the humans behind every download." },
+  approvals:   { headline: "Nothing ships without you.", sub: "Preview, understand and approve everything the AI prepared." },
+  analytics:   { headline: "Proof that it's working.", sub: "Traffic, pins, downloads and revenue — connected end to end." },
+  settings:    { headline: "The quiet machinery.", sub: "Keys, integrations and the rules your AI works within." },
+};
+
+/** Rotating "the AI is working" messages — pure presentation. */
+const AI_THOUGHTS = [
+  "Analysing Pinterest saves…",
+  "Checking Google Trends…",
+  "Learning from yesterday's campaign…",
+  "Generating tomorrow's recommendations…",
+  "Updating seasonal opportunities…",
+  "Scanning recipes with strong potential…",
+  "Re-ranking topics by brand fit…",
+];
+
+function AiThought() {
+  const [i, setI] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => setI((n) => (n + 1) % AI_THOUGHTS.length), 5200);
+    return () => clearInterval(id);
+  }, []);
+  return (
+    <span key={i} className="animate-ticker-in inline-flex items-center gap-1.5 truncate">
+      <Sparkles className="size-3 shrink-0" />
+      {AI_THOUGHTS[i]}
+    </span>
+  );
+}
+
+/** Global, persisted reduced-motion switch. */
+function useMotionToggle() {
+  const [on, setOn] = useState(true);
+  useEffect(() => {
+    const saved = typeof window !== "undefined" ? window.localStorage.getItem("pd-motion") : null;
+    const enabled = saved !== "off";
+    setOn(enabled);
+    document.documentElement.dataset["motion"] = enabled ? "on" : "off";
+  }, []);
+  const toggle = () => {
+    setOn((prev) => {
+      const next = !prev;
+      document.documentElement.dataset["motion"] = next ? "on" : "off";
+      try { window.localStorage.setItem("pd-motion", next ? "on" : "off"); } catch { /* ignore */ }
+      return next;
+    });
+  };
+  return { on, toggle };
 }
 
 function greeting() {
@@ -83,6 +142,7 @@ export function AdminShell({
 }) {
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState("");
+  const motion = useMotionToggle();
 
   useEffect(() => { setOpen(false); }, [activeTab]);
 
@@ -96,6 +156,7 @@ export function AdminShell({
 
   const active = NAV_META[activeTab];
   const ws = theme(activeTab);
+  const intro = WORKSPACE_INTRO[activeTab];
 
   const nav = (
     <div className="flex h-full flex-col">
@@ -187,6 +248,19 @@ export function AdminShell({
       </nav>
 
       <div className="m-3 rounded-2xl border border-forest/10 bg-white/60 p-3 backdrop-blur">
+        <button
+          onClick={motion.toggle}
+          className="mb-2.5 flex w-full items-center gap-2 rounded-xl px-2 py-1.5 text-left text-[11px] font-semibold text-charcoal/60 transition hover:bg-forest/5 hover:text-forest-deep"
+          aria-pressed={!motion.on}
+        >
+          {motion.on ? <Waves className="size-3.5" /> : <Zap className="size-3.5" />}
+          <span className="truncate">{motion.on ? "Motion on" : "Reduced motion"}</span>
+          <span
+            className={`ml-auto flex h-4 w-8 shrink-0 items-center rounded-full p-0.5 transition-colors ${motion.on ? "bg-[var(--ws-accent)]" : "bg-charcoal/20"}`}
+          >
+            <span className={`size-3 rounded-full bg-white transition-transform duration-300 ${motion.on ? "translate-x-4" : ""}`} />
+          </span>
+        </button>
         <div className="flex items-center gap-2.5">
           <div
             className="grid size-9 shrink-0 place-items-center rounded-full font-display text-sm italic text-cream"
@@ -263,7 +337,9 @@ export function AdminShell({
               <h1 className="truncate font-display text-xl italic text-forest-deep sm:text-2xl">
                 {activeTab === "dashboard" ? `${greeting()} ✨` : (active?.label ?? activeTab)}
               </h1>
-              <p className="hidden truncate text-[11px] text-charcoal/50 sm:block">{ws.mood}</p>
+              <p className="hidden truncate text-[11px] text-charcoal/50 sm:block">
+                <AiThought />
+              </p>
             </div>
             <a
               href="/"
@@ -278,6 +354,22 @@ export function AdminShell({
         </header>
 
         <main key={activeTab} className="animate-blur-in mx-auto max-w-7xl px-4 pb-24 pt-7 sm:px-6">
+          {intro && (
+            <section className="relative mb-7 overflow-hidden rounded-[1.75rem] border border-white/60 bg-white/45 px-5 py-6 backdrop-blur-xl sm:px-8 sm:py-8">
+              <div
+                aria-hidden
+                className="animate-float pointer-events-none absolute -right-12 -top-14 size-52 rounded-full blur-3xl"
+                style={{ background: "color-mix(in oklab, var(--ws-accent) 20%, transparent)" }}
+              />
+              <p className="relative font-mono text-[9px] font-bold uppercase tracking-[0.26em] text-[var(--ws-accent)]">
+                {ws.mood}
+              </p>
+              <h2 className="relative mt-2 max-w-2xl font-display text-2xl italic leading-[1.15] text-forest-deep sm:text-4xl">
+                ✨ {intro.headline}
+              </h2>
+              <p className="relative mt-2 max-w-xl text-[13px] leading-relaxed text-charcoal/55">{intro.sub}</p>
+            </section>
+          )}
           {children}
         </main>
       </div>
@@ -340,7 +432,9 @@ export function SkeletonList({ rows = 4 }: { rows?: number }) {
   );
 }
 
-export function EmptyState({ title, hint, action }: { title: string; hint?: string; action?: ReactNode }) {
+export function EmptyState({
+  title, hint, action, steps,
+}: { title: string; hint?: string; action?: ReactNode; steps?: string[] }) {
   return (
     <div className="relative grid place-items-center overflow-hidden rounded-[1.75rem] border border-white/60 bg-white/45 px-6 py-16 text-center backdrop-blur-xl">
       <div
@@ -356,6 +450,20 @@ export function EmptyState({ title, hint, action }: { title: string; hint?: stri
       </div>
       <p className="relative mt-4 font-display text-xl italic text-forest-deep">{title}</p>
       {hint && <p className="relative mt-1.5 max-w-sm text-xs leading-relaxed text-charcoal/55">{hint}</p>}
+      {steps && steps.length > 0 && (
+        <ul className="relative mt-4 grid gap-1.5 text-left">
+          {steps.map((s, i) => (
+            <li
+              key={s}
+              style={{ animationDelay: `${i * 70}ms` }}
+              className="animate-blur-in flex items-center gap-2 text-[11px] text-charcoal/60"
+            >
+              <span className="size-1.5 shrink-0 rounded-full bg-[var(--ws-accent)]" />
+              {s}
+            </li>
+          ))}
+        </ul>
+      )}
       {action && <div className="relative mt-5">{action}</div>}
     </div>
   );
@@ -490,14 +598,24 @@ export function FlowRibbon({
               className="animate-blur-in group flex w-32 flex-col items-center gap-2 rounded-2xl px-3 py-3 text-center transition-all duration-500 hover:-translate-y-1"
               style={{ animationDelay: `${i * 110}ms` }}
             >
-              <span
-                className="grid size-10 place-items-center rounded-2xl text-cream shadow-lg transition-transform duration-500 group-hover:scale-110"
-                style={{
-                  background: "linear-gradient(140deg, var(--ws-accent), var(--ws-tint))",
-                  boxShadow: "0 16px 30px -18px var(--ws-accent)",
-                }}
-              >
-                <s.icon className="size-4" />
+              <span className="relative grid size-10 place-items-center">
+                <span
+                  aria-hidden
+                  className="animate-node-pulse absolute inset-0 rounded-2xl"
+                  style={{
+                    background: "color-mix(in oklab, var(--ws-accent) 40%, transparent)",
+                    animationDelay: `${i * 380}ms`,
+                  }}
+                />
+                <span
+                  className="relative grid size-10 place-items-center rounded-2xl text-cream shadow-lg transition-transform duration-500 group-hover:scale-110"
+                  style={{
+                    background: "linear-gradient(140deg, var(--ws-accent), var(--ws-tint))",
+                    boxShadow: "0 16px 30px -18px var(--ws-accent)",
+                  }}
+                >
+                  <s.icon className="size-4" />
+                </span>
               </span>
               <span className="text-[11px] font-bold text-forest-deep">{s.label}</span>
               {s.hint && <span className="text-[10px] leading-tight text-charcoal/50">{s.hint}</span>}
