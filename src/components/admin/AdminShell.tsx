@@ -177,6 +177,7 @@ export function AdminShell({
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState("");
   const motion = useMotionToggle();
+  const skin = useAdminTheme();
 
   useEffect(() => { setOpen(false); }, [activeTab]);
 
@@ -189,7 +190,9 @@ export function AdminShell({
   })).filter((g) => g.items.length > 0);
 
   const active = NAV_META[activeTab];
-  const ws = theme(activeTab);
+  const base = theme(activeTab);
+  const lock = ADMIN_THEMES[skin.id]?.accent;
+  const ws = lock ? { ...base, accent: lock.accent, tint: lock.tint } : base;
   const intro = WORKSPACE_INTRO[activeTab];
 
   const nav = (
@@ -282,6 +285,32 @@ export function AdminShell({
       </nav>
 
       <div className="m-3 rounded-2xl border border-forest/10 bg-white/60 p-3 backdrop-blur">
+        <div className="mb-2.5">
+          <p className="mb-1.5 flex items-center gap-1.5 px-2 font-mono text-[9px] font-bold uppercase tracking-[0.22em] text-charcoal/40">
+            <Palette className="size-3" /> Panel theme
+          </p>
+          <div className="flex gap-1.5 px-1">
+            {(Object.keys(ADMIN_THEMES) as AdminThemeId[]).map((id) => {
+              const t = ADMIN_THEMES[id]!;
+              const on = skin.id === id;
+              return (
+                <button
+                  key={id}
+                  onClick={() => skin.set(id)}
+                  title={t.label}
+                  aria-label={t.label}
+                  aria-pressed={on}
+                  className={`group relative h-8 flex-1 overflow-hidden rounded-xl border transition-all duration-500 hover:-translate-y-0.5 ${
+                    on ? "border-[var(--ws-accent)] shadow-md" : "border-charcoal/10"
+                  }`}
+                  style={{ background: `linear-gradient(120deg, ${t.swatch[0]} 0%, ${t.swatch[0]} 45%, ${t.swatch[1]} 46%, ${t.swatch[2]} 100%)` }}
+                >
+                  {on && <span className="absolute inset-0 animate-live rounded-xl ring-2 ring-inset ring-[var(--ws-accent)]" />}
+                </button>
+              );
+            })}
+          </div>
+        </div>
         <button
           onClick={motion.toggle}
           className="mb-2.5 flex w-full items-center gap-2 rounded-xl px-2 py-1.5 text-left text-[11px] font-semibold text-charcoal/60 transition hover:bg-forest/5 hover:text-forest-deep"
