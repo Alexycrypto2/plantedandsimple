@@ -52,6 +52,7 @@ export async function runCampaign(opts: {
   productSlug?: string | null;
 }) {
   const supa = await db();
+  const campaignKey = crypto.randomUUID();
   const { data: recipe, error } = await supa.from("recipes").select("*").eq("id", opts.recipeId).maybeSingle();
   if (error || !recipe) throw new Error("Recipe not found");
 
@@ -94,7 +95,7 @@ export async function runCampaign(opts: {
     brief,
     article,
     userId: opts.userId,
-    extra: { source_recipe_id: recipe.id, campaign: true },
+    extra: { source_recipe_id: recipe.id, campaign: true, campaign_key: campaignKey, approval_lane: "website" },
   });
 
   /* ------------------------------- campaign copy ---------------------------- */
@@ -146,6 +147,8 @@ Banned words: delve, elevate, unlock, game-changer, dive into, look no further. 
           storage_path: img?.path ?? null,
           blog_slug: article.slug,
           source_recipe_id: recipe.id,
+           campaign_key: campaignKey,
+           approval_lane: "pinterest",
         },
         model: `${DEFAULT_CHAT_MODEL} + ${DEFAULT_IMAGE_MODEL}`,
         created_by: opts.userId,
@@ -171,6 +174,8 @@ Banned words: delve, elevate, unlock, game-changer, dive into, look no further. 
         cta_label: copy.email.cta_label,
         source_recipe_id: recipe.id,
         blog_slug: article.slug,
+         campaign_key: campaignKey,
+         approval_lane: "email",
       },
     })
     .select("id")
@@ -184,7 +189,7 @@ Banned words: delve, elevate, unlock, game-changer, dive into, look no further. 
       title: copy.promo.headline,
       topic: recipe.title,
       preview_url: blog.hero_url,
-      payload: { ...copy.promo, source_recipe_id: recipe.id, blog_slug: article.slug, product_slug: opts.productSlug ?? null },
+      payload: { ...copy.promo, source_recipe_id: recipe.id, blog_slug: article.slug, product_slug: opts.productSlug ?? null, campaign_key: campaignKey, approval_lane: "website" },
       model: DEFAULT_CHAT_MODEL,
       created_by: opts.userId,
       status: "pending",
@@ -215,6 +220,7 @@ Banned words: delve, elevate, unlock, game-changer, dive into, look no further. 
       preview_url: blog.hero_url,
       payload: {
         angle: copy.angle,
+        campaign_key: campaignKey,
         recipe: { id: recipe.id, slug: recipe.slug, title: recipe.title },
         blog: { id: blog.id, slug: blog.slug, title: blog.title, quality: blog.quality },
         pins: pinRows.map((p) => ({ id: p.id, title: p.title, style: p.style, image_url: p.image_url })),

@@ -3,6 +3,7 @@ import {
   listGenerations,
   setGenerationStatus,
   deleteGeneration,
+  approveCampaignAssets,
   publishBlogGeneration,
   type Generation,
   type GenerationKind,
@@ -231,7 +232,7 @@ export function AssistantPanel() {
 
 /* ------------------------------ Approval queue -------------------------------- */
 
-const KINDS: (GenerationKind | "all")[] = ["all", "blog", "image", "pinterest_pin", "product_desc", "email", "social"];
+const KINDS: (GenerationKind | "all")[] = ["all", "campaign", "blog", "image", "pinterest_pin", "product_promo", "product_desc", "email", "social"];
 const STATUSES: (GenerationStatus | "all")[] = ["pending", "approved", "rejected", "published", "all"];
 
 export function ApprovalQueuePanel() {
@@ -327,6 +328,17 @@ export function ApprovalQueuePanel() {
                   Generate 3 pins
                 </button>
               )}
+              {g.kind === "campaign" && g.status !== "approved" && (
+                <button
+                  className={btn}
+                  onClick={() => act(
+                    () => approveCampaignAssets({ data: { id: g.id } }),
+                    "Website, Pinterest, and email assets approved.",
+                  )}
+                >
+                  Approve full campaign
+                </button>
+              )}
               <label className="flex items-center gap-2 text-xs text-charcoal/60">
                 Schedule
                 <input
@@ -353,9 +365,26 @@ export function ApprovalQueuePanel() {
               </button>
             </div>
             {open === g.id && (
-              <pre className="mt-4 max-h-96 overflow-auto whitespace-pre-wrap rounded-xl bg-cream/70 p-4 font-mono text-[11px] text-charcoal/70">
-                {JSON.stringify(g.payload, null, 2)}
-              </pre>
+              g.kind === "campaign" ? (
+                <div className="mt-4 grid gap-3 md:grid-cols-3">
+                  {[
+                    { lane: "Website", items: [g.payload?.blog?.title, g.payload?.promo?.headline].filter(Boolean) },
+                    { lane: "Pinterest", items: (g.payload?.pins ?? []).map((pin: any) => pin.title) },
+                    { lane: "Email", items: [g.payload?.email?.subject].filter(Boolean) },
+                  ].map((group) => (
+                    <section key={group.lane} className="rounded-xl border border-forest/10 bg-cream/50 p-4">
+                      <p className="font-mono text-[10px] font-bold uppercase tracking-widest text-sage">{group.lane}</p>
+                      <ul className="mt-2 space-y-2 text-xs text-charcoal/70">
+                        {group.items.map((item: string) => <li key={item}>• {item}</li>)}
+                      </ul>
+                    </section>
+                  ))}
+                </div>
+              ) : (
+                <pre className="mt-4 max-h-96 overflow-auto whitespace-pre-wrap rounded-xl bg-cream/70 p-4 font-mono text-[11px] text-charcoal/70">
+                  {JSON.stringify(g.payload, null, 2)}
+                </pre>
+              )
             )}
           </article>
         ))}
