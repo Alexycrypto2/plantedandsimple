@@ -2057,6 +2057,22 @@ function OverviewPanel({ onNavigate }: { onNavigate: (t: string) => void }) {
     { label: "Approve pending work", desc: "Review before it goes live", icon: ShoppingBag, tab: "approvals", tone: "from-amber-400 to-orange-500" },
   ];
 
+  const briefing: string[] = [
+    stats.subscribers_last_7d > 0
+      ? `${stats.subscribers_last_7d} new subscriber${stats.subscribers_last_7d === 1 ? "" : "s"} joined this week.`
+      : "No new subscribers overnight — a fresh pin is the quickest fix.",
+    stats.orders_total > 0
+      ? `${stats.orders_total} order${stats.orders_total === 1 ? "" : "s"} in total, $${(stats.revenue_total / 100).toFixed(2)} earned.`
+      : "No sales yet — the cookbook needs more eyes before it needs more features.",
+    stats.blog_posts_total - stats.blog_posts_published > 0
+      ? `${stats.blog_posts_total - stats.blog_posts_published} blog draft${stats.blog_posts_total - stats.blog_posts_published === 1 ? " is" : "s are"} ready for your final read.`
+      : "Every blog you've written is live. Trend Radar has fresh topics waiting.",
+    stats.products_draft > 0
+      ? `${stats.products_draft} product${stats.products_draft === 1 ? "" : "s"} still sitting in draft.`
+      : "All products are published and on the shelf.",
+    "Pinterest performs best between 8:00–9:00 AM for food content today.",
+  ];
+
   return (
     <div className="space-y-8">
       <section className="relative overflow-hidden rounded-[2rem] border border-white/60 bg-white/45 px-6 py-8 backdrop-blur-xl animate-blur-in sm:px-9 sm:py-10">
@@ -2075,6 +2091,27 @@ function OverviewPanel({ onNavigate }: { onNavigate: (t: string) => void }) {
           Everything happening across PlantedAndSimple today — content moving, people arriving,
           recipes becoming stories, stories becoming sales.
         </p>
+
+        <ul className="relative mt-6 grid max-w-2xl gap-2">
+          {briefing.map((line, i) => (
+            <li
+              key={line}
+              style={{ animationDelay: `${140 + i * 90}ms` }}
+              className="animate-blur-in flex items-start gap-2.5 text-[13px] leading-snug text-charcoal/75"
+            >
+              <span className="mt-1.5 size-1.5 shrink-0 rounded-full bg-[var(--ws-accent)]" />
+              {line}
+            </li>
+          ))}
+        </ul>
+
+        <button
+          onClick={() => onNavigate("ai-studio")}
+          className="sheen-on-hover relative mt-6 inline-flex items-center gap-2 overflow-hidden rounded-full px-5 py-2.5 text-[12px] font-bold text-cream shadow-lg transition-all duration-500 hover:-translate-y-0.5"
+          style={{ background: "linear-gradient(120deg, var(--ws-accent), var(--ws-tint))" }}
+        >
+          <Sparkles className="size-3.5" /> Recommended: generate today's campaign
+        </button>
       </section>
 
       <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
@@ -2100,6 +2137,7 @@ function OverviewPanel({ onNavigate }: { onNavigate: (t: string) => void }) {
             { label: "Recipe", icon: ChefHat, hint: "Kitchen origin" },
             { label: "Blog", icon: FileText, hint: "The story" },
             { label: "Pins", icon: ImageIcon, hint: "Discovery" },
+            { label: "Homepage", icon: LayoutDashboard, hint: "The shopfront" },
             { label: "Cookbook", icon: BookOpen, hint: "The product" },
             { label: "Campaign", icon: Megaphone, hint: "The push" },
             { label: "Analytics", icon: TrendingUp, hint: "The proof" },
