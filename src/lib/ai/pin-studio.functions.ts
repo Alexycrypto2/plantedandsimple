@@ -19,9 +19,23 @@ const PinSchema = z.object({
       alt: z.string(),
       hashtags: z.array(z.string()),
       image_prompt: z.string(),
+      primary_keyword: z.string(),
+      board_suggestion: z.string(),
     }),
   ),
 });
+
+/** Shared brief so every pin is search-optimised and on-brand. */
+export const PIN_BRIEF = `You are the Pinterest growth lead for PlantedAndSimple, a premium plant-based cookbook brand (forest green, sage, cream, editorial food photography).
+Write pins the way top food creators do:
+- title: 40-100 chars, front-load the primary keyword, no clickbait, no ALL CAPS, no emoji spam (max 1 emoji).
+- overlay_text: max 6 punchy words, the single promise a scroller reads in 0.4s.
+- description: 180-480 chars of natural Pinterest SEO — primary keyword in the first sentence, 2-3 related search terms, one clear reason to click through to the recipe, ends with a soft CTA.
+- hashtags: 4-5 lowercase, specific (#highproteinvegan not #food).
+- primary_keyword: the exact search phrase this pin targets.
+- board_suggestion: the board this belongs on (e.g. "Vegan Dinners").
+- image_prompt: a photorealistic vertical food photography brief for THIS exact dish — describe the dish, styling, props, surface and light, plus deliberate clean negative space in the top third for a text overlay. Never describe any text, words, logos or graphics inside the frame.
+Each pin must use a genuinely different visual style AND a different hook angle (curiosity, benefit, how-to, list, transformation).`;
 
 export const generatePinSet = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -44,12 +58,14 @@ export const generatePinSet = createServerFn({ method: "POST" })
       const res = await generateText({
         model,
         output: Output.object({ schema: PinSchema }),
-        prompt: `${memory}
+      prompt: `${memory}
 
-Create ${data.count} Pinterest pins for PlantedAndSimple, a premium plant-based cookbook brand.
+${PIN_BRIEF}
+
+Create ${data.count} pins.
 Subject: "${data.subject}"
 ${data.styles.length ? `Use these visual styles, one per pin: ${data.styles.join(", ")}.` : `Use ${data.count} clearly different visual styles from: ${PIN_STYLES.join(", ")}.`}
-Rules: title <= 100 chars, overlay_text <= 8 punchy words, description <= 480 chars written for Pinterest SEO, 4-5 hashtags, image_prompt is a photorealistic vertical food photography brief with clean space at the top for text (never describe text inside the image). Return JSON only.`,
+Return JSON only.`,
         providerOptions: { lovable: { reasoningEffort: "none" } },
       });
       output = res.output;
@@ -170,6 +186,8 @@ const PreviewSchema = z.object({
       hashtags: z.array(z.string()),
       image_prompt: z.string(),
       why_it_works: z.string(),
+      primary_keyword: z.string(),
+      board_suggestion: z.string(),
     }),
   ),
 });
@@ -196,13 +214,13 @@ export const generatePinPreviewPack = createServerFn({ method: "POST" })
       const res = await generateText({
         model,
         output: Output.object({ schema: PreviewSchema }),
-        prompt: `${memory}
+      prompt: `${memory}
 
-Create exactly 5 Pinterest pin variants for PlantedAndSimple, a premium plant-based cookbook brand.
+${PIN_BRIEF}
+
+Create exactly 5 pin variants, each a different visual style from: ${PIN_STYLES.join(", ")}.
 Subject: "${data.subject}"
-Each pin uses a DIFFERENT visual style from: ${PIN_STYLES.join(", ")} — and a different hook angle (curiosity, benefit, how-to, list, transformation).
-Rules: title <= 100 chars, overlay_text <= 8 punchy words, description <= 480 chars written for Pinterest SEO, 4-5 hashtags, why_it_works is one sentence on the psychology of that hook.
-image_prompt is a photorealistic vertical food photography brief with clean empty space in the top third; never describe text inside the image. Return JSON only.`,
+Also add why_it_works: one sentence on the psychology of that hook. Return JSON only.`,
         providerOptions: { lovable: { reasoningEffort: "none" } },
       });
       output = res.output;

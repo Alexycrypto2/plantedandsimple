@@ -29,6 +29,7 @@ import { Route as RecipesIndexRouteImport } from './routes/recipes.index'
 import { Route as BlogIndexRouteImport } from './routes/blog.index'
 import { Route as ShopSlugRouteImport } from './routes/shop.$slug'
 import { Route as RecipesSlugRouteImport } from './routes/recipes.$slug'
+import { Route as PSlugRouteImport } from './routes/p.$slug'
 import { Route as EmailUnsubscribeRouteImport } from './routes/email/unsubscribe'
 import { Route as CollectionsSlugRouteImport } from './routes/collections.$slug'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
@@ -40,6 +41,7 @@ import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/l
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
 import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/email/auth/webhook'
 import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
+import { Route as ApiPublicPinterestPublishDueRouteImport } from './routes/api/public/pinterest/publish-due'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
 import { Route as ApiPublicDownloadCookbookRouteImport } from './routes/api/public/download/cookbook'
 import { Route as ApiPublicPinterestOauthCallbackRouteImport } from './routes/api/public/pinterest/oauth/callback'
@@ -143,6 +145,11 @@ const RecipesSlugRoute = RecipesSlugRouteImport.update({
   path: '/$slug',
   getParentRoute: () => RecipesRoute,
 } as any)
+const PSlugRoute = PSlugRouteImport.update({
+  id: '/p/$slug',
+  path: '/p/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const EmailUnsubscribeRoute = EmailUnsubscribeRouteImport.update({
   id: '/email/unsubscribe',
   path: '/email/unsubscribe',
@@ -201,6 +208,12 @@ const LovableEmailAuthPreviewRoute = LovableEmailAuthPreviewRouteImport.update({
   path: '/lovable/email/auth/preview',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicPinterestPublishDueRoute =
+  ApiPublicPinterestPublishDueRouteImport.update({
+    id: '/api/public/pinterest/publish-due',
+    path: '/api/public/pinterest/publish-due',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicPaymentsWebhookRoute =
   ApiPublicPaymentsWebhookRouteImport.update({
     id: '/api/public/payments/webhook',
@@ -240,6 +253,7 @@ export interface FileRoutesByFullPath {
   '/blog/$slug': typeof BlogSlugRoute
   '/collections/$slug': typeof CollectionsSlugRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
+  '/p/$slug': typeof PSlugRoute
   '/recipes/$slug': typeof RecipesSlugRoute
   '/shop/$slug': typeof ShopSlugRoute
   '/blog/': typeof BlogIndexRoute
@@ -248,6 +262,7 @@ export interface FileRoutesByFullPath {
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/api/public/download/cookbook': typeof ApiPublicDownloadCookbookRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
+  '/api/public/pinterest/publish-due': typeof ApiPublicPinterestPublishDueRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
@@ -272,6 +287,7 @@ export interface FileRoutesByTo {
   '/blog/$slug': typeof BlogSlugRoute
   '/collections/$slug': typeof CollectionsSlugRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
+  '/p/$slug': typeof PSlugRoute
   '/recipes/$slug': typeof RecipesSlugRoute
   '/shop/$slug': typeof ShopSlugRoute
   '/blog': typeof BlogIndexRoute
@@ -280,6 +296,7 @@ export interface FileRoutesByTo {
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/api/public/download/cookbook': typeof ApiPublicDownloadCookbookRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
+  '/api/public/pinterest/publish-due': typeof ApiPublicPinterestPublishDueRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
@@ -309,6 +326,7 @@ export interface FileRoutesById {
   '/blog/$slug': typeof BlogSlugRoute
   '/collections/$slug': typeof CollectionsSlugRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
+  '/p/$slug': typeof PSlugRoute
   '/recipes/$slug': typeof RecipesSlugRoute
   '/shop/$slug': typeof ShopSlugRoute
   '/blog/': typeof BlogIndexRoute
@@ -317,6 +335,7 @@ export interface FileRoutesById {
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/api/public/download/cookbook': typeof ApiPublicDownloadCookbookRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
+  '/api/public/pinterest/publish-due': typeof ApiPublicPinterestPublishDueRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
@@ -346,6 +365,7 @@ export interface FileRouteTypes {
     | '/blog/$slug'
     | '/collections/$slug'
     | '/email/unsubscribe'
+    | '/p/$slug'
     | '/recipes/$slug'
     | '/shop/$slug'
     | '/blog/'
@@ -354,6 +374,7 @@ export interface FileRouteTypes {
     | '/lovable/email/suppression'
     | '/api/public/download/cookbook'
     | '/api/public/payments/webhook'
+    | '/api/public/pinterest/publish-due'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/queue/process'
@@ -378,6 +399,7 @@ export interface FileRouteTypes {
     | '/blog/$slug'
     | '/collections/$slug'
     | '/email/unsubscribe'
+    | '/p/$slug'
     | '/recipes/$slug'
     | '/shop/$slug'
     | '/blog'
@@ -386,6 +408,7 @@ export interface FileRouteTypes {
     | '/lovable/email/suppression'
     | '/api/public/download/cookbook'
     | '/api/public/payments/webhook'
+    | '/api/public/pinterest/publish-due'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/queue/process'
@@ -414,6 +437,7 @@ export interface FileRouteTypes {
     | '/blog/$slug'
     | '/collections/$slug'
     | '/email/unsubscribe'
+    | '/p/$slug'
     | '/recipes/$slug'
     | '/shop/$slug'
     | '/blog/'
@@ -422,6 +446,7 @@ export interface FileRouteTypes {
     | '/lovable/email/suppression'
     | '/api/public/download/cookbook'
     | '/api/public/payments/webhook'
+    | '/api/public/pinterest/publish-due'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/queue/process'
@@ -448,9 +473,11 @@ export interface RootRouteChildren {
   ThankYouRoute: typeof ThankYouRoute
   CollectionsSlugRoute: typeof CollectionsSlugRoute
   EmailUnsubscribeRoute: typeof EmailUnsubscribeRoute
+  PSlugRoute: typeof PSlugRoute
   LovableEmailSuppressionRoute: typeof LovableEmailSuppressionRoute
   ApiPublicDownloadCookbookRoute: typeof ApiPublicDownloadCookbookRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
+  ApiPublicPinterestPublishDueRoute: typeof ApiPublicPinterestPublishDueRoute
   LovableEmailAuthPreviewRoute: typeof LovableEmailAuthPreviewRoute
   LovableEmailAuthWebhookRoute: typeof LovableEmailAuthWebhookRoute
   LovableEmailQueueProcessRoute: typeof LovableEmailQueueProcessRoute
@@ -601,6 +628,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RecipesSlugRouteImport
       parentRoute: typeof RecipesRoute
     }
+    '/p/$slug': {
+      id: '/p/$slug'
+      path: '/p/$slug'
+      fullPath: '/p/$slug'
+      preLoaderRoute: typeof PSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/email/unsubscribe': {
       id: '/email/unsubscribe'
       path: '/email/unsubscribe'
@@ -676,6 +710,13 @@ declare module '@tanstack/react-router' {
       path: '/lovable/email/auth/preview'
       fullPath: '/lovable/email/auth/preview'
       preLoaderRoute: typeof LovableEmailAuthPreviewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/pinterest/publish-due': {
+      id: '/api/public/pinterest/publish-due'
+      path: '/api/public/pinterest/publish-due'
+      fullPath: '/api/public/pinterest/publish-due'
+      preLoaderRoute: typeof ApiPublicPinterestPublishDueRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/payments/webhook': {
@@ -770,9 +811,11 @@ const rootRouteChildren: RootRouteChildren = {
   ThankYouRoute: ThankYouRoute,
   CollectionsSlugRoute: CollectionsSlugRoute,
   EmailUnsubscribeRoute: EmailUnsubscribeRoute,
+  PSlugRoute: PSlugRoute,
   LovableEmailSuppressionRoute: LovableEmailSuppressionRoute,
   ApiPublicDownloadCookbookRoute: ApiPublicDownloadCookbookRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
+  ApiPublicPinterestPublishDueRoute: ApiPublicPinterestPublishDueRoute,
   LovableEmailAuthPreviewRoute: LovableEmailAuthPreviewRoute,
   LovableEmailAuthWebhookRoute: LovableEmailAuthWebhookRoute,
   LovableEmailQueueProcessRoute: LovableEmailQueueProcessRoute,

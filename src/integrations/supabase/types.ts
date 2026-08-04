@@ -1174,6 +1174,80 @@ export type Database = {
           },
         ]
       }
+      pinterest_posts: {
+        Row: {
+          board_id: string | null
+          board_name: string | null
+          clicks: number
+          created_at: string
+          description: string | null
+          destination_url: string
+          error: string | null
+          generation_id: string | null
+          id: string
+          image_url: string | null
+          pin_id: string | null
+          published_at: string | null
+          scheduled_for: string | null
+          slug: string
+          status: string
+          target_path: string | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          board_id?: string | null
+          board_name?: string | null
+          clicks?: number
+          created_at?: string
+          description?: string | null
+          destination_url: string
+          error?: string | null
+          generation_id?: string | null
+          id?: string
+          image_url?: string | null
+          pin_id?: string | null
+          published_at?: string | null
+          scheduled_for?: string | null
+          slug: string
+          status?: string
+          target_path?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          board_id?: string | null
+          board_name?: string | null
+          clicks?: number
+          created_at?: string
+          description?: string | null
+          destination_url?: string
+          error?: string | null
+          generation_id?: string | null
+          id?: string
+          image_url?: string | null
+          pin_id?: string | null
+          published_at?: string | null
+          scheduled_for?: string | null
+          slug?: string
+          status?: string
+          target_path?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pinterest_posts_generation_id_fkey"
+            columns: ["generation_id"]
+            isOneToOne: false
+            referencedRelation: "ai_generations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pricing_settings: {
         Row: {
           compare_at_cents: number
@@ -1592,6 +1666,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      increment_pin_click: { Args: { _slug: string }; Returns: undefined }
       move_to_dlq: {
         Args: {
           dlq_name: string
