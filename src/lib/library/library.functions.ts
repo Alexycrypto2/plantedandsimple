@@ -23,6 +23,22 @@ async function mediaMap(sb: any, ids: Array<string | null | undefined>) {
 }
 
 function mapRecipe(r: any, media: Map<string, string>): Recipe {
+  const rawIngredients = Array.isArray(r.ingredients) ? r.ingredients : [];
+  const ingredients = rawIngredients.length > 0 && rawIngredients.every((item: unknown) => typeof item === "string")
+    ? [{ group: null, items: rawIngredients.filter((item: unknown): item is string => typeof item === "string") }]
+    : rawIngredients.map((group: any) => ({
+        group: typeof group?.group === "string" ? group.group : null,
+        items: Array.isArray(group?.items) ? group.items.filter((item: unknown): item is string => typeof item === "string") : [],
+      })).filter((group: any) => group.items.length > 0);
+  const rawInstructions = Array.isArray(r.instructions) ? r.instructions : [];
+  const instructions = rawInstructions.map((step: any) =>
+    typeof step === "string"
+      ? { title: null, body: step }
+      : { title: typeof step?.title === "string" ? step.title : null, body: typeof step?.body === "string" ? step.body : "" },
+  ).filter((step: any) => step.body);
+  const nutrition = (Array.isArray(r.nutrition) ? r.nutrition : []).filter(
+    (item: any) => item && typeof item.label === "string" && typeof item.value === "string",
+  );
   return {
     id: r.id,
     slug: r.slug,
@@ -33,10 +49,10 @@ function mapRecipe(r: any, media: Map<string, string>): Recipe {
     hero_image_url: r.hero_image_id ? (media.get(r.hero_image_id) ?? null) : null,
     gallery_ids: r.gallery_ids ?? [],
     gallery_urls: (r.gallery_ids ?? []).map((id: string) => media.get(id)).filter(Boolean) as string[],
-    ingredients: r.ingredients ?? [],
-    instructions: r.instructions ?? [],
-    nutrition: r.nutrition ?? [],
-    tips: r.tips ?? [],
+    ingredients,
+    instructions,
+    nutrition,
+    tips: (Array.isArray(r.tips) ? r.tips : []).filter((item: unknown): item is string => typeof item === "string"),
     prep_minutes: r.prep_minutes ?? null,
     cook_minutes: r.cook_minutes ?? null,
     servings: r.servings ?? null,

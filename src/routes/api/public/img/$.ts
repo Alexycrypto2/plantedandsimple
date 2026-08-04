@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-const ALLOWED = new Set(["ai-images", "media"]);
+const ALLOWED = new Set(["ai-images", "media", "review-photos"]);
 
 export const Route = createFileRoute("/api/public/img/$")({
   server: {
