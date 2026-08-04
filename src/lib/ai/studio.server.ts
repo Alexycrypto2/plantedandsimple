@@ -33,8 +33,8 @@ export async function renderImage(
     .from("ai-images")
     .upload(path, Buffer.from(base64, "base64"), { contentType: mime, upsert: false });
   if (error) throw new Error(error.message);
-  const { data } = await supabaseAdmin.storage.from("ai-images").createSignedUrl(path, 60 * 60 * 24 * 365);
-  return { url: data?.signedUrl ?? null, path, prompt: full };
+  // Permanent, never-expiring URL served by our own image proxy route.
+  return { url: `/api/public/img/ai-images/${path}`, path, prompt: full };
 }
 
 /** Never let one failed render kill a whole generation run. */

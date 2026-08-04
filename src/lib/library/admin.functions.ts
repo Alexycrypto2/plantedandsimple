@@ -39,12 +39,11 @@ export const adminUploadMedia = createServerFn({ method: "POST" })
       upsert: false,
     });
     if (error) throw new Error(error.message);
-    const { data: signed } = await sb.storage.from("media").createSignedUrl(path, SIGNED_TTL);
     const { data: row, error: e2 } = await sb
       .from("media")
       .insert({
         storage_path: path,
-        public_url: signed?.signedUrl ?? "",
+        public_url: `/api/public/img/media/${path}`,
         alt: data.alt ?? "",
         title: data.fileName,
         mime_type: data.contentType,

@@ -49,8 +49,7 @@ export const generateStudioImage = createServerFn({ method: "POST" })
       .upload(path, buffer, { contentType: mime, upsert: false });
     if (upErr) throw new Error(upErr.message);
 
-    const { data: signed } = await supabaseAdmin.storage.from("ai-images").createSignedUrl(path, 60 * 60 * 24 * 365);
-    const preview_url = signed?.signedUrl ?? null;
+    const preview_url = `/api/public/img/ai-images/${path}`;
 
     const { data: row, error } = await (supabaseAdmin as any).from("ai_generations").insert({
       kind: "image",
