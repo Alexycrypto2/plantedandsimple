@@ -432,7 +432,9 @@ export function SkeletonList({ rows = 4 }: { rows?: number }) {
   );
 }
 
-export function EmptyState({ title, hint, action }: { title: string; hint?: string; action?: ReactNode }) {
+export function EmptyState({
+  title, hint, action, steps,
+}: { title: string; hint?: string; action?: ReactNode; steps?: string[] }) {
   return (
     <div className="relative grid place-items-center overflow-hidden rounded-[1.75rem] border border-white/60 bg-white/45 px-6 py-16 text-center backdrop-blur-xl">
       <div
@@ -448,6 +450,20 @@ export function EmptyState({ title, hint, action }: { title: string; hint?: stri
       </div>
       <p className="relative mt-4 font-display text-xl italic text-forest-deep">{title}</p>
       {hint && <p className="relative mt-1.5 max-w-sm text-xs leading-relaxed text-charcoal/55">{hint}</p>}
+      {steps && steps.length > 0 && (
+        <ul className="relative mt-4 grid gap-1.5 text-left">
+          {steps.map((s, i) => (
+            <li
+              key={s}
+              style={{ animationDelay: `${i * 70}ms` }}
+              className="animate-blur-in flex items-center gap-2 text-[11px] text-charcoal/60"
+            >
+              <span className="size-1.5 shrink-0 rounded-full bg-[var(--ws-accent)]" />
+              {s}
+            </li>
+          ))}
+        </ul>
+      )}
       {action && <div className="relative mt-5">{action}</div>}
     </div>
   );
@@ -582,14 +598,24 @@ export function FlowRibbon({
               className="animate-blur-in group flex w-32 flex-col items-center gap-2 rounded-2xl px-3 py-3 text-center transition-all duration-500 hover:-translate-y-1"
               style={{ animationDelay: `${i * 110}ms` }}
             >
-              <span
-                className="grid size-10 place-items-center rounded-2xl text-cream shadow-lg transition-transform duration-500 group-hover:scale-110"
-                style={{
-                  background: "linear-gradient(140deg, var(--ws-accent), var(--ws-tint))",
-                  boxShadow: "0 16px 30px -18px var(--ws-accent)",
-                }}
-              >
-                <s.icon className="size-4" />
+              <span className="relative grid size-10 place-items-center">
+                <span
+                  aria-hidden
+                  className="animate-node-pulse absolute inset-0 rounded-2xl"
+                  style={{
+                    background: "color-mix(in oklab, var(--ws-accent) 40%, transparent)",
+                    animationDelay: `${i * 380}ms`,
+                  }}
+                />
+                <span
+                  className="relative grid size-10 place-items-center rounded-2xl text-cream shadow-lg transition-transform duration-500 group-hover:scale-110"
+                  style={{
+                    background: "linear-gradient(140deg, var(--ws-accent), var(--ws-tint))",
+                    boxShadow: "0 16px 30px -18px var(--ws-accent)",
+                  }}
+                >
+                  <s.icon className="size-4" />
+                </span>
               </span>
               <span className="text-[11px] font-bold text-forest-deep">{s.label}</span>
               {s.hint && <span className="text-[10px] leading-tight text-charcoal/50">{s.hint}</span>}
