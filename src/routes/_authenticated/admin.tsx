@@ -13,7 +13,6 @@ import { AiBlogWriterModal, type AiBlogDraft } from "@/components/admin/AiBlogWr
 import { TrendingPanel } from "@/components/admin/TrendingPanel";
 import {
   IntelligencePanel,
-  ExperimentsPanel,
   BrandPanel,
 } from "@/components/admin/LearningPanels";
 import {
@@ -254,7 +253,6 @@ function AiStudioSection({ onNavigate }: { onNavigate: (t: string) => void }) {
         { id: "trending", label: "Trend Radar", icon: TrendingUp },
         { id: "assistant", label: "Assistant", icon: Bot },
         { id: "images", label: "Image Studio", icon: ImageIcon },
-        { id: "experiments", label: "Experiments", icon: FlaskConical },
       ]}
     >
       {(t) => (
@@ -269,7 +267,6 @@ function AiStudioSection({ onNavigate }: { onNavigate: (t: string) => void }) {
           )}
           {t === "assistant" && <AssistantPanel />}
           {t === "images" && <AiStudioPanel />}
-          {t === "experiments" && <ExperimentsPanel />}
         </>
       )}
     </Section>
