@@ -75,7 +75,7 @@ import {
   DollarSign, Users, Mail, Gift, Download, Package, FileText,
   Sparkles, ShoppingBag, ArrowUpRight, Image as ImageIcon, Bot,
   Tags, Star, Handshake, ShieldCheck, Plug, Palette, FlaskConical, Brain, TrendingUp,
-  ChefHat, Megaphone, BookOpen,
+  ChefHat, Megaphone, BookOpen, LayoutDashboard,
 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin")({
