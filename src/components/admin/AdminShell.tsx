@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
   LayoutDashboard, TrendingUp, Package, LibraryBig, ChefHat,
   FileText, Sparkles, Image as ImageIcon, CheckCircle2, Settings2,
-  Users, LogOut, ExternalLink, Search, X, Menu,
+  Users, LogOut, ExternalLink, Search, X, Menu, Waves, Zap,
   type LucideIcon,
 } from "lucide-react";
 
@@ -41,6 +41,65 @@ export const WORKSPACE_THEME: Record<string, { accent: string; tint: string; moo
 
 function theme(tab: string) {
   return WORKSPACE_THEME[tab] ?? WORKSPACE_THEME["dashboard"]!;
+}
+
+/** Every workspace opens with its own inspiring introduction. */
+export const WORKSPACE_INTRO: Record<string, { headline: string; sub: string }> = {
+  library:     { headline: "Everything you've created lives here.", sub: "Recipes, stories, pins and products — one connected library." },
+  recipes:     { headline: "What are we cooking next?", sub: "Every recipe becomes a blog, a pin, a campaign and a chapter." },
+  blogs:       { headline: "Tell a story worth reading.", sub: "Research, draft, illustrate and optimise — with AI beside you." },
+  "ai-studio": { headline: "What would you like to create today?", sub: "Trends, drafts, images and experiments, all in one room." },
+  pinterest:   { headline: "Design Pinterest content that gets saved.", sub: "Branded pins, best posting windows, real discovery." },
+  products:    { headline: "The shelf that pays the bills.", sub: "Cookbooks, bundles and offers your readers actually buy." },
+  audience:    { headline: "The people on the other side.", sub: "Subscribers, buyers and the humans behind every download." },
+  approvals:   { headline: "Nothing ships without you.", sub: "Preview, understand and approve everything the AI prepared." },
+  analytics:   { headline: "Proof that it's working.", sub: "Traffic, pins, downloads and revenue — connected end to end." },
+  settings:    { headline: "The quiet machinery.", sub: "Keys, integrations and the rules your AI works within." },
+};
+
+/** Rotating "the AI is working" messages — pure presentation. */
+const AI_THOUGHTS = [
+  "Analysing Pinterest saves…",
+  "Checking Google Trends…",
+  "Learning from yesterday's campaign…",
+  "Generating tomorrow's recommendations…",
+  "Updating seasonal opportunities…",
+  "Scanning recipes with strong potential…",
+  "Re-ranking topics by brand fit…",
+];
+
+function AiThought() {
+  const [i, setI] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => setI((n) => (n + 1) % AI_THOUGHTS.length), 5200);
+    return () => clearInterval(id);
+  }, []);
+  return (
+    <span key={i} className="animate-ticker-in inline-flex items-center gap-1.5 truncate">
+      <Sparkles className="size-3 shrink-0" />
+      {AI_THOUGHTS[i]}
+    </span>
+  );
+}
+
+/** Global, persisted reduced-motion switch. */
+function useMotionToggle() {
+  const [on, setOn] = useState(true);
+  useEffect(() => {
+    const saved = typeof window !== "undefined" ? window.localStorage.getItem("pd-motion") : null;
+    const enabled = saved !== "off";
+    setOn(enabled);
+    document.documentElement.dataset["motion"] = enabled ? "on" : "off";
+  }, []);
+  const toggle = () => {
+    setOn((prev) => {
+      const next = !prev;
+      document.documentElement.dataset["motion"] = next ? "on" : "off";
+      try { window.localStorage.setItem("pd-motion", next ? "on" : "off"); } catch { /* ignore */ }
+      return next;
+    });
+  };
+  return { on, toggle };
 }
 
 function greeting() {
@@ -83,6 +142,7 @@ export function AdminShell({
 }) {
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState("");
+  const motion = useMotionToggle();
 
   useEffect(() => { setOpen(false); }, [activeTab]);
 
@@ -96,6 +156,7 @@ export function AdminShell({
 
   const active = NAV_META[activeTab];
   const ws = theme(activeTab);
+  const intro = WORKSPACE_INTRO[activeTab];
 
   const nav = (
     <div className="flex h-full flex-col">
@@ -187,6 +248,19 @@ export function AdminShell({
       </nav>
 
       <div className="m-3 rounded-2xl border border-forest/10 bg-white/60 p-3 backdrop-blur">
+        <button
+          onClick={motion.toggle}
+          className="mb-2.5 flex w-full items-center gap-2 rounded-xl px-2 py-1.5 text-left text-[11px] font-semibold text-charcoal/60 transition hover:bg-forest/5 hover:text-forest-deep"
+          aria-pressed={!motion.on}
+        >
+          {motion.on ? <Waves className="size-3.5" /> : <Zap className="size-3.5" />}
+          <span className="truncate">{motion.on ? "Motion on" : "Reduced motion"}</span>
+          <span
+            className={`ml-auto flex h-4 w-8 shrink-0 items-center rounded-full p-0.5 transition-colors ${motion.on ? "bg-[var(--ws-accent)]" : "bg-charcoal/20"}`}
+          >
+            <span className={`size-3 rounded-full bg-white transition-transform duration-300 ${motion.on ? "translate-x-4" : ""}`} />
+          </span>
+        </button>
         <div className="flex items-center gap-2.5">
           <div
             className="grid size-9 shrink-0 place-items-center rounded-full font-display text-sm italic text-cream"
