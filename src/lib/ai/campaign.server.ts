@@ -100,7 +100,7 @@ export async function runCampaign(opts: {
   /* ------------------------------- campaign copy ---------------------------- */
   const model = createGateway({ structuredOutputs: true })(DEFAULT_CHAT_MODEL);
   const { getMemoryContext } = await import("@/lib/learning/engine.server");
-  const memory = await getMemoryContext("campaign");
+  const memory = await getMemoryContext("general");
 
   let copy: z.infer<typeof CopySchema>;
   try {
