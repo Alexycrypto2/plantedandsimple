@@ -53,7 +53,6 @@ export function AiStudioPanel() {
   const [msg, setMsg] = useToast();
   const [busy, setBusy] = useState<string | null>(null);
 
-  const [topic, setTopic] = useState("");
   const [preset, setPreset] = useState<ImagePreset>("pinterest_pin");
   const [subject, setSubject] = useState("");
   const [lastImage, setLastImage] = useState<string | null>(null);
