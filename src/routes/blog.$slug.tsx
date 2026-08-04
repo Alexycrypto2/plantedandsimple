@@ -1,4 +1,4 @@
-import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { createFileRoute, Link, notFound, useRouter } from "@tanstack/react-router";
 import { SiteLayout } from "@/components/SiteLayout";
 import { getPublishedPostBySlug, type PublicPost } from "@/lib/blog.functions";
 
@@ -9,13 +9,7 @@ export const Route = createFileRoute("/blog/$slug")({
     if (!post) throw notFound();
     return { post };
   },
-  errorComponent: ({ error }) => (
-    <SiteLayout>
-      <div className="mx-auto max-w-3xl px-6 py-24 text-center">
-        <p className="text-red-600">{error.message}</p>
-      </div>
-    </SiteLayout>
-  ),
+  errorComponent: BlogError,
   notFoundComponent: () => (
     <SiteLayout>
       <div className="mx-auto max-w-3xl px-6 py-24 text-center">
@@ -50,6 +44,23 @@ export const Route = createFileRoute("/blog/$slug")({
   },
 });
 
+function BlogError({ error, reset }: { error: Error; reset: () => void }) {
+  const router = useRouter();
+  return (
+    <SiteLayout>
+      <section className="mx-auto max-w-2xl px-6 py-32 text-center">
+        <h1 className="font-display text-4xl italic text-forest-deep">We couldn&apos;t open this article</h1>
+        <p className="mt-4 text-charcoal/60">Try again, or return to the Blog without losing your place on the site.</p>
+        <div className="mt-8 flex flex-wrap justify-center gap-3">
+          <button onClick={() => { void router.invalidate(); reset(); }} className="rounded-full bg-forest px-8 py-3 text-[11px] font-bold uppercase tracking-[0.2em] text-cream">Try again</button>
+          <Link to="/blog" className="rounded-full border border-forest/20 px-8 py-3 text-[11px] font-bold uppercase tracking-[0.2em] text-forest">Back to Blog</Link>
+        </div>
+        <p className="sr-only">{error.message}</p>
+      </section>
+    </SiteLayout>
+  );
+}
+
 function PostPage() {
   const { post } = Route.useLoaderData() as { post: PublicPost };
   return (
@@ -79,9 +90,9 @@ function PostPage() {
           className="article-body mt-10"
           dangerouslySetInnerHTML={{ __html: post.content }}
         />
-        {post.tags.length > 0 && (
+        {(post.tags ?? []).length > 0 && (
           <div className="mt-12 flex flex-wrap gap-2">
-            {post.tags.map((t) => (
+            {(post.tags ?? []).map((t) => (
               <span key={t} className="rounded-full border border-forest/20 px-3 py-1 text-xs text-charcoal/70">
                 #{t}
               </span>

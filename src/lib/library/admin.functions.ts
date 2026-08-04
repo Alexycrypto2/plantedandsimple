@@ -61,6 +61,9 @@ export const adminAddMediaByUrl = createServerFn({ method: "POST" })
   .inputValidator((d: { url: string; alt?: string; title?: string; tags?: string[] }) => d)
   .handler(async ({ data, context }) => {
     await requireStaff(context.supabase, context.userId);
+    if (/\/object\/sign\/|[?&]token=/i.test(data.url)) {
+      throw new Error("Signed image links expire. Upload the image to Media instead.");
+    }
     const sb = await admin();
     const { data: row, error } = await sb
       .from("media")

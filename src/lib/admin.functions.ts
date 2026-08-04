@@ -71,15 +71,8 @@ export const adminListReviews = createServerFn({ method: "GET" })
       .order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
     const list = rows ?? [];
-    const signed = await Promise.all(
-      list.map(async (r: any) => {
-        let photo_signed_url: string | null = null;
-        if (r.photo_url) {
-          const { data: sig } = await supabaseAdmin.storage
-            .from("review-photos")
-            .createSignedUrl(r.photo_url, 60 * 60);
-          photo_signed_url = sig?.signedUrl ?? null;
-        }
+    const signed = list.map((r: any) => {
+        const photo_signed_url = r.photo_url ? `/api/public/img/review-photos/${r.photo_url}` : null;
         return {
           id: r.id,
           name: r.name,
@@ -94,8 +87,7 @@ export const adminListReviews = createServerFn({ method: "GET" })
           photo_path: r.photo_url,
           photo_signed_url,
         } satisfies AdminReview;
-      }),
-    );
+      });
     return signed;
   });
 

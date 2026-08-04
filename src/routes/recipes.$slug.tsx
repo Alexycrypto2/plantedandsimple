@@ -1,4 +1,4 @@
-import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { createFileRoute, Link, notFound, useRouter } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { SiteLayout } from "@/components/SiteLayout";
 import { MediaImage, Pill } from "@/components/site/primitives";
@@ -49,15 +49,33 @@ export const Route = createFileRoute("/recipes/$slug")({
             recipeYield: r.servings ?? undefined,
             prepTime: r.prep_minutes ? `PT${r.prep_minutes}M` : undefined,
             cookTime: r.cook_minutes ? `PT${r.cook_minutes}M` : undefined,
-            recipeIngredient: r.ingredients.flatMap((g) => g.items),
-            recipeInstructions: r.instructions.map((s) => ({ "@type": "HowToStep", text: s.body })),
+            recipeIngredient: (r.ingredients ?? []).flatMap((g) => g.items ?? []),
+            recipeInstructions: (r.instructions ?? []).map((s) => ({ "@type": "HowToStep", text: s.body })),
           }),
         },
       ],
     };
   },
   notFoundComponent: RecipeMissing,
+  errorComponent: RecipeError,
 });
+
+function RecipeError({ error, reset }: { error: Error; reset: () => void }) {
+  const router = useRouter();
+  return (
+    <SiteLayout>
+      <section className="mx-auto max-w-2xl px-6 py-32 text-center">
+        <h1 className="font-display text-4xl italic text-forest-deep">We couldn&apos;t open this recipe</h1>
+        <p className="mt-4 text-charcoal/60">The recipe is safe. Try loading it again or return to the recipe library.</p>
+        <div className="mt-8 flex flex-wrap justify-center gap-3">
+          <button onClick={() => { void router.invalidate(); reset(); }} className="rounded-full bg-forest px-8 py-3 text-[11px] font-bold uppercase tracking-[0.2em] text-cream">Try again</button>
+          <Link to="/recipes" className="rounded-full border border-forest/20 px-8 py-3 text-[11px] font-bold uppercase tracking-[0.2em] text-forest">Recipe library</Link>
+        </div>
+        <p className="sr-only">{error.message}</p>
+      </section>
+    </SiteLayout>
+  );
+}
 
 function RecipeMissing() {
   return (
@@ -104,13 +122,13 @@ function RecipeDetail() {
         <div className="mt-14 grid gap-12 md:grid-cols-[minmax(0,1fr)_1.4fr]">
           <section>
             <h2 className="font-display text-3xl italic text-forest-deep">Ingredients</h2>
-            {r.ingredients.map((g, i) => (
+            {(r.ingredients ?? []).map((g, i) => (
               <div key={i} className="mt-6">
                 {g.group ? (
                   <h3 className="text-[11px] font-bold uppercase tracking-[0.2em] text-sage">{g.group}</h3>
                 ) : null}
                 <ul className="mt-3 space-y-2 text-sm leading-relaxed text-charcoal/75">
-                  {g.items.map((it, j) => (
+                  {(g.items ?? []).map((it, j) => (
                     <li key={j} className="border-b border-forest/10 pb-2">
                       {it}
                     </li>
@@ -123,7 +141,7 @@ function RecipeDetail() {
           <section>
             <h2 className="font-display text-3xl italic text-forest-deep">Method</h2>
             <ol className="mt-6 space-y-6">
-              {r.instructions.map((s, i) => (
+              {(r.instructions ?? []).map((s, i) => (
                 <li key={i} className="grid grid-cols-[auto_minmax(0,1fr)] gap-4">
                   <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-forest text-xs font-bold text-cream">
                     {i + 1}
@@ -138,11 +156,11 @@ function RecipeDetail() {
           </section>
         </div>
 
-        {r.nutrition.length ? (
+        {(r.nutrition ?? []).length ? (
           <section className="mt-14 rounded-[2rem] bg-cream-warm p-8">
             <h2 className="font-display text-2xl italic text-forest-deep">Nutrition per serving</h2>
             <div className="mt-5 grid grid-cols-2 gap-4 sm:grid-cols-4">
-              {r.nutrition.map((n) => (
+              {(r.nutrition ?? []).map((n) => (
                 <div key={n.label}>
                   <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-charcoal/50">{n.label}</p>
                   <p className="mt-1 font-display text-2xl italic text-forest-deep">{n.value}</p>
@@ -152,22 +170,22 @@ function RecipeDetail() {
           </section>
         ) : null}
 
-        {r.tips.length ? (
+        {(r.tips ?? []).length ? (
           <section className="mt-12">
             <h2 className="font-display text-2xl italic text-forest-deep">Cooking tips</h2>
             <ul className="mt-4 space-y-3 text-sm leading-relaxed text-charcoal/75">
-              {r.tips.map((t, i) => (
+              {(r.tips ?? []).map((t, i) => (
                 <li key={i}>— {t}</li>
               ))}
             </ul>
           </section>
         ) : null}
 
-        {related.products.length ? (
+        {(related?.products ?? []).length ? (
           <section className="mt-16">
             <h2 className="font-display text-3xl italic text-forest-deep">Goes with</h2>
             <div className="mt-6 grid gap-5 sm:grid-cols-2">
-              {related.products.map((p) => (
+              {(related?.products ?? []).map((p) => (
                 <Link
                   key={p.id}
                   to="/shop/$slug"
@@ -185,11 +203,11 @@ function RecipeDetail() {
           </section>
         ) : null}
 
-        {related.recipes.length ? (
+        {(related?.recipes ?? []).length ? (
           <section className="mt-16">
             <h2 className="font-display text-3xl italic text-forest-deep">More like this</h2>
             <div className="mt-6 grid gap-5 sm:grid-cols-3">
-              {related.recipes.map((p) => (
+              {(related?.recipes ?? []).map((p) => (
                 <Link key={p.id} to="/recipes/$slug" params={{ slug: p.slug }} className="group">
                   <MediaImage src={p.image_url} alt={p.title} className="rounded-2xl" />
                   <h3 className="mt-3 font-display text-lg italic text-forest-deep">{p.title}</h3>
