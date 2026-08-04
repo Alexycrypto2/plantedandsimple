@@ -233,7 +233,7 @@ export const generateStudioBlog = createServerFn({ method: "POST" })
     const { getMemoryContext } = await import("@/lib/learning/engine.server");
     const memory = await getMemoryContext("blog");
 
-    const prompt = `Write a production-ready editorial blog article for PlantedAndSimple, a premium plant-based cookbook brand.
+    const prompt = `You are a senior food editor at a magazine like Bon Appétit writing for PlantedAndSimple, a premium plant-based cookbook brand. Write a publication-ready editorial article — the kind a human editor would sign off without edits.
 
 ${memory}
 
@@ -250,8 +250,10 @@ Rules:
 - Never include an <h1> in HTML; h1 is returned separately as "h1".
 - sections: 5-9 items. Each html uses <p>, <h3>, <ul>/<ol>, <strong> only — no <h2> (the heading field is the H2).
 - callout: a short highlighted tip, or null.
-- image_prompt: decide yourself where a photo genuinely helps the reader (typically the 4-5 most visual/instructional sections); leave the rest null. Each brief must be photorealistic editorial food photography, natural light, cream + forest palette, no text or logos in the image, and must describe the exact dish/step for that section so no two images look alike.
-- Write like a senior food editor: specific sensory detail, real technique, numbers and timings, no filler or generic AI phrasing. Every H2 must deliver new information; vary sentence length; use short scannable paragraphs.
+- image_prompt: decide yourself where a photo genuinely helps the reader (typically the 4-5 most visual/instructional sections); leave the rest null. Each brief is a full photography direction naming the exact dish, its real ingredients and colours, the plating, the surface, the props and the camera angle, so no two images in the article look alike. Never request text, labels, packaging, logos or people's faces in an image. If a section is abstract (nutrition science, mindset, shopping advice) leave image_prompt null rather than forcing a generic food photo.
+- Writing standard (this matters most): open with a concrete scene or a real problem, never with "In today's world" or "Whether you're…". Use specific detail — ingredient amounts, temperatures, timings, textures, costs, brands of equipment. Explain the WHY behind every technique. Vary sentence length; use short scannable paragraphs of 2-4 sentences. Include at least one honest trade-off or common mistake. Write in second person, confident and warm, never breathless.
+- Banned: "delve", "elevate", "unlock", "game-changer", "in the world of", "look no further", "when it comes to", "nestled", "embark", "tantalising", "burst of flavour", em-dash-heavy AI cadence, exclamation marks, and any sentence that would read the same for a different recipe.
+- Every H2 must deliver information no other section covers. No section may restate the intro.
 - ${data.includeRecipe ? "recipe: full recipe card with realistic nutrition per serving." : "recipe: null."}
 - ${data.includeFaq ? "faqs: 5-6 items answering real People Also Ask questions." : "faqs: []."}
 - ${data.includeProduct ? "related_product_html: a short HTML block recommending the PlantedAndSimple digital cookbook." : "related_product_html: null."}
