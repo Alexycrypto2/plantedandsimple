@@ -8,6 +8,7 @@ import {
   IntegrationsPanel,
 } from "@/components/admin/AiPanels";
 import { BlogStudioPanel, PinterestStudioPanel } from "@/components/admin/BlogStudio";
+import { PinPublisher } from "@/components/admin/PinPublisher";
 import { CampaignPanel } from "@/components/admin/CampaignPanel";
 import { AnalyticsDashboard } from "@/components/admin/AnalyticsPanel";
 import { AiBlogWriterModal, type AiBlogDraft } from "@/components/admin/AiBlogWriter";
@@ -184,7 +185,21 @@ function AdminPage() {
       {activeTab === "recipes" && isBoss && <RecipesSection />}
       {activeTab === "blogs" && isBoss && <BlogsSection />}
       {activeTab === "ai-studio" && isBoss && <AiStudioSection onNavigate={(t) => setTab(t as Tab)} />}
-      {activeTab === "pinterest" && isBoss && <PinterestStudioPanel />}
+      {activeTab === "pinterest" && isBoss && (
+        <Section
+          tabs={[
+            { id: "studio", label: "Pin Studio", icon: ImageIcon },
+            { id: "publish", label: "Publish & Schedule", icon: Sparkles },
+          ]}
+        >
+          {(t) => (
+            <>
+              {t === "studio" && <PinterestStudioPanel />}
+              {t === "publish" && <PinPublisher />}
+            </>
+          )}
+        </Section>
+      )}
       {activeTab === "campaigns" && isBoss && <CampaignPanel />}
       {activeTab === "products" && isBoss && <ProductsSection />}
       {activeTab === "audience" && isBoss && <AudienceSection />}
