@@ -131,7 +131,7 @@ export function AiStudioPanel() {
             <li key={t.id} className="flex flex-wrap items-center gap-3 py-3">
               <span className="flex-1 text-sm font-medium">{t.topic}</span>
               <span className="font-mono text-xs text-sage">score {t.ai_score ?? "—"}</span>
-              <button className={btnGhost} onClick={() => setTopic(t.topic)}>Write now</button>
+              <button className={btnGhost} onClick={() => setSubject(t.topic)}>Use as image subject</button>
             </li>
           ))}
           {topics.length === 0 && <li className="py-3 text-sm text-charcoal/50">No topics yet.</li>}
