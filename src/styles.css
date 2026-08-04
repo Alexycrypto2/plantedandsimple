@@ -290,3 +290,59 @@
   transition-delay: 0ms !important;
   scroll-behavior: auto !important;
 }
+
+/* ---------------------------------------------------------------------------
+ * Admin panel themes — swap the palette tokens only, so every existing
+ * utility (bg-cream, text-charcoal, bg-white…) re-skins with zero markup
+ * changes and identical animation in every theme.
+ * ------------------------------------------------------------------------ */
+[data-admin-theme="ink"] {
+  --forest: #86e0a4;
+  --forest-deep: #eaf6ec;
+  --sage: #4e7d5e;
+  --sage-soft: #1d2a22;
+  --cream: #080a08;
+  --cream-warm: #101410;
+  --charcoal: #e9efe7;
+  --color-white: #141a15;
+}
+
+[data-admin-theme="gold"] {
+  --forest: #e3c273;
+  --forest-deep: #faf1d9;
+  --sage: #8a6a1f;
+  --sage-soft: #2a2418;
+  --cream: #0c0a06;
+  --cream-warm: #17130c;
+  --charcoal: #f2e9d6;
+  --color-white: #1a150e;
+}
+
+[data-admin-theme="snow"] {
+  --forest: #2b2f33;
+  --forest-deep: #0d1013;
+  --sage: #8c959e;
+  --sage-soft: #e4e8ec;
+  --cream: #f7f8fa;
+  --cream-warm: #eceff3;
+  --charcoal: #14181c;
+  --color-white: #ffffff;
+}
+
+/* Dark admin themes need lighter hairlines and glass than the cream default. */
+[data-admin-theme="ink"] .bg-white\/55,
+[data-admin-theme="gold"] .bg-white\/55,
+[data-admin-theme="ink"] .bg-white\/60,
+[data-admin-theme="gold"] .bg-white\/60,
+[data-admin-theme="ink"] .bg-white\/45,
+[data-admin-theme="gold"] .bg-white\/45,
+[data-admin-theme="ink"] .bg-white\/70,
+[data-admin-theme="gold"] .bg-white\/70 {
+  background-color: color-mix(in oklab, var(--color-white) 78%, transparent);
+}
+[data-admin-theme="ink"] .border-white\/50,
+[data-admin-theme="gold"] .border-white\/50,
+[data-admin-theme="ink"] .border-white\/60,
+[data-admin-theme="gold"] .border-white\/60 {
+  border-color: color-mix(in oklab, var(--charcoal) 12%, transparent);
+}
