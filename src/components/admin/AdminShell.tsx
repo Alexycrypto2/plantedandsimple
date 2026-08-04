@@ -2,9 +2,9 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
   LayoutDashboard, TrendingUp, Package, LibraryBig, ChefHat,
   FileText, Sparkles, Image as ImageIcon, CheckCircle2, Settings2,
-  Users, LogOut, ExternalLink, Search, X, Menu, Waves, Zap, Palette,
+  Users, LogOut, ExternalLink, Search, X, Menu, Waves, Zap, Palette, Rocket,
   type LucideIcon,
-, Rocket} from "lucide-react";
+} from "lucide-react";
 
 export type NavItem = { id: string; label: string; icon: LucideIcon; group: string };
 
