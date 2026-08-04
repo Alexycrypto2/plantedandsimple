@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
   LayoutDashboard, TrendingUp, Package, LibraryBig, ChefHat,
   FileText, Sparkles, Image as ImageIcon, CheckCircle2, Settings2,
@@ -24,11 +24,50 @@ export const NAV_META: Record<string, { label: string; icon: LucideIcon; group: 
 
 const GROUP_ORDER = ["Overview", "Content", "Growth", "Configure"];
 
+/** Each workspace carries its own accent + ambience so sections feel like different rooms. */
+export const WORKSPACE_THEME: Record<string, { accent: string; tint: string; mood: string }> = {
+  dashboard: { accent: "#2e5e3b", tint: "#7fa77a", mood: "The whole brand, breathing in real time" },
+  library:   { accent: "#3f6f8f", tint: "#8fc0d8", mood: "Everything you've ever made, connected" },
+  recipes:   { accent: "#a4592f", tint: "#e0a878", mood: "The kitchen — where the flavour starts" },
+  blogs:     { accent: "#5a4a86", tint: "#a99ad6", mood: "Long-form storytelling studio" },
+  "ai-studio": { accent: "#7a3f6a", tint: "#d19cc4", mood: "Your quiet collaborator" },
+  pinterest: { accent: "#b03b52", tint: "#f0a3b0", mood: "Where the world discovers you" },
+  products:  { accent: "#8a6a1f", tint: "#e5c477", mood: "The shelf that pays the bills" },
+  audience:  { accent: "#2b6f66", tint: "#8fd3c6", mood: "The people on the other side" },
+  approvals: { accent: "#8a5a13", tint: "#efc07a", mood: "Nothing ships without you" },
+  analytics: { accent: "#2f5a7a", tint: "#93c2dd", mood: "Proof that it's working" },
+  settings:  { accent: "#4a4f49", tint: "#a9b1a6", mood: "The quiet machinery" },
+};
+
+function theme(tab: string) {
+  return WORKSPACE_THEME[tab] ?? WORKSPACE_THEME["dashboard"]!;
+}
+
 function greeting() {
   const h = new Date().getHours();
   if (h < 12) return "Good morning";
   if (h < 18) return "Good afternoon";
   return "Good evening";
+}
+
+/** Living backdrop: slow drifting aurora fields tinted by the active workspace. */
+function Ambience() {
+  return (
+    <div aria-hidden className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
+      <div
+        className="animate-aurora absolute -left-[18%] -top-[22%] size-[62vw] rounded-full blur-[110px] transition-colors duration-1000"
+        style={{ background: "color-mix(in oklab, var(--ws-accent) 26%, transparent)" }}
+      />
+      <div
+        className="animate-aurora absolute -right-[14%] top-[12%] size-[48vw] rounded-full blur-[120px] transition-colors duration-1000"
+        style={{ background: "color-mix(in oklab, var(--ws-tint) 30%, transparent)", animationDelay: "-9s" }}
+      />
+      <div
+        className="animate-aurora absolute bottom-[-20%] left-[22%] size-[52vw] rounded-full blur-[130px] transition-colors duration-1000"
+        style={{ background: "color-mix(in oklab, var(--ws-accent) 16%, transparent)", animationDelay: "-17s" }}
+      />
+    </div>
+  );
 }
 
 export function AdminShell({
@@ -56,16 +95,23 @@ export function AdminShell({
   })).filter((g) => g.items.length > 0);
 
   const active = NAV_META[activeTab];
+  const ws = theme(activeTab);
 
   const nav = (
     <div className="flex h-full flex-col">
-      <div className="flex items-center gap-3 px-5 py-5">
-        <div className="grid size-10 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-forest to-sage text-cream shadow-lg shadow-forest/25">
+      <div className="flex items-center gap-3 px-5 py-6">
+        <div
+          className="animate-float grid size-11 shrink-0 place-items-center rounded-2xl text-cream shadow-lg transition-colors duration-700"
+          style={{
+            background: "linear-gradient(140deg, var(--ws-accent), var(--ws-tint))",
+            boxShadow: "0 12px 30px -12px color-mix(in oklab, var(--ws-accent) 70%, transparent)",
+          }}
+        >
           <Sparkles className="size-5" />
         </div>
         <div className="min-w-0">
-          <p className="truncate font-display text-lg italic leading-tight text-forest-deep">Admin</p>
-          <p className="truncate font-mono text-[10px] uppercase tracking-[0.2em] text-sage">Command Center</p>
+          <p className="truncate font-display text-xl italic leading-tight text-forest-deep">PrimeDownloads</p>
+          <p className="truncate font-mono text-[9px] uppercase tracking-[0.28em] text-charcoal/40">Operating System</p>
         </div>
         <button
           onClick={() => setOpen(false)}
@@ -77,7 +123,7 @@ export function AdminShell({
       </div>
 
       <div className="px-4 pb-3">
-        <div className="flex items-center gap-2 rounded-xl border border-forest/10 bg-cream-warm/60 px-3 py-2">
+        <div className="flex items-center gap-2 rounded-2xl border border-forest/10 bg-white/60 px-3 py-2.5 shadow-inner backdrop-blur transition focus-within:border-[var(--ws-accent)]/40 focus-within:shadow-[0_0_0_4px_color-mix(in_oklab,var(--ws-accent)_10%,transparent)]">
           <Search className="size-3.5 shrink-0 text-charcoal/40" />
           <input
             value={q}
@@ -95,23 +141,40 @@ export function AdminShell({
               {g.name}
             </p>
             <div className="space-y-0.5">
-              {g.items.map((t) => {
+              {g.items.map((t, i) => {
                 const meta = NAV_META[t] ?? { label: t, icon: LayoutDashboard, group: "Command" };
                 const Icon = meta.icon;
                 const isActive = activeTab === t;
+                const tt = theme(t);
                 return (
                   <button
                     key={t}
                     onClick={() => onSelect(t)}
-                    className={`group relative flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-[13px] font-semibold transition-all duration-200 ${
+                    style={{
+                      animationDelay: `${i * 45}ms`,
+                      ...(isActive
+                        ? {
+                            background: `linear-gradient(120deg, ${tt.accent}, color-mix(in oklab, ${tt.tint} 85%, white))`,
+                            boxShadow: `0 14px 28px -16px ${tt.accent}`,
+                          }
+                        : {}),
+                    }}
+                    className={`group animate-blur-in relative flex w-full items-center gap-3 overflow-hidden rounded-2xl px-3 py-2.5 text-left text-[13px] font-semibold transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
                       isActive
-                        ? "bg-forest text-cream shadow-md shadow-forest/20"
-                        : "text-charcoal/70 hover:translate-x-0.5 hover:bg-forest/[0.06] hover:text-forest-deep"
+                        ? "scale-[1.015] text-cream"
+                        : "text-charcoal/70 hover:translate-x-1 hover:bg-white/70 hover:text-forest-deep"
                     }`}
                   >
-                    <Icon className={`size-4 shrink-0 transition-transform duration-200 ${isActive ? "" : "group-hover:scale-110"}`} />
+                    <span
+                      className={`grid size-7 shrink-0 place-items-center rounded-xl transition-all duration-500 ${
+                        isActive ? "bg-white/20" : "bg-forest/[0.05] group-hover:scale-110"
+                      }`}
+                      style={isActive ? {} : { color: tt.accent }}
+                    >
+                      <Icon className="size-3.5" />
+                    </span>
                     <span className="truncate">{meta.label}</span>
-                    {isActive && <span className="ml-auto size-1.5 rounded-full bg-cream/80" />}
+                    {isActive && <span className="ml-auto size-1.5 rounded-full bg-cream/90 animate-live" />}
                   </button>
                 );
               })}
@@ -123,14 +186,17 @@ export function AdminShell({
         )}
       </nav>
 
-      <div className="border-t border-forest/10 p-4">
+      <div className="m-3 rounded-2xl border border-forest/10 bg-white/60 p-3 backdrop-blur">
         <div className="flex items-center gap-2.5">
-          <div className="grid size-8 shrink-0 place-items-center rounded-full bg-sage/25 font-display text-sm italic text-forest-deep">
+          <div
+            className="grid size-9 shrink-0 place-items-center rounded-full font-display text-sm italic text-cream"
+            style={{ background: "linear-gradient(140deg, var(--ws-accent), var(--ws-tint))" }}
+          >
             {(email ?? "?").charAt(0).toUpperCase()}
           </div>
           <div className="min-w-0 flex-1">
             <p className="truncate text-[11px] font-semibold text-charcoal/80">{email}</p>
-            <p className="font-mono text-[9px] uppercase tracking-[0.2em] text-sage">{isBoss ? "boss" : "admin"}</p>
+            <p className="font-mono text-[9px] uppercase tracking-[0.22em] text-charcoal/40">{isBoss ? "boss" : "admin"}</p>
           </div>
           <button
             onClick={onLogout}
@@ -145,9 +211,13 @@ export function AdminShell({
   );
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(120%_80%_at_0%_0%,color-mix(in_oklab,var(--sage)_16%,transparent),transparent_60%)] bg-cream font-sans text-charcoal">
+    <div
+      className="relative min-h-screen bg-cream font-sans text-charcoal"
+      style={{ ["--ws-accent" as any]: ws.accent, ["--ws-tint" as any]: ws.tint }}
+    >
+      <Ambience />
       {/* Desktop sidebar */}
-      <aside className="fixed inset-y-0 left-0 z-40 hidden w-64 border-r border-forest/10 bg-white/85 backdrop-blur-xl lg:flex lg:flex-col">
+      <aside className="fixed inset-y-0 left-0 z-40 hidden w-64 border-r border-white/50 bg-white/55 backdrop-blur-2xl lg:flex lg:flex-col">
         {nav}
       </aside>
 
@@ -160,43 +230,54 @@ export function AdminShell({
         />
       )}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex w-72 flex-col border-r border-forest/10 bg-white shadow-2xl transition-transform duration-300 ease-out lg:hidden ${
+        className={`fixed inset-y-0 left-0 z-50 flex w-72 flex-col border-r border-white/50 bg-cream/95 shadow-2xl backdrop-blur-2xl transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] lg:hidden ${
           open ? "translate-x-0" : "-translate-x-full"
         }`}
       >
         {nav}
       </aside>
 
-      <div className="lg:pl-64">
-        <header className="sticky top-0 z-30 border-b border-forest/10 bg-cream/80 backdrop-blur-xl">
-          <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 px-4 py-3 sm:px-6">
+      <div className="relative z-10 lg:pl-64">
+        <header className="sticky top-0 z-30 border-b border-white/50 bg-cream/60 backdrop-blur-2xl">
+          <div
+            aria-hidden
+            className="absolute inset-x-0 bottom-0 h-px transition-colors duration-700"
+            style={{ background: "linear-gradient(90deg, transparent, var(--ws-accent), transparent)", opacity: 0.4 }}
+          />
+          <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 px-4 py-3.5 sm:px-6">
             <button
               onClick={() => setOpen(true)}
               aria-label="Open menu"
-              className="grid size-9 place-items-center rounded-xl border border-forest/15 bg-white text-forest lg:hidden"
+              className="grid size-9 place-items-center rounded-2xl border border-white/60 bg-white/70 text-forest backdrop-blur transition active:scale-95 lg:hidden"
             >
               <Menu className="size-4" />
             </button>
-            <div className="min-w-0">
-              <p className="font-mono text-[9px] font-bold uppercase tracking-[0.22em] text-sage">
-                {active?.group ?? "Admin"}
+            <div key={activeTab} className="min-w-0 animate-blur-in">
+              <p
+                className="flex items-center gap-2 font-mono text-[9px] font-bold uppercase tracking-[0.24em] transition-colors duration-700"
+                style={{ color: "var(--ws-accent)" }}
+              >
+                <span className="size-1.5 rounded-full bg-[var(--ws-accent)] animate-live" />
+                {active?.group ?? "Admin"} · {active?.label ?? activeTab}
               </p>
               <h1 className="truncate font-display text-xl italic text-forest-deep sm:text-2xl">
                 {activeTab === "dashboard" ? `${greeting()} ✨` : (active?.label ?? activeTab)}
               </h1>
+              <p className="hidden truncate text-[11px] text-charcoal/50 sm:block">{ws.mood}</p>
             </div>
             <a
               href="/"
               target="_blank"
               rel="noreferrer"
-              className="inline-flex w-fit shrink-0 items-center gap-1.5 justify-self-end rounded-full bg-forest px-3 py-2 text-[11px] font-semibold text-cream shadow-md shadow-forest/20 transition hover:bg-forest-deep sm:px-4 sm:text-xs"
+              style={{ background: "linear-gradient(120deg, var(--ws-accent), var(--ws-tint))" }}
+              className="sheen-on-hover relative inline-flex w-fit shrink-0 items-center gap-1.5 justify-self-end overflow-hidden rounded-full px-3 py-2 text-[11px] font-semibold text-cream shadow-lg transition-all duration-500 hover:-translate-y-0.5 sm:px-4 sm:text-xs"
             >
               View site <ExternalLink className="size-3.5" />
             </a>
           </div>
         </header>
 
-        <main key={activeTab} className="mx-auto max-w-7xl px-4 pb-16 pt-6 duration-500 animate-in fade-in slide-in-from-bottom-2 sm:px-6">
+        <main key={activeTab} className="animate-blur-in mx-auto max-w-7xl px-4 pb-24 pt-7 sm:px-6">
           {children}
         </main>
       </div>
@@ -214,7 +295,7 @@ export function SectionTabs({
   onSelect: (id: string) => void;
 }) {
   return (
-    <div className="-mx-1 mb-6 flex gap-1.5 overflow-x-auto rounded-2xl border border-forest/10 bg-white/70 p-1.5 backdrop-blur-xl [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+    <div className="-mx-1 mb-7 flex gap-1.5 overflow-x-auto rounded-full border border-white/60 bg-white/55 p-1.5 shadow-[0_10px_30px_-24px_rgba(0,0,0,0.5)] backdrop-blur-2xl [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
       {tabs.map((t) => {
         const Icon = t.icon;
         const on = active === t.id;
@@ -222,10 +303,18 @@ export function SectionTabs({
           <button
             key={t.id}
             onClick={() => onSelect(t.id)}
-            className={`inline-flex shrink-0 items-center gap-2 rounded-xl px-3.5 py-2 text-[12px] font-semibold transition-all duration-200 ${
+            style={
               on
-                ? "bg-forest text-cream shadow-md shadow-forest/20"
-                : "text-charcoal/60 hover:bg-forest/[0.06] hover:text-forest-deep"
+                ? {
+                    background: "linear-gradient(120deg, var(--ws-accent), var(--ws-tint))",
+                    boxShadow: "0 14px 26px -18px var(--ws-accent)",
+                  }
+                : {}
+            }
+            className={`inline-flex shrink-0 items-center gap-2 rounded-full px-4 py-2 text-[12px] font-semibold transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+              on
+                ? "scale-[1.03] text-cream"
+                : "text-charcoal/60 hover:-translate-y-0.5 hover:bg-white/80 hover:text-forest-deep"
             }`}
           >
             {Icon && <Icon className="size-3.5" />}
@@ -238,12 +327,12 @@ export function SectionTabs({
 }
 
 export function Skeleton({ className = "" }: { className?: string }) {
-  return <div className={`animate-pulse rounded-xl bg-forest/[0.07] ${className}`} />;
+  return <div className={`shimmer-surface rounded-2xl ${className}`} />;
 }
 
 export function SkeletonList({ rows = 4 }: { rows?: number }) {
   return (
-    <div className="space-y-2.5">
+    <div className="space-y-3">
       {Array.from({ length: rows }).map((_, i) => (
         <Skeleton key={i} className="h-16 w-full" />
       ))}
@@ -253,10 +342,21 @@ export function SkeletonList({ rows = 4 }: { rows?: number }) {
 
 export function EmptyState({ title, hint, action }: { title: string; hint?: string; action?: ReactNode }) {
   return (
-    <div className="grid place-items-center rounded-2xl border border-dashed border-forest/15 bg-cream-warm/40 px-6 py-12 text-center">
-      <p className="font-display text-lg italic text-forest-deep">{title}</p>
-      {hint && <p className="mt-1 max-w-sm text-xs text-charcoal/55">{hint}</p>}
-      {action && <div className="mt-4">{action}</div>}
+    <div className="relative grid place-items-center overflow-hidden rounded-[1.75rem] border border-white/60 bg-white/45 px-6 py-16 text-center backdrop-blur-xl">
+      <div
+        aria-hidden
+        className="animate-float pointer-events-none absolute -top-10 size-40 rounded-full blur-3xl"
+        style={{ background: "color-mix(in oklab, var(--ws-accent) 18%, transparent)" }}
+      />
+      <div
+        className="relative grid size-12 place-items-center rounded-2xl text-cream shadow-lg"
+        style={{ background: "linear-gradient(140deg, var(--ws-accent), var(--ws-tint))" }}
+      >
+        <Sparkles className="size-5" />
+      </div>
+      <p className="relative mt-4 font-display text-xl italic text-forest-deep">{title}</p>
+      {hint && <p className="relative mt-1.5 max-w-sm text-xs leading-relaxed text-charcoal/55">{hint}</p>}
+      {action && <div className="relative mt-5">{action}</div>}
     </div>
   );
 }
@@ -272,6 +372,35 @@ const TONES: Record<string, string> = {
   sky: "from-sky-400 to-cyan-500 text-white shadow-sky-300/40",
 };
 
+/** Counts a numeric value up on mount — purely presentational. */
+function useCountUp(raw: string | number) {
+  const text = String(raw);
+  const match = text.match(/-?[\d.]+/);
+  const target = match ? Number(match[0]) : null;
+  const [n, setN] = useState(target === null ? 0 : 0);
+  const done = useRef(false);
+
+  useEffect(() => {
+    if (target === null || done.current) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) { setN(target); return; }
+    done.current = true;
+    const start = performance.now();
+    const dur = 900;
+    let raf = 0;
+    const tick = (t: number) => {
+      const p = Math.min(1, (t - start) / dur);
+      setN(target * (1 - Math.pow(1 - p, 3)));
+      if (p < 1) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [target]);
+
+  if (target === null || !match) return text;
+  const decimals = (match[0].split(".")[1] ?? "").length;
+  return text.replace(match[0], n.toFixed(decimals));
+}
+
 export function MetricCard({
   label, value, hint, icon: Icon, tone = "forest", delay = 0,
 }: {
@@ -282,23 +411,28 @@ export function MetricCard({
   tone?: keyof typeof TONES | string;
   delay?: number;
 }) {
+  const shown = useCountUp(value);
   return (
     <div
       style={{ animationDelay: `${delay}ms` }}
-      className="group relative overflow-hidden rounded-2xl border border-forest/10 bg-white/90 p-4 shadow-sm backdrop-blur transition-all duration-300 animate-in fade-in slide-in-from-bottom-3 hover:-translate-y-1 hover:shadow-xl hover:shadow-forest/10 sm:p-5"
+      className="sheen-on-hover animate-blur-in group relative overflow-hidden rounded-[1.5rem] border border-white/60 bg-white/60 p-4 shadow-[0_18px_40px_-32px_rgba(0,0,0,0.55)] backdrop-blur-xl transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-1.5 hover:bg-white/80 hover:shadow-[0_30px_60px_-30px_color-mix(in_oklab,var(--ws-accent)_45%,transparent)] sm:p-5"
     >
-      <div className="pointer-events-none absolute -right-8 -top-8 size-24 rounded-full bg-sage/10 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -right-10 -top-10 size-28 rounded-full opacity-0 blur-2xl transition-opacity duration-700 group-hover:opacity-100"
+        style={{ background: "color-mix(in oklab, var(--ws-accent) 30%, transparent)" }}
+      />
       <div className="flex items-start justify-between gap-3">
         <p className="font-mono text-[9px] font-bold uppercase tracking-[0.2em] text-charcoal/45">
           {label}
         </p>
         {Icon && (
-          <span className={`grid size-8 shrink-0 place-items-center rounded-xl bg-gradient-to-br shadow-md transition-transform duration-300 group-hover:scale-110 ${TONES[tone] ?? TONES["forest"]}`}>
+          <span className={`grid size-9 shrink-0 place-items-center rounded-2xl bg-gradient-to-br shadow-md transition-all duration-500 group-hover:-rotate-6 group-hover:scale-110 ${TONES[tone] ?? TONES["forest"]}`}>
             <Icon className="size-4" />
           </span>
         )}
       </div>
-      <p className="mt-2 font-display text-2xl italic text-forest-deep sm:text-3xl">{value}</p>
+      <p className="mt-2.5 font-display text-[1.75rem] italic leading-none text-forest-deep tabular-nums sm:text-4xl">{shown}</p>
       {hint && <p className="mt-1 text-[11px] leading-snug text-charcoal/55">{hint}</p>}
     </div>
   );
@@ -314,19 +448,72 @@ export function PanelCard({
   className?: string;
 }) {
   return (
-    <section className={`rounded-2xl border border-forest/10 bg-white/90 p-5 shadow-sm backdrop-blur transition-shadow hover:shadow-lg hover:shadow-forest/5 sm:p-6 ${className}`}>
+    <section className={`animate-blur-in group relative overflow-hidden rounded-[1.75rem] border border-white/60 bg-white/60 p-5 shadow-[0_18px_44px_-34px_rgba(0,0,0,0.5)] backdrop-blur-xl transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:bg-white/75 hover:shadow-[0_28px_60px_-34px_color-mix(in_oklab,var(--ws-accent)_45%,transparent)] sm:p-6 ${className}`}>
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 top-0 h-px opacity-60"
+        style={{ background: "linear-gradient(90deg, transparent, var(--ws-accent), transparent)" }}
+      />
       <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
         <div className="flex min-w-0 items-center gap-2.5">
           {Icon && (
-            <span className="grid size-8 shrink-0 place-items-center rounded-xl bg-forest/8 text-forest">
+            <span
+              className="grid size-9 shrink-0 place-items-center rounded-2xl transition-transform duration-500 group-hover:scale-110"
+              style={{ background: "color-mix(in oklab, var(--ws-accent) 12%, transparent)", color: "var(--ws-accent)" }}
+            >
               <Icon className="size-4" />
             </span>
           )}
-          <h3 className="truncate font-display text-lg italic text-forest-deep">{title}</h3>
+          <h3 className="truncate font-display text-xl italic text-forest-deep">{title}</h3>
         </div>
         {action}
       </div>
       <div className="mt-4">{children}</div>
     </section>
+  );
+}
+
+/* --------------------------- content relationships -------------------------- */
+
+/** Visual map of how one piece of content flows through the brand. Presentational only. */
+export function FlowRibbon({
+  steps,
+}: {
+  steps: { label: string; icon: LucideIcon; hint?: string }[];
+}) {
+  return (
+    <div className="relative overflow-x-auto rounded-[1.75rem] border border-white/60 bg-white/45 px-5 py-6 backdrop-blur-xl [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <div className="flex min-w-max items-center gap-2">
+        {steps.map((s, i) => (
+          <div key={s.label} className="flex items-center gap-2">
+            <div
+              className="animate-blur-in group flex w-32 flex-col items-center gap-2 rounded-2xl px-3 py-3 text-center transition-all duration-500 hover:-translate-y-1"
+              style={{ animationDelay: `${i * 110}ms` }}
+            >
+              <span
+                className="grid size-10 place-items-center rounded-2xl text-cream shadow-lg transition-transform duration-500 group-hover:scale-110"
+                style={{
+                  background: "linear-gradient(140deg, var(--ws-accent), var(--ws-tint))",
+                  boxShadow: "0 16px 30px -18px var(--ws-accent)",
+                }}
+              >
+                <s.icon className="size-4" />
+              </span>
+              <span className="text-[11px] font-bold text-forest-deep">{s.label}</span>
+              {s.hint && <span className="text-[10px] leading-tight text-charcoal/50">{s.hint}</span>}
+            </div>
+            {i < steps.length - 1 && (
+              <svg width="34" height="8" viewBox="0 0 34 8" className="shrink-0 opacity-70">
+                <line
+                  x1="0" y1="4" x2="34" y2="4"
+                  stroke="var(--ws-accent)" strokeWidth="1.5" strokeLinecap="round"
+                  strokeDasharray="4 8" className="animate-dash-flow"
+                />
+              </svg>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }
