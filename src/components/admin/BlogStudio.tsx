@@ -80,7 +80,6 @@ export function BlogStudioPanel() {
   const [wordCount, setWordCount] = useState(1600);
   const [readingLevel, setReadingLevel] = useState<string>("Standard");
   const [goal, setGoal] = useState<string>("SEO Ranking");
-  const [imageCount, setImageCount] = useState(5);
 
   const [includeRecipe, setIncludeRecipe] = useState(true);
   const [includeFaq, setIncludeFaq] = useState(true);
@@ -130,7 +129,7 @@ export function BlogStudioPanel() {
           includeInternalLinks,
           includeProduct,
           includeCta,
-          imageCount,
+          imageCount: null,
           research,
         },
       });
@@ -290,13 +289,12 @@ export function BlogStudioPanel() {
               </div>
               <input type="range" min={800} max={3500} step={100} value={wordCount} onChange={(e) => setWordCount(Number(e.target.value))} className="mt-2 w-full accent-forest" />
             </div>
-            <div>
-              <div className="flex justify-between text-xs font-semibold text-charcoal/70">
-                <span>AI images to generate</span>
-                <span>{imageCount}</span>
-              </div>
-              <input type="range" min={0} max={8} step={1} value={imageCount} onChange={(e) => setImageCount(Number(e.target.value))} className="mt-2 w-full accent-forest" />
-              <p className="mt-1 text-[11px] text-charcoal/50">Hero first, then section, ingredient, finished-dish and Pinterest shots.</p>
+            <div className="rounded-xl bg-forest/5 p-4">
+              <p className="text-xs font-semibold text-charcoal/70">Photography: automatic</p>
+              <p className="mt-1 text-[11px] text-charcoal/50">
+                The AI rates how much each section would gain from a photo and only shoots the ones that earn it — plus
+                the hero, recipe and Pinterest shots.
+              </p>
             </div>
           </div>
 
@@ -317,7 +315,7 @@ export function BlogStudioPanel() {
           </div>
           {busy === "generate" && (
             <p className="mt-3 text-xs text-charcoal/50">
-              This takes a minute — the article, SEO pack, schema, Pinterest pins and {imageCount} images are all generated in one pass.
+              This takes a minute — the article, SEO pack, schema, Pinterest pins and only the photos the article actually needs are generated in one pass, then the editor scores the draft.
             </p>
           )}
         </section>
@@ -336,11 +334,29 @@ export function BlogStudioPanel() {
                   <h3 className="mt-1 font-display text-2xl italic text-forest-deep">{result.title}</h3>
                   <p className="mt-1 font-mono text-xs text-charcoal/50">/{result.slug} · {result.images_generated} images</p>
                   <div className="mt-3 grid max-w-sm gap-2">
-                    <Meter title="SEO score" value={result.seo_score ?? 0} />
-                    <Meter title="Quality score" value={result.quality_score ?? 0} />
+                    <Meter title="Clarity" value={result.quality?.clarity ?? 0} />
+                    <Meter title="SEO coverage" value={result.quality?.seo ?? 0} />
+                    <Meter title="Originality" value={result.quality?.originality ?? 0} />
+                    <Meter title="Readability" value={result.quality?.readability ?? 0} />
+                    <Meter title="Overall" value={result.quality?.overall ?? 0} />
                   </div>
                 </div>
               </div>
+              {result.quality && (
+                <div className={`rounded-2xl p-4 ${result.blocked ? "bg-amber-50" : "bg-forest/5"}`}>
+                  <p className="text-sm font-semibold text-forest-deep">
+                    Editor's verdict — {result.quality.overall}/100 {result.blocked ? "(held for rewrite)" : "(approved)"}
+                  </p>
+                  <p className="mt-1 text-xs text-charcoal/60">{result.quality.verdict}</p>
+                  {result.quality.problems?.length > 0 && (
+                    <ul className="mt-2 list-disc space-y-1 pl-5 text-[11px] text-charcoal/70">
+                      {result.quality.problems.slice(0, 6).map((p: any, i: number) => (
+                        <li key={i}><strong>{p.area}:</strong> {p.issue} — {p.fix}</li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              )}
               <div>
                 <p className={label}>Planned Pinterest pins</p>
                 <div className="mt-2 grid gap-3 sm:grid-cols-3">
