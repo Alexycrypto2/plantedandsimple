@@ -29,6 +29,7 @@ import { Route as RecipesIndexRouteImport } from './routes/recipes.index'
 import { Route as BlogIndexRouteImport } from './routes/blog.index'
 import { Route as ShopSlugRouteImport } from './routes/shop.$slug'
 import { Route as RecipesSlugRouteImport } from './routes/recipes.$slug'
+import { Route as PSlugRouteImport } from './routes/p.$slug'
 import { Route as EmailUnsubscribeRouteImport } from './routes/email/unsubscribe'
 import { Route as CollectionsSlugRouteImport } from './routes/collections.$slug'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
@@ -143,6 +144,11 @@ const RecipesSlugRoute = RecipesSlugRouteImport.update({
   path: '/$slug',
   getParentRoute: () => RecipesRoute,
 } as any)
+const PSlugRoute = PSlugRouteImport.update({
+  id: '/p/$slug',
+  path: '/p/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const EmailUnsubscribeRoute = EmailUnsubscribeRouteImport.update({
   id: '/email/unsubscribe',
   path: '/email/unsubscribe',
@@ -240,6 +246,7 @@ export interface FileRoutesByFullPath {
   '/blog/$slug': typeof BlogSlugRoute
   '/collections/$slug': typeof CollectionsSlugRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
+  '/p/$slug': typeof PSlugRoute
   '/recipes/$slug': typeof RecipesSlugRoute
   '/shop/$slug': typeof ShopSlugRoute
   '/blog/': typeof BlogIndexRoute
@@ -272,6 +279,7 @@ export interface FileRoutesByTo {
   '/blog/$slug': typeof BlogSlugRoute
   '/collections/$slug': typeof CollectionsSlugRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
+  '/p/$slug': typeof PSlugRoute
   '/recipes/$slug': typeof RecipesSlugRoute
   '/shop/$slug': typeof ShopSlugRoute
   '/blog': typeof BlogIndexRoute
@@ -309,6 +317,7 @@ export interface FileRoutesById {
   '/blog/$slug': typeof BlogSlugRoute
   '/collections/$slug': typeof CollectionsSlugRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
+  '/p/$slug': typeof PSlugRoute
   '/recipes/$slug': typeof RecipesSlugRoute
   '/shop/$slug': typeof ShopSlugRoute
   '/blog/': typeof BlogIndexRoute
@@ -346,6 +355,7 @@ export interface FileRouteTypes {
     | '/blog/$slug'
     | '/collections/$slug'
     | '/email/unsubscribe'
+    | '/p/$slug'
     | '/recipes/$slug'
     | '/shop/$slug'
     | '/blog/'
@@ -378,6 +388,7 @@ export interface FileRouteTypes {
     | '/blog/$slug'
     | '/collections/$slug'
     | '/email/unsubscribe'
+    | '/p/$slug'
     | '/recipes/$slug'
     | '/shop/$slug'
     | '/blog'
@@ -414,6 +425,7 @@ export interface FileRouteTypes {
     | '/blog/$slug'
     | '/collections/$slug'
     | '/email/unsubscribe'
+    | '/p/$slug'
     | '/recipes/$slug'
     | '/shop/$slug'
     | '/blog/'
@@ -448,6 +460,7 @@ export interface RootRouteChildren {
   ThankYouRoute: typeof ThankYouRoute
   CollectionsSlugRoute: typeof CollectionsSlugRoute
   EmailUnsubscribeRoute: typeof EmailUnsubscribeRoute
+  PSlugRoute: typeof PSlugRoute
   LovableEmailSuppressionRoute: typeof LovableEmailSuppressionRoute
   ApiPublicDownloadCookbookRoute: typeof ApiPublicDownloadCookbookRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
@@ -600,6 +613,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/recipes/$slug'
       preLoaderRoute: typeof RecipesSlugRouteImport
       parentRoute: typeof RecipesRoute
+    }
+    '/p/$slug': {
+      id: '/p/$slug'
+      path: '/p/$slug'
+      fullPath: '/p/$slug'
+      preLoaderRoute: typeof PSlugRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/email/unsubscribe': {
       id: '/email/unsubscribe'
@@ -770,6 +790,7 @@ const rootRouteChildren: RootRouteChildren = {
   ThankYouRoute: ThankYouRoute,
   CollectionsSlugRoute: CollectionsSlugRoute,
   EmailUnsubscribeRoute: EmailUnsubscribeRoute,
+  PSlugRoute: PSlugRoute,
   LovableEmailSuppressionRoute: LovableEmailSuppressionRoute,
   ApiPublicDownloadCookbookRoute: ApiPublicDownloadCookbookRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
