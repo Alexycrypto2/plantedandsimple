@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
-import { Sparkles, X, Globe, HelpCircle, TrendingUp, ListChecks, Image as ImageIcon, Search, Wand2, Target, Loader2 } from "lucide-react";
+import { Sparkles, X, Globe, HelpCircle, TrendingUp, ListChecks, Image as ImageIcon, Search, Wand2, Target, Loader2, Check, ShieldCheck, AlertTriangle, RefreshCw } from "lucide-react";
 import {
   generateStudioBlog,
   researchTopic,
   suggestTitles,
   getGenerationDraft,
+  rewriteGeneration,
   TONES,
 } from "@/lib/ai/blog-studio.functions";
 
@@ -19,6 +20,54 @@ export type AiBlogDraft = {
   seo_title: string;
   seo_description: string;
 };
+
+const STAGES = [
+  "Researching search intent and top-ranking angles",
+  "Planning the outline and key takeaways",
+  "Writing the article in your brand voice",
+  "Deciding which sections truly need a photo",
+  "Shooting the editorial photography",
+  "Running the editor's quality check",
+] as const;
+
+function StageTrack({ active }: { active: number }) {
+  return (
+    <ol className="mt-5 space-y-2.5">
+      {STAGES.map((label, i) => {
+        const done = i < active;
+        const now = i === active;
+        return (
+          <li
+            key={label}
+            className={`flex items-center gap-3 rounded-xl px-3 py-2 text-xs transition-all duration-500 ${
+              now ? "bg-forest/10 font-semibold text-forest-deep" : done ? "text-charcoal/50" : "text-charcoal/30"
+            }`}
+            style={{ animation: now ? "pulse 2s ease-in-out infinite" : undefined }}
+          >
+            <span
+              className={`grid h-6 w-6 shrink-0 place-items-center rounded-full border transition ${
+                done ? "border-forest bg-forest text-cream" : now ? "border-forest text-forest" : "border-charcoal/20"
+              }`}
+            >
+              {done ? <Check className="h-3.5 w-3.5" /> : now ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <span className="text-[10px]">{i + 1}</span>}
+            </span>
+            {label}
+          </li>
+        );
+      })}
+    </ol>
+  );
+}
+
+function ScoreRing({ label, value }: { label: string; value: number }) {
+  const tone = value >= 78 ? "text-forest" : value >= 60 ? "text-amber-600" : "text-red-600";
+  return (
+    <div className="rounded-2xl bg-white px-3 py-3 text-center">
+      <p className={`font-display text-2xl ${tone}`}>{value}</p>
+      <p className="mt-0.5 text-[10px] uppercase tracking-wide text-charcoal/50">{label}</p>
+    </div>
+  );
+}
 
 const INCLUDED = [
   { icon: Globe, label: "Competitor research" },
@@ -50,9 +99,10 @@ export function AiBlogWriterModal({
   const [tone, setTone] = useState<string>("Editorial");
   const [wordCount, setWordCount] = useState(1500);
   const [titles, setTitles] = useState<string[]>([]);
-  const [busy, setBusy] = useState<null | "titles" | "generate">(null);
-  const [stage, setStage] = useState("");
+  const [busy, setBusy] = useState<null | "titles" | "generate" | "rewrite">(null);
+  const [stage, setStage] = useState(-1);
   const [err, setErr] = useState<string | null>(null);
+  const [result, setResult] = useState<any>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -74,44 +124,72 @@ export function AiBlogWriterModal({
     }
   };
 
+  const openDraft = async (id: string) => {
+    const draft = await getGenerationDraft({ data: { id } });
+    onDraft(draft as AiBlogDraft);
+    setResult(null);
+    onClose();
+  };
+
   const doGenerate = async () => {
     setBusy("generate");
     setErr(null);
+    setResult(null);
+    setStage(0);
     try {
-      setStage("Researching the topic and top-ranking angles…");
       let research: unknown = null;
       try {
         research = await researchTopic({ data: { topic, primaryKeyword: keywords.split(",")[0]?.trim() || undefined } });
       } catch {
         research = null;
       }
-      setStage(`Writing a ~${wordCount}-word article and shooting the photos it needs…`);
-      const res: any = await generateStudioBlog({
-        data: {
-          topic,
-          category: category || undefined,
-          primaryKeyword: keywords.split(",")[0]?.trim() || undefined,
-          secondaryKeywords: keywords || undefined,
-          tone,
-          wordCount,
-          research,
-          includeRecipe: true,
-          includeFaq: true,
-          includeToc: true,
-          includeInternalLinks: true,
-          includeProduct: true,
-          includeCta: true,
-        },
-      });
-      setStage("Loading the draft into your editor…");
-      const draft = await getGenerationDraft({ data: { id: res.id } });
-      onDraft(draft as AiBlogDraft);
-      onClose();
+      setStage(1);
+      const tick = setInterval(() => setStage((v) => (v < 4 ? v + 1 : v)), 12000);
+      let res: any;
+      try {
+        res = await generateStudioBlog({
+          data: {
+            topic,
+            category: category || undefined,
+            primaryKeyword: keywords.split(",")[0]?.trim() || undefined,
+            secondaryKeywords: keywords || undefined,
+            tone,
+            wordCount,
+            research,
+            includeRecipe: true,
+            includeFaq: true,
+            includeToc: true,
+            includeInternalLinks: true,
+            includeProduct: true,
+            includeCta: true,
+          },
+        });
+      } finally {
+        clearInterval(tick);
+      }
+      setStage(5);
+      setResult(res);
+      if (!res.blocked) await openDraft(res.id);
     } catch (e: any) {
       setErr(e?.message ?? "Generation failed");
     } finally {
       setBusy(null);
-      setStage("");
+      setStage(-1);
+    }
+  };
+
+  const doRewrite = async () => {
+    if (!result?.id) return;
+    setBusy("rewrite");
+    setErr(null);
+    try {
+      const res: any = await rewriteGeneration({ data: { id: result.id } });
+      setResult(res);
+      if (!res.blocked) await openDraft(res.id);
+    } catch (e: any) {
+      setErr(e?.message ?? "Rewrite failed");
+    } finally {
+      setBusy(null);
     }
   };
 
@@ -278,15 +356,71 @@ export function AiBlogWriterModal({
             )}
           </div>
 
-          <button
-            onClick={doGenerate}
-            disabled={!topic.trim() || busy !== null}
-            className="flex w-full items-center justify-center gap-3 rounded-full bg-forest px-6 py-4 text-sm font-bold text-cream transition hover:bg-forest-deep disabled:opacity-50"
-          >
-            {busy === "generate" ? <Loader2 className="h-5 w-5 animate-spin" /> : <Wand2 className="h-5 w-5" />}
-            {busy === "generate" ? "Generating…" : "Generate blog post"}
-          </button>
-          {stage && <p className="text-center text-xs text-charcoal/60">{stage}</p>}
+          {busy === "generate" || busy === "rewrite" ? (
+            <div className="rounded-2xl border border-forest/15 bg-white p-5">
+              <p className="flex items-center gap-2 text-sm font-semibold text-forest-deep">
+                <Sparkles className="h-4 w-4 animate-pulse" />
+                {busy === "rewrite" ? "Rewriting to editorial standard…" : "Your AI editor is working…"}
+              </p>
+              <StageTrack active={busy === "rewrite" ? 2 : Math.max(0, stage)} />
+              <p className="mt-4 text-[11px] text-charcoal/50">
+                This takes a couple of minutes because every photo is shot individually. Keep this open.
+              </p>
+            </div>
+          ) : (
+            <button
+              onClick={doGenerate}
+              disabled={!topic.trim()}
+              className="flex w-full items-center justify-center gap-3 rounded-full bg-forest px-6 py-4 text-sm font-bold text-cream transition hover:bg-forest-deep disabled:opacity-50"
+            >
+              <Wand2 className="h-5 w-5" /> Generate blog post
+            </button>
+          )}
+
+          {result?.quality && (
+            <div className="rounded-2xl border border-forest/15 bg-white p-5 duration-500 animate-in fade-in slide-in-from-bottom-2">
+              <div className="flex items-center gap-2">
+                {result.blocked ? (
+                  <AlertTriangle className="h-4 w-4 text-amber-600" />
+                ) : (
+                  <ShieldCheck className="h-4 w-4 text-forest" />
+                )}
+                <p className="text-sm font-semibold text-forest-deep">
+                  Quality check: {result.quality.overall}/100 {result.blocked ? "— below your standard" : "— approved"}
+                </p>
+              </div>
+              <p className="mt-1 text-xs text-charcoal/60">{result.quality.verdict}</p>
+              <div className="mt-3 grid grid-cols-4 gap-2">
+                <ScoreRing label="Clarity" value={result.quality.clarity} />
+                <ScoreRing label="SEO" value={result.quality.seo} />
+                <ScoreRing label="Original" value={result.quality.originality} />
+                <ScoreRing label="Readable" value={result.quality.readability} />
+              </div>
+              {result.quality.problems?.length > 0 && (
+                <ul className="mt-3 space-y-1.5">
+                  {result.quality.problems.slice(0, 5).map((p: any, i: number) => (
+                    <li key={i} className="text-[11px] leading-relaxed text-charcoal/70">
+                      <strong className="text-forest-deep">{p.area}:</strong> {p.issue} <em>{p.fix}</em>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              <div className="mt-4 flex flex-wrap gap-2">
+                <button
+                  onClick={doRewrite}
+                  className="flex items-center gap-2 rounded-full bg-forest px-4 py-2 text-xs font-semibold text-cream hover:bg-forest-deep"
+                >
+                  <RefreshCw className="h-3.5 w-3.5" /> Rewrite with these fixes
+                </button>
+                <button
+                  onClick={() => openDraft(result.id)}
+                  className="rounded-full border border-forest/25 px-4 py-2 text-xs font-semibold text-forest hover:bg-forest/5"
+                >
+                  Open in editor anyway
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
