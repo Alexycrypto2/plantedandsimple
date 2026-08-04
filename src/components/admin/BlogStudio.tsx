@@ -7,7 +7,7 @@ import {
   CONTENT_GOALS,
   type Research,
 } from "@/lib/ai/blog-studio.functions";
-import { generatePinSet, PIN_STYLES } from "@/lib/ai/pin-studio.functions";
+import { generatePinSet, generatePinPreviewPack, savePinPreviews, PIN_STYLES } from "@/lib/ai/pin-studio.functions";
 
 const card = "rounded-2xl border border-forest/10 bg-white p-5 shadow-sm";
 const input =
@@ -408,6 +408,41 @@ export function PinterestStudioPanel() {
     }
   };
 
+  const [pack, setPack] = useState<any[] | null>(null);
+  const [picked, setPicked] = useState<number[]>([]);
+  const [packBusy, setPackBusy] = useState(false);
+
+  const runPack = async () => {
+    setPackBusy(true);
+    setMsg(null);
+    setPack(null);
+    setPicked([]);
+    try {
+      const res: any = await generatePinPreviewPack({ data: { subject, link: link || undefined } });
+      setPack(res.pins ?? []);
+      setPicked((res.pins ?? []).map((_: any, i: number) => i));
+    } catch (e: any) {
+      setMsg(e?.message ?? "Preview pack failed");
+    } finally {
+      setPackBusy(false);
+    }
+  };
+
+  const savePack = async () => {
+    if (!pack) return;
+    setPackBusy(true);
+    try {
+      const chosen = pack.filter((_, i) => picked.includes(i));
+      const res: any = await savePinPreviews({ data: { subject, link: link || null, pins: chosen } });
+      setMsg(`${res.saved} pins sent to the Approval Queue.`);
+      setPack(null);
+    } catch (e: any) {
+      setMsg(e?.message ?? "Could not save pins");
+    } finally {
+      setPackBusy(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -415,6 +450,62 @@ export function PinterestStudioPanel() {
         <p className="mt-1 text-sm text-charcoal/60">Generate vertical 2:3 pins with unique designs, copy and hashtags.</p>
       </div>
       {msg && <p className="rounded-xl bg-forest/10 px-4 py-3 text-sm text-forest-deep">{msg}</p>}
+
+      <section className={card}>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h3 className="font-semibold text-forest-deep">One-click preview pack</h3>
+            <p className="mt-1 text-xs text-charcoal/60">
+              Five pin variants — different style and hook each — rendered for review. Nothing is saved until you pick.
+            </p>
+          </div>
+          <button className={btn} disabled={!subject.trim() || packBusy} onClick={runPack}>
+            {packBusy ? "Designing 5 pins…" : "Preview 5 pin variants"}
+          </button>
+        </div>
+        {packBusy && !pack && (
+          <div className="mt-5 grid gap-3 sm:grid-cols-5">
+            {[0, 1, 2, 3, 4].map((i) => (
+              <div
+                key={i}
+                className="aspect-[2/3] animate-pulse rounded-xl bg-forest/10"
+                style={{ animationDelay: `${i * 120}ms` }}
+              />
+            ))}
+          </div>
+        )}
+        {pack && (
+          <div className="mt-5 space-y-4 duration-500 animate-in fade-in">
+            <div className="grid gap-3 sm:grid-cols-5">
+              {pack.map((p: any, i: number) => {
+                const on = picked.includes(i);
+                return (
+                  <button
+                    key={i}
+                    onClick={() => setPicked((c) => (on ? c.filter((x) => x !== i) : [...c, i]))}
+                    className={`overflow-hidden rounded-xl border-2 p-2 text-left transition ${on ? "border-forest bg-forest/5" : "border-transparent bg-cream/40 opacity-70 hover:opacity-100"}`}
+                  >
+                    {p.image_url ? (
+                      <img src={p.image_url} alt={p.alt} className="aspect-[2/3] w-full rounded-lg object-cover" />
+                    ) : (
+                      <div className="grid aspect-[2/3] w-full place-items-center rounded-lg bg-forest/10 text-[10px]">no image</div>
+                    )}
+                    <p className="mt-2 text-[10px] font-bold uppercase tracking-widest text-sage">{p.style}</p>
+                    <p className="mt-0.5 line-clamp-2 text-xs font-semibold text-forest-deep">{p.overlay_text}</p>
+                    <p className="mt-1 line-clamp-2 text-[10px] text-charcoal/60">{p.why_it_works}</p>
+                  </button>
+                );
+              })}
+            </div>
+            <div className="flex flex-wrap gap-3">
+              <button className={btn} disabled={!picked.length || packBusy} onClick={savePack}>
+                Send {picked.length} pin{picked.length === 1 ? "" : "s"} to approvals
+              </button>
+              <button className={btnGhost} onClick={() => setPack(null)}>Discard pack</button>
+            </div>
+          </div>
+        )}
+      </section>
 
       <section className={card}>
         <div className="grid gap-4 sm:grid-cols-2">
