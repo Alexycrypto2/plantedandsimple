@@ -115,8 +115,8 @@ export const runAssistantCommand = createServerFn({ method: "POST" })
     if (!data.input) throw new Error("Tell the assistant what to work on.");
 
     if (data.command === "blog") {
-      const { generateBlog } = await import("./blog-generator.functions");
-      const res: any = await (generateBlog as any)({ data: { topic: data.input } });
+      const { generateStudioBlog } = await import("./blog-studio.functions");
+      const res: any = await (generateStudioBlog as any)({ data: { topic: data.input } });
       return { ok: true, id: res.id, kind: "blog", message: "Blog draft sent to the Approval Queue." };
     }
 
