@@ -346,3 +346,221 @@
 [data-admin-theme="gold"] .border-white\/60 {
   border-color: color-mix(in oklab, var(--charcoal) 12%, transparent);
 }
+
+
+/* ---------------------------------------------------------------------------
+   Editorial article typography — the rhythm and spacing of a print magazine.
+   Used by AI-generated blog posts (assembleArticleHtml).
+--------------------------------------------------------------------------- */
+.article-body {
+  color: color-mix(in oklab, var(--color-charcoal, #2c2c2c) 88%, transparent);
+  font-size: 1.0625rem;
+  line-height: 1.85;
+  letter-spacing: 0.003em;
+}
+@media (min-width: 768px) {
+  .article-body { font-size: 1.125rem; line-height: 1.9; }
+}
+.article-body > * + * { margin-top: 1.5rem; }
+.article-body p { margin: 0 0 1.35rem; max-width: 68ch; }
+.article-body strong { color: var(--color-forest-deep, #1e3f27); font-weight: 650; }
+.article-body a { color: var(--color-forest, #2e5e3b); text-decoration: underline; text-underline-offset: 3px; }
+
+.article-body .article-lead p:first-child::first-letter {
+  float: left;
+  font-family: var(--font-display, serif);
+  font-size: 3.4rem;
+  line-height: 0.82;
+  padding: 0.35rem 0.6rem 0 0;
+  color: var(--color-forest, #2e5e3b);
+}
+.article-body .article-lead p { font-size: 1.18rem; line-height: 1.8; }
+
+.article-body h2 {
+  font-family: var(--font-display, serif);
+  font-style: italic;
+  font-size: clamp(1.6rem, 3.4vw, 2.15rem);
+  line-height: 1.2;
+  color: var(--color-forest-deep, #1e3f27);
+  margin: 3.5rem 0 1.1rem;
+  scroll-margin-top: 6rem;
+}
+.article-body h3 {
+  font-size: 1.12rem;
+  font-weight: 700;
+  color: var(--color-forest-deep, #1e3f27);
+  margin: 2.25rem 0 0.75rem;
+}
+.article-body .article-section + .article-section { margin-top: 0; }
+.article-body .article-section > h2:first-child { margin-top: 3.25rem; }
+
+.article-body ul, .article-body ol { margin: 0 0 1.5rem; padding-left: 1.35rem; }
+.article-body li { margin-bottom: 0.6rem; padding-left: 0.25rem; }
+.article-body ul li::marker { color: var(--color-sage, #7fa77a); }
+.article-body ol li::marker { color: var(--color-forest, #2e5e3b); font-weight: 700; }
+
+.article-body .article-figure { margin: 2.5rem 0 2.75rem; }
+.article-body .article-figure img {
+  width: 100%;
+  border-radius: 1.75rem;
+  display: block;
+  aspect-ratio: 3 / 2;
+  object-fit: cover;
+  background: color-mix(in oklab, var(--color-sage, #7fa77a) 12%, transparent);
+  box-shadow: 0 24px 60px -32px rgba(30, 63, 39, 0.45);
+}
+.article-body .article-figure figcaption {
+  margin-top: 0.75rem;
+  font-size: 0.8rem;
+  letter-spacing: 0.02em;
+  color: color-mix(in oklab, var(--color-charcoal, #2c2c2c) 55%, transparent);
+  text-align: center;
+  font-style: italic;
+}
+
+.article-body .article-takeaways {
+  margin: 2.5rem 0;
+  border-radius: 1.5rem;
+  padding: 1.6rem 1.75rem;
+  background: color-mix(in oklab, var(--color-sage, #7fa77a) 12%, transparent);
+}
+.article-body .article-takeaways h2 {
+  margin: 0 0 0.85rem;
+  font-size: 1.05rem;
+  font-style: normal;
+  font-family: inherit;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+}
+.article-body .article-takeaways ul { margin: 0; padding-left: 1.15rem; }
+.article-body .article-takeaways li { font-size: 0.95rem; margin-bottom: 0.45rem; }
+
+.article-body .article-toc {
+  margin: 2.5rem 0;
+  border: 1px solid color-mix(in oklab, var(--color-forest, #2e5e3b) 18%, transparent);
+  border-radius: 1.5rem;
+  padding: 1.5rem 1.75rem;
+}
+.article-body .article-toc-title {
+  margin: 0 0 0.75rem;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: color-mix(in oklab, var(--color-forest, #2e5e3b) 80%, transparent);
+}
+.article-body .article-toc ol { margin: 0; padding-left: 1.15rem; }
+.article-body .article-toc li { margin-bottom: 0.4rem; font-size: 0.95rem; }
+.article-body .article-toc a { text-decoration: none; }
+.article-body .article-toc a:hover { text-decoration: underline; }
+
+.article-body .article-callout {
+  margin: 2rem 0;
+  display: flex;
+  gap: 0.9rem;
+  border-left: 3px solid var(--color-forest, #2e5e3b);
+  border-radius: 0 1rem 1rem 0;
+  padding: 1.1rem 1.35rem;
+  background: color-mix(in oklab, var(--color-forest, #2e5e3b) 6%, transparent);
+}
+.article-body .article-callout span {
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--color-forest, #2e5e3b);
+  padding-top: 0.2rem;
+}
+.article-body .article-callout p { margin: 0; font-size: 0.95rem; }
+
+.article-body .article-quote {
+  margin: 2.75rem 0;
+  border: 0;
+  padding: 0 1rem;
+  text-align: center;
+  font-family: var(--font-display, serif);
+  font-style: italic;
+  font-size: clamp(1.35rem, 2.8vw, 1.7rem);
+  line-height: 1.45;
+  color: var(--color-forest-deep, #1e3f27);
+}
+
+.article-body .recipe-card {
+  margin: 3.5rem 0;
+  border-radius: 2rem;
+  padding: 2rem;
+  background: color-mix(in oklab, var(--color-cream-warm, #f3efe6) 85%, white);
+  border: 1px solid color-mix(in oklab, var(--color-forest, #2e5e3b) 12%, transparent);
+}
+.article-body .recipe-card h2 { margin-top: 0; }
+.article-body .recipe-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+  margin: 0 0 1.75rem;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+.article-body .recipe-meta strong { display: block; font-size: 0.65rem; opacity: 0.6; }
+.article-body .recipe-grid { display: grid; gap: 2rem; }
+@media (min-width: 768px) {
+  .article-body .recipe-grid { grid-template-columns: 1fr 1.25fr; gap: 2.5rem; }
+}
+.article-body .recipe-ingredients { list-style: none; padding: 0; }
+.article-body .recipe-ingredients li {
+  padding: 0.5rem 0 0.5rem 1.5rem;
+  border-bottom: 1px dashed color-mix(in oklab, var(--color-forest, #2e5e3b) 15%, transparent);
+  position: relative;
+  font-size: 0.95rem;
+}
+.article-body .recipe-ingredients li::before {
+  content: "";
+  position: absolute;
+  left: 0.25rem;
+  top: 1.05rem;
+  width: 6px; height: 6px;
+  border-radius: 99px;
+  background: var(--color-sage, #7fa77a);
+}
+.article-body .recipe-steps li { margin-bottom: 0.95rem; }
+.article-body .recipe-nutrition { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 0.75rem; }
+.article-body .recipe-nutrition li {
+  margin: 0;
+  padding: 0.75rem;
+  border-radius: 1rem;
+  background: white;
+  text-align: center;
+}
+.article-body .recipe-nutrition span { display: block; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.12em; opacity: 0.55; }
+
+.article-body .article-faq { margin: 3.5rem 0; }
+.article-body .article-faq details {
+  border-bottom: 1px solid color-mix(in oklab, var(--color-forest, #2e5e3b) 14%, transparent);
+  padding: 1rem 0;
+}
+.article-body .article-faq summary {
+  cursor: pointer;
+  font-weight: 650;
+  color: var(--color-forest-deep, #1e3f27);
+  list-style: none;
+}
+.article-body .article-faq summary::-webkit-details-marker { display: none; }
+.article-body .article-faq summary::after { content: "+"; float: right; opacity: 0.5; }
+.article-body .article-faq details[open] summary::after { content: "–"; }
+.article-body .article-faq p { margin: 0.85rem 0 0.25rem; font-size: 0.98rem; }
+
+.article-body .article-product,
+.article-body .article-cta {
+  margin: 3rem 0;
+  border-radius: 1.75rem;
+  padding: 1.75rem 2rem;
+  background: var(--color-forest, #2e5e3b);
+  color: var(--color-cream, #faf8f3);
+}
+.article-body .article-product p,
+.article-body .article-cta p { margin: 0 0 0.75rem; color: inherit; }
+.article-body .article-product p:last-child,
+.article-body .article-cta p:last-child { margin-bottom: 0; }
+.article-body .article-product a,
+.article-body .article-cta a { color: inherit; font-weight: 700; }
