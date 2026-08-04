@@ -73,7 +73,7 @@ import { RecipesSection } from "@/components/admin/RecipesPanel";
 import {
   DollarSign, Users, Mail, Gift, Download, Package, FileText,
   Sparkles, ShoppingBag, ArrowUpRight, Image as ImageIcon, Bot,
-  Tags, Star, Handshake, ShieldCheck, Plug, Palette, FlaskConical, Brain, TrendingUp,
+  Tags, Star, Handshake, ShieldCheck, Plug, Palette, Brain, TrendingUp,
   ChefHat, Megaphone, BookOpen, LayoutDashboard,
 } from "lucide-react";
 
