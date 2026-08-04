@@ -4,7 +4,7 @@ import {
   FileText, Sparkles, Image as ImageIcon, CheckCircle2, Settings2,
   Users, LogOut, ExternalLink, Search, X, Menu, Waves, Zap, Palette,
   type LucideIcon,
-} from "lucide-react";
+, Rocket} from "lucide-react";
 
 export type NavItem = { id: string; label: string; icon: LucideIcon; group: string };
 
@@ -15,6 +15,7 @@ export const NAV_META: Record<string, { label: string; icon: LucideIcon; group: 
   blogs: { label: "Blogs", icon: FileText, group: "Content" },
   "ai-studio": { label: "AI Studio", icon: Sparkles, group: "Content" },
   pinterest: { label: "Pinterest Studio", icon: ImageIcon, group: "Content" },
+  campaigns: { label: "Campaign Center", icon: Rocket, group: "Growth" },
   products: { label: "Products", icon: Package, group: "Growth" },
   audience: { label: "Audience", icon: Users, group: "Growth" },
   approvals: { label: "Approval Queue", icon: CheckCircle2, group: "Growth" },

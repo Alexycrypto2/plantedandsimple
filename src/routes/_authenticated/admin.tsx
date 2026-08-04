@@ -8,6 +8,7 @@ import {
   IntegrationsPanel,
 } from "@/components/admin/AiPanels";
 import { BlogStudioPanel, PinterestStudioPanel } from "@/components/admin/BlogStudio";
+import { CampaignPanel } from "@/components/admin/CampaignPanel";
 import { AnalyticsDashboard } from "@/components/admin/AnalyticsPanel";
 import { AiBlogWriterModal, type AiBlogDraft } from "@/components/admin/AiBlogWriter";
 import { TrendingPanel } from "@/components/admin/TrendingPanel";
@@ -95,6 +96,7 @@ type Tab =
   | "blogs"
   | "ai-studio"
   | "pinterest"
+  | "campaigns"
   | "products"
   | "audience"
   | "approvals"
@@ -158,6 +160,7 @@ function AdminPage() {
         "blogs",
         "ai-studio",
         "pinterest",
+        "campaigns",
         "products",
         "audience",
         "approvals",
@@ -182,6 +185,7 @@ function AdminPage() {
       {activeTab === "blogs" && isBoss && <BlogsSection />}
       {activeTab === "ai-studio" && isBoss && <AiStudioSection onNavigate={(t) => setTab(t as Tab)} />}
       {activeTab === "pinterest" && isBoss && <PinterestStudioPanel />}
+      {activeTab === "campaigns" && isBoss && <CampaignPanel />}
       {activeTab === "products" && isBoss && <ProductsSection />}
       {activeTab === "audience" && isBoss && <AudienceSection />}
       {activeTab === "approvals" && isBoss && <ApprovalQueuePanel />}
