@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
   LayoutDashboard, TrendingUp, Package, LibraryBig, ChefHat,
   FileText, Sparkles, Image as ImageIcon, CheckCircle2, Settings2,
-  Users, LogOut, ExternalLink, Search, X, Menu, Waves, Zap,
+  Users, LogOut, ExternalLink, Search, X, Menu, Waves, Zap, Palette,
   type LucideIcon,
 } from "lucide-react";
 
@@ -41,6 +41,40 @@ export const WORKSPACE_THEME: Record<string, { accent: string; tint: string; moo
 
 function theme(tab: string) {
   return WORKSPACE_THEME[tab] ?? WORKSPACE_THEME["dashboard"]!;
+}
+
+/* --------------------------------- themes --------------------------------- */
+
+export type AdminThemeId = "cream" | "ink" | "gold" | "snow";
+
+export const ADMIN_THEMES: Record<
+  AdminThemeId,
+  { label: string; swatch: string[]; accent?: { accent: string; tint: string } }
+> = {
+  cream: { label: "Cream editorial", swatch: ["#faf8f3", "#2e5e3b", "#7fa77a"] },
+  ink: { label: "Ink black", swatch: ["#080a08", "#86e0a4", "#4e7d5e"], accent: { accent: "#86e0a4", tint: "#3f7a55" } },
+  gold: { label: "Gold luxe", swatch: ["#0c0a06", "#e3c273", "#8a6a1f"], accent: { accent: "#e3c273", tint: "#8a6a1f" } },
+  snow: { label: "Snow white", swatch: ["#ffffff", "#14181c", "#8c959e"], accent: { accent: "#1f2429", tint: "#8c959e" } },
+};
+
+/** Persisted admin skin. Scoped to the admin surface only. */
+function useAdminTheme() {
+  const [id, setId] = useState<AdminThemeId>("cream");
+  useEffect(() => {
+    const saved = (typeof window !== "undefined" ? window.localStorage.getItem("pd-admin-theme") : null) as AdminThemeId | null;
+    const next = saved && saved in ADMIN_THEMES ? saved : "cream";
+    setId(next);
+    document.documentElement.dataset["adminTheme"] = next;
+    return () => {
+      delete document.documentElement.dataset["adminTheme"];
+    };
+  }, []);
+  const set = (next: AdminThemeId) => {
+    setId(next);
+    document.documentElement.dataset["adminTheme"] = next;
+    try { window.localStorage.setItem("pd-admin-theme", next); } catch { /* ignore */ }
+  };
+  return { id, set };
 }
 
 /** Every workspace opens with its own inspiring introduction. */
@@ -143,6 +177,7 @@ export function AdminShell({
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState("");
   const motion = useMotionToggle();
+  const skin = useAdminTheme();
 
   useEffect(() => { setOpen(false); }, [activeTab]);
 
@@ -155,7 +190,9 @@ export function AdminShell({
   })).filter((g) => g.items.length > 0);
 
   const active = NAV_META[activeTab];
-  const ws = theme(activeTab);
+  const base = theme(activeTab);
+  const lock = ADMIN_THEMES[skin.id]?.accent;
+  const ws = lock ? { ...base, accent: lock.accent, tint: lock.tint } : base;
   const intro = WORKSPACE_INTRO[activeTab];
 
   const nav = (
@@ -248,6 +285,32 @@ export function AdminShell({
       </nav>
 
       <div className="m-3 rounded-2xl border border-forest/10 bg-white/60 p-3 backdrop-blur">
+        <div className="mb-2.5">
+          <p className="mb-1.5 flex items-center gap-1.5 px-2 font-mono text-[9px] font-bold uppercase tracking-[0.22em] text-charcoal/40">
+            <Palette className="size-3" /> Panel theme
+          </p>
+          <div className="flex gap-1.5 px-1">
+            {(Object.keys(ADMIN_THEMES) as AdminThemeId[]).map((id) => {
+              const t = ADMIN_THEMES[id]!;
+              const on = skin.id === id;
+              return (
+                <button
+                  key={id}
+                  onClick={() => skin.set(id)}
+                  title={t.label}
+                  aria-label={t.label}
+                  aria-pressed={on}
+                  className={`group relative h-8 flex-1 overflow-hidden rounded-xl border transition-all duration-500 hover:-translate-y-0.5 ${
+                    on ? "border-[var(--ws-accent)] shadow-md" : "border-charcoal/10"
+                  }`}
+                  style={{ background: `linear-gradient(120deg, ${t.swatch[0]} 0%, ${t.swatch[0]} 45%, ${t.swatch[1]} 46%, ${t.swatch[2]} 100%)` }}
+                >
+                  {on && <span className="absolute inset-0 animate-live rounded-xl ring-2 ring-inset ring-[var(--ws-accent)]" />}
+                </button>
+              );
+            })}
+          </div>
+        </div>
         <button
           onClick={motion.toggle}
           className="mb-2.5 flex w-full items-center gap-2 rounded-xl px-2 py-1.5 text-left text-[11px] font-semibold text-charcoal/60 transition hover:bg-forest/5 hover:text-forest-deep"

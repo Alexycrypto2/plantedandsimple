@@ -2,7 +2,7 @@ import { generateImageBase64 } from "./gateway.server";
 
 /** One consistent photography brief so every image in an article matches. */
 export const PHOTO_STYLE =
-  "ultra-realistic professional food photography, magazine editorial quality, soft natural window light, shallow depth of field, matte linen and warm cream surfaces, muted olive and warm beige palette, subtle natural shadows, styled by a food stylist for a premium cookbook. Absolutely no text, no lettering, no logos, no watermarks, no borders, no collage, no illustration, no CGI look, no plastic-looking food.";
+  "Shot on a Canon R5 with an 85mm f/1.4 lens: ultra-realistic professional food photography, magazine editorial quality, soft directional window light with gentle falloff, shallow depth of field, real crumbs, steam and imperfect edges, matte linen, ceramic and warm cream surfaces, muted olive and warm beige palette, natural soft shadows, styled by a food stylist for a premium cookbook. The food must be exactly the dish described — correct ingredients, colours and portion size. Absolutely no text, no lettering, no captions, no logos, no watermarks, no borders, no collage, no split frames, no illustration, no 3D render, no CGI or plastic-looking food, no extra hands or distorted cutlery, no oversaturated colours.";
 
 export const PIN_STYLES = [
   "Minimal Editorial",

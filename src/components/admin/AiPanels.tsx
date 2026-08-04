@@ -8,7 +8,6 @@ import {
   type GenerationKind,
   type GenerationStatus,
 } from "@/lib/ai/approval.functions";
-import { generateBlog } from "@/lib/ai/blog-generator.functions";
 import { scheduleGeneration, generatePinsForBlog } from "@/lib/ai/pin-studio.functions";
 import { generateStudioImage, type ImagePreset } from "@/lib/ai/image-studio.functions";
 import { suggestTopics, listTopics } from "@/lib/ai/topics.functions";
@@ -54,10 +53,6 @@ export function AiStudioPanel() {
   const [msg, setMsg] = useToast();
   const [busy, setBusy] = useState<string | null>(null);
 
-  const [topic, setTopic] = useState("");
-  const [words, setWords] = useState(1200);
-  const [tone, setTone] = useState("warm, editorial, expert");
-
   const [preset, setPreset] = useState<ImagePreset>("pinterest_pin");
   const [subject, setSubject] = useState("");
   const [lastImage, setLastImage] = useState<string | null>(null);
@@ -86,22 +81,6 @@ export function AiStudioPanel() {
     <div className="space-y-6">
       <Heading title="AI Studio" sub="Everything you generate lands in the Approval Queue — nothing goes live automatically." />
       {msg && <p className="rounded-xl bg-forest/10 px-4 py-3 text-sm text-forest-deep">{msg}</p>}
-
-      <section className={card}>
-        <h3 className="font-semibold text-forest-deep">Blog generator</h3>
-        <div className="mt-4 grid gap-3 sm:grid-cols-[2fr_1fr_1fr]">
-          <input className={input} placeholder="Topic, e.g. high-protein vegan breakfasts" value={topic} onChange={(e) => setTopic(e.target.value)} />
-          <input className={input} type="number" min={400} max={3500} value={words} onChange={(e) => setWords(Number(e.target.value))} />
-          <input className={input} value={tone} onChange={(e) => setTone(e.target.value)} />
-        </div>
-        <button
-          className={`${btn} mt-4`}
-          disabled={busy === "blog" || !topic.trim()}
-          onClick={() => run("blog", () => generateBlog({ data: { topic, wordCount: words, tone } }), "Blog draft sent to the Approval Queue.")}
-        >
-          {busy === "blog" ? "Writing…" : "Generate blog post"}
-        </button>
-      </section>
 
       <section className={card}>
         <h3 className="font-semibold text-forest-deep">Image studio</h3>
@@ -151,7 +130,7 @@ export function AiStudioPanel() {
             <li key={t.id} className="flex flex-wrap items-center gap-3 py-3">
               <span className="flex-1 text-sm font-medium">{t.topic}</span>
               <span className="font-mono text-xs text-sage">score {t.ai_score ?? "—"}</span>
-              <button className={btnGhost} onClick={() => setTopic(t.topic)}>Write now</button>
+              <button className={btnGhost} onClick={() => setSubject(t.topic)}>Use as image subject</button>
             </li>
           ))}
           {topics.length === 0 && <li className="py-3 text-sm text-charcoal/50">No topics yet.</li>}
