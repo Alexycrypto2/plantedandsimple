@@ -4,7 +4,7 @@ export const Route = createFileRoute("/api/public/pinterest/publish-due")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const secret = process.env["PINTEREST_STATE_SECRET"];
+        const secret = process.env["PIN_CRON_KEY"];
         const provided = request.headers.get("x-cron-key");
         if (!secret || provided !== secret) {
           return new Response(JSON.stringify({ error: "Unauthorized" }), {
