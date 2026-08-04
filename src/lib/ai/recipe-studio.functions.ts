@@ -59,7 +59,7 @@ export const generateStudioRecipe = createServerFn({ method: "POST" })
 
     const model = createGateway({ structuredOutputs: true })(DEFAULT_CHAT_MODEL);
     const { getMemoryContext } = await import("@/lib/learning/engine.server");
-    const memory = await getMemoryContext("recipe");
+    const memory = await getMemoryContext("general");
 
     const prompt = `You are the head recipe developer for PlantedAndSimple, a premium plant-based cookbook brand. Write ONE fully tested, kitchen-accurate recipe.
 
