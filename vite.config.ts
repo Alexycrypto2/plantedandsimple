@@ -13,6 +13,11 @@ const serverEnv = loadEnv(process.env.NODE_ENV || "development", process.cwd(), 
 Object.assign(process.env, serverEnv);
 
 export default defineConfig({
+  // Cloudflare made `nodejs_compat` the default on 2026-08-04 and now errors when
+  // the flag is still declared, which 502'd the deployed worker. Stop emitting it.
+  nitro: {
+    cloudflare: { nodeCompat: false },
+  },
   tanstackStart: {
     // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
     server: { entry: "server" },
