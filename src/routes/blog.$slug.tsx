@@ -76,7 +76,7 @@ function PostPage() {
           <p className="mt-10 font-display text-xl italic text-forest-deep md:text-2xl">{post.excerpt}</p>
         )}
         <div
-          className="prose prose-lg mt-8 max-w-none text-charcoal/85"
+          className="article-body mt-10"
           dangerouslySetInnerHTML={{ __html: post.content }}
         />
         {post.tags.length > 0 && (

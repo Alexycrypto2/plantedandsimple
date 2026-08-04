@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
   LayoutDashboard, TrendingUp, Package, LibraryBig, ChefHat,
   FileText, Sparkles, Image as ImageIcon, CheckCircle2, Settings2,
-  Users, LogOut, ExternalLink, Search, X, Menu, Waves, Zap, Palette,
+  Users, LogOut, ExternalLink, Search, X, Menu, Waves, Zap, Palette, Rocket,
   type LucideIcon,
 } from "lucide-react";
 
@@ -15,6 +15,7 @@ export const NAV_META: Record<string, { label: string; icon: LucideIcon; group: 
   blogs: { label: "Blogs", icon: FileText, group: "Content" },
   "ai-studio": { label: "AI Studio", icon: Sparkles, group: "Content" },
   pinterest: { label: "Pinterest Studio", icon: ImageIcon, group: "Content" },
+  campaigns: { label: "Campaign Center", icon: Rocket, group: "Growth" },
   products: { label: "Products", icon: Package, group: "Growth" },
   audience: { label: "Audience", icon: Users, group: "Growth" },
   approvals: { label: "Approval Queue", icon: CheckCircle2, group: "Growth" },

@@ -156,3 +156,98 @@ export const updateGenerationPayload = createServerFn({ method: "POST" })
     if (e2) throw new Error(e2.message);
     return { ok: true };
   });
+
+/* ------------------------- one-click preview pack -------------------------- */
+
+const PreviewSchema = z.object({
+  pins: z.array(
+    z.object({
+      style: z.string(),
+      title: z.string(),
+      overlay_text: z.string(),
+      description: z.string(),
+      alt: z.string(),
+      hashtags: z.array(z.string()),
+      image_prompt: z.string(),
+      why_it_works: z.string(),
+    }),
+  ),
+});
+
+/**
+ * Renders 5 pin variants for review WITHOUT writing them to the library.
+ * Nothing is stored until the editor calls savePinPreviews.
+ */
+export const generatePinPreviewPack = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { subject: string; link?: string; generationId?: string }) => ({
+    subject: String(d.subject || "").slice(0, 400),
+    link: d.link ? String(d.link).slice(0, 300) : undefined,
+    generationId: d.generationId ? String(d.generationId) : undefined,
+  }))
+  .handler(async ({ data, context }) => {
+    await requireBoss(context.supabase, context.userId);
+    const model = createGateway({ structuredOutputs: true })(DEFAULT_CHAT_MODEL);
+    const { getMemoryContext } = await import("@/lib/learning/engine.server");
+    const memory = await getMemoryContext("pinterest");
+
+    let output: z.infer<typeof PreviewSchema>;
+    try {
+      const res = await generateText({
+        model,
+        output: Output.object({ schema: PreviewSchema }),
+        prompt: `${memory}
+
+Create exactly 5 Pinterest pin variants for PlantedAndSimple, a premium plant-based cookbook brand.
+Subject: "${data.subject}"
+Each pin uses a DIFFERENT visual style from: ${PIN_STYLES.join(", ")} — and a different hook angle (curiosity, benefit, how-to, list, transformation).
+Rules: title <= 100 chars, overlay_text <= 8 punchy words, description <= 480 chars written for Pinterest SEO, 4-5 hashtags, why_it_works is one sentence on the psychology of that hook.
+image_prompt is a photorealistic vertical food photography brief with clean empty space in the top third; never describe text inside the image. Return JSON only.`,
+        providerOptions: { lovable: { reasoningEffort: "none" } },
+      });
+      output = res.output;
+    } catch (err) {
+      if (NoObjectGeneratedError.isInstance(err)) throw new Error("AI returned invalid JSON — try again.");
+      throw err;
+    }
+
+    const pins = [];
+    for (const pin of output.pins.slice(0, 5)) {
+      const img = await renderImageSafe(pin.image_prompt, "pinterest/previews", FRAMING.pin);
+      pins.push({ ...pin, image_url: img?.url ?? null, storage_path: img?.path ?? null });
+    }
+    return { ok: true, subject: data.subject, link: data.link ?? null, generationId: data.generationId ?? null, pins };
+  });
+
+/** Commits the previews the editor picked into the approval queue. */
+export const savePinPreviews = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { subject: string; link?: string | null; pins: any[] }) => ({
+    subject: String(d.subject || "").slice(0, 400),
+    link: d.link ? String(d.link).slice(0, 300) : null,
+    pins: (d.pins ?? []).slice(0, 5),
+  }))
+  .handler(async ({ data, context }) => {
+    await requireBoss(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const saved: any[] = [];
+    for (const pin of data.pins) {
+      const { data: row, error } = await (supabaseAdmin as any)
+        .from("ai_generations")
+        .insert({
+          kind: "pinterest_pin",
+          title: pin.title,
+          topic: data.subject,
+          preview_url: pin.image_url ?? null,
+          payload: { ...pin, link: data.link },
+          model: `${DEFAULT_CHAT_MODEL} + ${DEFAULT_IMAGE_MODEL}`,
+          created_by: context.userId,
+          status: "pending",
+        })
+        .select("id")
+        .single();
+      if (error) throw new Error(error.message);
+      saved.push({ id: row.id, ...pin });
+    }
+    return { ok: true, saved: saved.length, pins: saved };
+  });

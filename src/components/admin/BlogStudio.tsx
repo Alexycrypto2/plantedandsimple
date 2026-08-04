@@ -7,7 +7,7 @@ import {
   CONTENT_GOALS,
   type Research,
 } from "@/lib/ai/blog-studio.functions";
-import { generatePinSet, PIN_STYLES } from "@/lib/ai/pin-studio.functions";
+import { generatePinSet, generatePinPreviewPack, savePinPreviews, PIN_STYLES } from "@/lib/ai/pin-studio.functions";
 
 const card = "rounded-2xl border border-forest/10 bg-white p-5 shadow-sm";
 const input =
@@ -80,7 +80,6 @@ export function BlogStudioPanel() {
   const [wordCount, setWordCount] = useState(1600);
   const [readingLevel, setReadingLevel] = useState<string>("Standard");
   const [goal, setGoal] = useState<string>("SEO Ranking");
-  const [imageCount, setImageCount] = useState(5);
 
   const [includeRecipe, setIncludeRecipe] = useState(true);
   const [includeFaq, setIncludeFaq] = useState(true);
@@ -130,7 +129,7 @@ export function BlogStudioPanel() {
           includeInternalLinks,
           includeProduct,
           includeCta,
-          imageCount,
+          imageCount: null,
           research,
         },
       });
@@ -290,13 +289,12 @@ export function BlogStudioPanel() {
               </div>
               <input type="range" min={800} max={3500} step={100} value={wordCount} onChange={(e) => setWordCount(Number(e.target.value))} className="mt-2 w-full accent-forest" />
             </div>
-            <div>
-              <div className="flex justify-between text-xs font-semibold text-charcoal/70">
-                <span>AI images to generate</span>
-                <span>{imageCount}</span>
-              </div>
-              <input type="range" min={0} max={8} step={1} value={imageCount} onChange={(e) => setImageCount(Number(e.target.value))} className="mt-2 w-full accent-forest" />
-              <p className="mt-1 text-[11px] text-charcoal/50">Hero first, then section, ingredient, finished-dish and Pinterest shots.</p>
+            <div className="rounded-xl bg-forest/5 p-4">
+              <p className="text-xs font-semibold text-charcoal/70">Photography: automatic</p>
+              <p className="mt-1 text-[11px] text-charcoal/50">
+                The AI rates how much each section would gain from a photo and only shoots the ones that earn it — plus
+                the hero, recipe and Pinterest shots.
+              </p>
             </div>
           </div>
 
@@ -317,7 +315,7 @@ export function BlogStudioPanel() {
           </div>
           {busy === "generate" && (
             <p className="mt-3 text-xs text-charcoal/50">
-              This takes a minute — the article, SEO pack, schema, Pinterest pins and {imageCount} images are all generated in one pass.
+              This takes a minute — the article, SEO pack, schema, Pinterest pins and only the photos the article actually needs are generated in one pass, then the editor scores the draft.
             </p>
           )}
         </section>
@@ -336,11 +334,29 @@ export function BlogStudioPanel() {
                   <h3 className="mt-1 font-display text-2xl italic text-forest-deep">{result.title}</h3>
                   <p className="mt-1 font-mono text-xs text-charcoal/50">/{result.slug} · {result.images_generated} images</p>
                   <div className="mt-3 grid max-w-sm gap-2">
-                    <Meter title="SEO score" value={result.seo_score ?? 0} />
-                    <Meter title="Quality score" value={result.quality_score ?? 0} />
+                    <Meter title="Clarity" value={result.quality?.clarity ?? 0} />
+                    <Meter title="SEO coverage" value={result.quality?.seo ?? 0} />
+                    <Meter title="Originality" value={result.quality?.originality ?? 0} />
+                    <Meter title="Readability" value={result.quality?.readability ?? 0} />
+                    <Meter title="Overall" value={result.quality?.overall ?? 0} />
                   </div>
                 </div>
               </div>
+              {result.quality && (
+                <div className={`rounded-2xl p-4 ${result.blocked ? "bg-amber-50" : "bg-forest/5"}`}>
+                  <p className="text-sm font-semibold text-forest-deep">
+                    Editor's verdict — {result.quality.overall}/100 {result.blocked ? "(held for rewrite)" : "(approved)"}
+                  </p>
+                  <p className="mt-1 text-xs text-charcoal/60">{result.quality.verdict}</p>
+                  {result.quality.problems?.length > 0 && (
+                    <ul className="mt-2 list-disc space-y-1 pl-5 text-[11px] text-charcoal/70">
+                      {result.quality.problems.slice(0, 6).map((p: any, i: number) => (
+                        <li key={i}><strong>{p.area}:</strong> {p.issue} — {p.fix}</li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              )}
               <div>
                 <p className={label}>Planned Pinterest pins</p>
                 <div className="mt-2 grid gap-3 sm:grid-cols-3">
@@ -392,6 +408,41 @@ export function PinterestStudioPanel() {
     }
   };
 
+  const [pack, setPack] = useState<any[] | null>(null);
+  const [picked, setPicked] = useState<number[]>([]);
+  const [packBusy, setPackBusy] = useState(false);
+
+  const runPack = async () => {
+    setPackBusy(true);
+    setMsg(null);
+    setPack(null);
+    setPicked([]);
+    try {
+      const res: any = await generatePinPreviewPack({ data: { subject, link: link || undefined } });
+      setPack(res.pins ?? []);
+      setPicked((res.pins ?? []).map((_: any, i: number) => i));
+    } catch (e: any) {
+      setMsg(e?.message ?? "Preview pack failed");
+    } finally {
+      setPackBusy(false);
+    }
+  };
+
+  const savePack = async () => {
+    if (!pack) return;
+    setPackBusy(true);
+    try {
+      const chosen = pack.filter((_, i) => picked.includes(i));
+      const res: any = await savePinPreviews({ data: { subject, link: link || null, pins: chosen } });
+      setMsg(`${res.saved} pins sent to the Approval Queue.`);
+      setPack(null);
+    } catch (e: any) {
+      setMsg(e?.message ?? "Could not save pins");
+    } finally {
+      setPackBusy(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -399,6 +450,62 @@ export function PinterestStudioPanel() {
         <p className="mt-1 text-sm text-charcoal/60">Generate vertical 2:3 pins with unique designs, copy and hashtags.</p>
       </div>
       {msg && <p className="rounded-xl bg-forest/10 px-4 py-3 text-sm text-forest-deep">{msg}</p>}
+
+      <section className={card}>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h3 className="font-semibold text-forest-deep">One-click preview pack</h3>
+            <p className="mt-1 text-xs text-charcoal/60">
+              Five pin variants — different style and hook each — rendered for review. Nothing is saved until you pick.
+            </p>
+          </div>
+          <button className={btn} disabled={!subject.trim() || packBusy} onClick={runPack}>
+            {packBusy ? "Designing 5 pins…" : "Preview 5 pin variants"}
+          </button>
+        </div>
+        {packBusy && !pack && (
+          <div className="mt-5 grid gap-3 sm:grid-cols-5">
+            {[0, 1, 2, 3, 4].map((i) => (
+              <div
+                key={i}
+                className="aspect-[2/3] animate-pulse rounded-xl bg-forest/10"
+                style={{ animationDelay: `${i * 120}ms` }}
+              />
+            ))}
+          </div>
+        )}
+        {pack && (
+          <div className="mt-5 space-y-4 duration-500 animate-in fade-in">
+            <div className="grid gap-3 sm:grid-cols-5">
+              {pack.map((p: any, i: number) => {
+                const on = picked.includes(i);
+                return (
+                  <button
+                    key={i}
+                    onClick={() => setPicked((c) => (on ? c.filter((x) => x !== i) : [...c, i]))}
+                    className={`overflow-hidden rounded-xl border-2 p-2 text-left transition ${on ? "border-forest bg-forest/5" : "border-transparent bg-cream/40 opacity-70 hover:opacity-100"}`}
+                  >
+                    {p.image_url ? (
+                      <img src={p.image_url} alt={p.alt} className="aspect-[2/3] w-full rounded-lg object-cover" />
+                    ) : (
+                      <div className="grid aspect-[2/3] w-full place-items-center rounded-lg bg-forest/10 text-[10px]">no image</div>
+                    )}
+                    <p className="mt-2 text-[10px] font-bold uppercase tracking-widest text-sage">{p.style}</p>
+                    <p className="mt-0.5 line-clamp-2 text-xs font-semibold text-forest-deep">{p.overlay_text}</p>
+                    <p className="mt-1 line-clamp-2 text-[10px] text-charcoal/60">{p.why_it_works}</p>
+                  </button>
+                );
+              })}
+            </div>
+            <div className="flex flex-wrap gap-3">
+              <button className={btn} disabled={!picked.length || packBusy} onClick={savePack}>
+                Send {picked.length} pin{picked.length === 1 ? "" : "s"} to approvals
+              </button>
+              <button className={btnGhost} onClick={() => setPack(null)}>Discard pack</button>
+            </div>
+          </div>
+        )}
+      </section>
 
       <section className={card}>
         <div className="grid gap-4 sm:grid-cols-2">
