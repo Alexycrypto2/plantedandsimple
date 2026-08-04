@@ -30,9 +30,6 @@ export const adminUploadMedia = createServerFn({ method: "POST" })
   .inputValidator((d: { fileName: string; contentType: string; base64: string; alt?: string; tags?: string[] }) => d)
   .handler(async ({ data, context }) => {
     await requireStaff(context.supabase, context.userId);
-    if (/\/object\/sign\/|[?&]token=/i.test(data.url)) {
-      throw new Error("Signed image links expire. Upload the image to Media instead.");
-    }
     const sb = await admin();
     const ext = (data.fileName.split(".").pop() || "jpg").toLowerCase().slice(0, 5);
     const path = `library/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
@@ -64,6 +61,9 @@ export const adminAddMediaByUrl = createServerFn({ method: "POST" })
   .inputValidator((d: { url: string; alt?: string; title?: string; tags?: string[] }) => d)
   .handler(async ({ data, context }) => {
     await requireStaff(context.supabase, context.userId);
+    if (/\/object\/sign\/|[?&]token=/i.test(data.url)) {
+      throw new Error("Signed image links expire. Upload the image to Media instead.");
+    }
     const sb = await admin();
     const { data: row, error } = await sb
       .from("media")
