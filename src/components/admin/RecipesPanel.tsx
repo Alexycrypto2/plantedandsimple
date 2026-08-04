@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
-import { ChefHat, Plus, Trash2, Save, X, Link2 } from "lucide-react";
+import { ChefHat, Plus, Trash2, Save, X, Link2, Sparkles, Wand2 } from "lucide-react";
 import {
   adminListEntity, adminSaveEntity, adminDeleteEntity,
   adminGetLinks, adminSetLinks, adminLinkableItems,
 } from "@/lib/library/admin.functions";
+import { generateStudioRecipe } from "@/lib/ai/recipe-studio.functions";
 import { EmptyState, PanelCard, SkeletonList } from "./AdminShell";
 import { btnCls, inputCls } from "./LibraryPanel";
 
@@ -24,6 +25,121 @@ const lines = (s: string) => s.split("\n").map((l) => l.trim()).filter(Boolean);
 const toText = (v: any): string =>
   Array.isArray(v) ? v.map((x) => (typeof x === "string" ? x : x?.label ? `${x.label}: ${x.value}` : JSON.stringify(x))).join("\n") : "";
 
+/* ---------------------------- AI recipe creator ---------------------------- */
+
+const STAGES = [
+  "Reading your brief…",
+  "Developing the recipe…",
+  "Balancing quantities & timings…",
+  "Calculating nutrition…",
+  "Shooting the food photography…",
+  "Writing SEO & Pinterest copy…",
+];
+
+function AiRecipeModal({ onClose, onDone }: { onClose: () => void; onDone: () => void }) {
+  const [brief, setBrief] = useState({
+    idea: "", cuisine: "", diet: "plant-based / vegan", mealType: "Dinner",
+    difficulty: "easy", servings: "4", maxMinutes: 45, withImages: true,
+  });
+  const [busy, setBusy] = useState(false);
+  const [stage, setStage] = useState(0);
+  const [error, setError] = useState<string | null>(null);
+  const [result, setResult] = useState<any>(null);
+
+  useEffect(() => {
+    if (!busy) return;
+    const id = setInterval(() => setStage((s) => Math.min(s + 1, STAGES.length - 1)), 6500);
+    return () => clearInterval(id);
+  }, [busy]);
+
+  const go = async () => {
+    if (!brief.idea.trim()) return;
+    setBusy(true); setError(null); setStage(0);
+    try {
+      const res: any = await generateStudioRecipe({ data: brief });
+      setResult(res);
+      onDone();
+    } catch (e: any) {
+      setError(e?.message ?? "Generation failed — try again.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 grid place-items-center bg-charcoal/50 p-4 backdrop-blur-sm duration-200 animate-in fade-in">
+      <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-[1.75rem] border border-white/60 bg-white p-6 shadow-2xl duration-300 animate-in zoom-in-95 slide-in-from-bottom-4">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <p className="flex items-center gap-1.5 font-mono text-[9px] font-bold uppercase tracking-[0.24em] text-[var(--ws-accent)]">
+              <Sparkles className="size-3" /> AI recipe developer
+            </p>
+            <h3 className="mt-1 font-display text-2xl italic text-forest-deep">Let the AI cook it for you</h3>
+          </div>
+          <button onClick={onClose} className="grid size-9 place-items-center rounded-full text-charcoal/40 hover:bg-forest/5">
+            <X className="size-4" />
+          </button>
+        </div>
+
+        {result ? (
+          <div className="mt-5 space-y-4">
+            {result.hero_url && <img src={result.hero_url} alt={result.title} className="w-full rounded-2xl duration-500 animate-in fade-in" />}
+            <div className="rounded-2xl border border-forest/10 bg-cream-warm/50 p-4">
+              <p className="font-display text-xl italic text-forest-deep">{result.title}</p>
+              <p className="mt-1 text-xs text-charcoal/60">
+                Saved as a draft recipe with {result.images} photo{result.images === 1 ? "" : "s"}. Open it to review, then publish.
+              </p>
+            </div>
+            <button onClick={onClose} className={btnCls}>Done</button>
+          </div>
+        ) : busy ? (
+          <div className="mt-8 space-y-3 pb-4">
+            {STAGES.map((s, i) => (
+              <div key={s} className={`flex items-center gap-3 transition-all duration-500 ${i <= stage ? "opacity-100" : "opacity-30"}`}>
+                <span className={`size-2 rounded-full ${i < stage ? "bg-[var(--ws-accent)]" : i === stage ? "animate-live bg-[var(--ws-accent)]" : "bg-charcoal/20"}`} />
+                <span className="text-sm text-charcoal/70">{s}</span>
+              </div>
+            ))}
+            <p className="pt-2 text-xs text-charcoal/40">This takes 1–2 minutes when photos are on. Keep this window open.</p>
+          </div>
+        ) : (
+          <div className="mt-5 space-y-3">
+            <textarea
+              className={inputCls} rows={2}
+              placeholder="What should we cook? e.g. high-protein smoky tofu noodle bowl"
+              value={brief.idea}
+              onChange={(e) => setBrief({ ...brief, idea: e.target.value })}
+            />
+            <div className="grid gap-3 sm:grid-cols-2">
+              <input className={inputCls} placeholder="Cuisine (optional)" value={brief.cuisine} onChange={(e) => setBrief({ ...brief, cuisine: e.target.value })} />
+              <input className={inputCls} placeholder="Diet" value={brief.diet} onChange={(e) => setBrief({ ...brief, diet: e.target.value })} />
+              <select className={inputCls} value={brief.mealType} onChange={(e) => setBrief({ ...brief, mealType: e.target.value })}>
+                {["Breakfast", "Lunch", "Dinner", "Snack", "Dessert", "Drink"].map((m) => <option key={m}>{m}</option>)}
+              </select>
+              <select className={inputCls} value={brief.difficulty} onChange={(e) => setBrief({ ...brief, difficulty: e.target.value })}>
+                {DIFFICULTY.map((d) => <option key={d} value={d}>{d}</option>)}
+              </select>
+              <input className={inputCls} placeholder="Servings" value={brief.servings} onChange={(e) => setBrief({ ...brief, servings: e.target.value })} />
+              <label className="flex items-center gap-2 text-xs font-semibold text-charcoal/60">
+                Max total minutes
+                <input className={inputCls} type="number" value={brief.maxMinutes} onChange={(e) => setBrief({ ...brief, maxMinutes: Number(e.target.value) })} />
+              </label>
+            </div>
+            <label className="flex items-center gap-2 text-sm text-charcoal/70">
+              <input type="checkbox" checked={brief.withImages} onChange={(e) => setBrief({ ...brief, withImages: e.target.checked })} />
+              Shoot the photos too (hero, ingredients flat-lay, step shots)
+            </label>
+            {error && <p className="rounded-xl bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</p>}
+            <button onClick={go} disabled={!brief.idea.trim()} className={btnCls}>
+              <Wand2 className="size-3.5" /> Create the recipe
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export function RecipesSection() {
   const [rows, setRows] = useState<Recipe[] | null>(null);
   const [editing, setEditing] = useState<string | "new" | null>(null);
@@ -31,6 +147,7 @@ export function RecipesSection() {
   const [links, setLinks] = useState<{ type: string; id: string }[]>([]);
   const [linkable, setLinkable] = useState<any>(null);
   const [busy, setBusy] = useState(false);
+  const [aiOpen, setAiOpen] = useState(false);
 
   const load = () => adminListEntity({ data: { entity: "recipes" } }).then((r) => setRows(r as Recipe[]));
   useEffect(() => { load(); adminLinkableItems().then(setLinkable).catch(() => {}); }, []);
@@ -202,13 +319,20 @@ export function RecipesSection() {
   }
 
   return (
+    <>
+    {aiOpen && <AiRecipeModal onClose={() => setAiOpen(false)} onDone={load} />}
     <PanelCard
       title="Recipe CMS"
       icon={ChefHat}
-      action={<button onClick={openNew} className={btnCls}><Plus className="size-3.5" /> New recipe</button>}
+      action={
+        <div className="flex gap-2">
+          <button onClick={() => setAiOpen(true)} className={btnCls}><Sparkles className="size-3.5" /> Create with AI</button>
+          <button onClick={openNew} className="inline-flex items-center gap-1.5 rounded-xl border border-forest/15 px-4 py-2.5 text-xs font-semibold text-forest hover:bg-forest/5"><Plus className="size-3.5" /> Blank</button>
+        </div>
+      }
     >
       {!rows ? <SkeletonList rows={4} /> : rows.length === 0 ? (
-        <EmptyState title="No recipes yet" hint="Create your first recipe — it will flow into the library, blogs, Pinterest Studio and the homepage." action={<button onClick={openNew} className={btnCls}><Plus className="size-3.5" /> New recipe</button>} />
+        <EmptyState title="No recipes yet" hint="Describe a dish and the AI develops the full recipe, nutrition and photography for you." action={<button onClick={() => setAiOpen(true)} className={btnCls}><Sparkles className="size-3.5" /> Create with AI</button>} />
       ) : (
         <ul className="space-y-2">
           {rows.map((r) => (
@@ -232,5 +356,6 @@ export function RecipesSection() {
         </ul>
       )}
     </PanelCard>
+    </>
   );
 }
