@@ -71,7 +71,16 @@ export function requireBossFactory() {
 export function assembleArticleHtml(opts: {
   intro: string;
   toc: boolean;
-  sections: Array<{ heading: string; html: string; callout?: string | null; imageUrl?: string | null; imageAlt?: string }>;
+  takeaways?: string[] | null;
+  sections: Array<{
+    heading: string;
+    html: string;
+    callout?: string | null;
+    pullquote?: string | null;
+    imageUrl?: string | null;
+    imageAlt?: string;
+    imageCaption?: string | null;
+  }>;
   recipe?: {
     name: string;
     prep_time: string;
@@ -81,6 +90,8 @@ export function assembleArticleHtml(opts: {
     steps: string[];
     nutrition: Array<{ label: string; value: string }>;
     tips: string[];
+    heroImageUrl?: string | null;
+    ingredientsImageUrl?: string | null;
   } | null;
   faqs?: Array<{ q: string; a: string }>;
   productHtml?: string | null;
@@ -88,48 +99,73 @@ export function assembleArticleHtml(opts: {
   cta?: string | null;
 }) {
   const slugify = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+  const esc = (s: string) => s.replace(/"/g, "&quot;");
+  const figure = (url: string, alt: string, caption?: string | null) =>
+    `<figure class="article-figure"><img src="${url}" alt="${esc(alt)}" loading="lazy" decoding="async" />` +
+    (caption ? `<figcaption>${caption}</figcaption>` : "") +
+    `</figure>`;
+
   const parts: string[] = [];
-  parts.push(`<p class="lead">${opts.intro}</p>`);
-  if (opts.toc && opts.sections.length > 1) {
+  parts.push(`<div class="article-lead">${opts.intro}</div>`);
+
+  if (opts.takeaways?.length) {
     parts.push(
-      `<nav class="toc"><h2>Table of contents</h2><ol>${opts.sections
+      `<aside class="article-takeaways"><h2>What you'll learn</h2><ul>${opts.takeaways
+        .map((t) => `<li>${t}</li>`)
+        .join("")}</ul></aside>`,
+    );
+  }
+
+  if (opts.toc && opts.sections.length > 2) {
+    parts.push(
+      `<nav class="article-toc" aria-label="Table of contents"><p class="article-toc-title">In this article</p><ol>${opts.sections
         .map((s) => `<li><a href="#${slugify(s.heading)}">${s.heading}</a></li>`)
         .join("")}</ol></nav>`,
     );
   }
+
   for (const s of opts.sections) {
-    parts.push(`<h2 id="${slugify(s.heading)}">${s.heading}</h2>`);
-    if (s.imageUrl) {
-      parts.push(
-        `<figure><img src="${s.imageUrl}" alt="${(s.imageAlt ?? s.heading).replace(/"/g, "'")}" loading="lazy" /><figcaption>${s.heading}</figcaption></figure>`,
-      );
-    }
+    parts.push(`<section class="article-section"><h2 id="${slugify(s.heading)}">${s.heading}</h2>`);
     parts.push(s.html);
-    if (s.callout) parts.push(`<aside class="callout"><p>${s.callout}</p></aside>`);
+    if (s.imageUrl) parts.push(figure(s.imageUrl, s.imageAlt ?? s.heading, s.imageCaption ?? null));
+    if (s.pullquote) parts.push(`<blockquote class="article-quote">${s.pullquote}</blockquote>`);
+    if (s.callout) parts.push(`<aside class="article-callout"><span>Tip</span><p>${s.callout}</p></aside>`);
+    parts.push(`</section>`);
   }
+
   if (opts.recipe) {
     const r = opts.recipe;
     parts.push(
       `<section class="recipe-card"><h2 id="recipe">${r.name}</h2>` +
-        `<p class="recipe-meta"><strong>Prep</strong> ${r.prep_time} · <strong>Cook</strong> ${r.cook_time} · <strong>Serves</strong> ${r.servings}</p>` +
-        `<h3>Ingredients</h3><ul>${r.ingredients.map((i) => `<li>${i}</li>`).join("")}</ul>` +
-        `<h3>Method</h3><ol>${r.steps.map((i) => `<li>${i}</li>`).join("")}</ol>` +
+        (r.heroImageUrl ? figure(r.heroImageUrl, r.name, "The finished dish") : "") +
+        `<div class="recipe-meta"><span><strong>Prep</strong>${r.prep_time}</span><span><strong>Cook</strong>${r.cook_time}</span><span><strong>Serves</strong>${r.servings}</span></div>` +
+        `<div class="recipe-grid"><div><h3>Ingredients</h3><ul class="recipe-ingredients">${r.ingredients
+          .map((i) => `<li>${i}</li>`)
+          .join("")}</ul>` +
+        (r.ingredientsImageUrl ? figure(r.ingredientsImageUrl, `${r.name} ingredients`, "Everything you need") : "") +
+        `</div><div><h3>Method</h3><ol class="recipe-steps">${r.steps.map((i) => `<li>${i}</li>`).join("")}</ol></div></div>` +
         (r.nutrition?.length
-          ? `<h3>Nutrition (per serving)</h3><ul class="nutrition">${r.nutrition.map((n) => `<li><strong>${n.label}</strong> ${n.value}</li>`).join("")}</ul>`
+          ? `<h3>Nutrition (per serving)</h3><ul class="recipe-nutrition">${r.nutrition
+              .map((n) => `<li><span>${n.label}</span><strong>${n.value}</strong></li>`)
+              .join("")}</ul>`
           : "") +
-        (r.tips?.length ? `<h3>Cooking tips</h3><ul>${r.tips.map((t) => `<li>${t}</li>`).join("")}</ul>` : "") +
+        (r.tips?.length
+          ? `<h3>Cook's notes</h3><ul class="recipe-tips">${r.tips.map((t) => `<li>${t}</li>`).join("")}</ul>`
+          : "") +
         `</section>`,
     );
   }
+
   if (opts.faqs?.length) {
     parts.push(
-      `<section class="faq"><h2 id="faq">Frequently asked questions</h2>${opts.faqs
-        .map((f) => `<h3>${f.q}</h3><p>${f.a}</p>`)
+      `<section class="article-faq"><h2 id="faq">Frequently asked questions</h2>${opts.faqs
+        .map((f) => `<details><summary>${f.q}</summary><p>${f.a}</p></details>`)
         .join("")}</section>`,
     );
   }
-  if (opts.productHtml) parts.push(opts.productHtml);
-  parts.push(`<h2 id="conclusion">Final thoughts</h2>${opts.conclusion}`);
-  if (opts.cta) parts.push(`<aside class="cta"><p>${opts.cta}</p></aside>`);
+
+  if (opts.productHtml) parts.push(`<aside class="article-product">${opts.productHtml}</aside>`);
+  parts.push(`<section class="article-section"><h2 id="conclusion">Final thoughts</h2>${opts.conclusion}</section>`);
+  if (opts.cta) parts.push(`<aside class="article-cta"><p>${opts.cta}</p></aside>`);
   return parts.join("\n");
 }
