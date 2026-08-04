@@ -300,8 +300,8 @@ function BlogsSection({ section, posts }: { section: HomepageSection; posts: Pub
       <div className="mx-auto max-w-7xl">
         <Reveal>
           <SectionHeader
-            eyebrow="The Journal"
-            title={section.title ?? "From The Journal"}
+            eyebrow="The Blog"
+            title={section.title ?? "From The Blog"}
             subtitle={section.subtitle}
             align="left"
             action={

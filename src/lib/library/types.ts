@@ -93,7 +93,7 @@ export type SearchHit = {
 export const DEFAULT_NAV = [
   { label: "Shop", href: "/shop" },
   { label: "Recipes", href: "/recipes" },
-  { label: "Journal", href: "/blog" },
+  { label: "Blog", href: "/blog" },
   { label: "Free Guide", href: "/free" },
   { label: "About", href: "/about" },
 ];

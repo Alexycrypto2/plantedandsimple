@@ -85,7 +85,7 @@ function CollectionPage() {
           <div className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {blogs.map((b: any, i: number) => (
               <Reveal key={b.id} delay={i * 60}>
-                <EditorialCard to="/blog/$slug" params={{ slug: b.slug }} image={b.featured_image_url} alt={b.title} eyebrow="Journal" title={b.title} meta={b.excerpt} ratio="aspect-[3/2]" />
+                <EditorialCard to="/blog/$slug" params={{ slug: b.slug }} image={b.featured_image_url} alt={b.title} eyebrow="Blog" title={b.title} meta={b.excerpt} ratio="aspect-[3/2]" />
               </Reveal>
             ))}
           </div>

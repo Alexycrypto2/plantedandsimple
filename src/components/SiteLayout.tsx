@@ -107,7 +107,7 @@ export function SiteFooter() {
   const { data } = useSiteSettings();
   const footer = data?.["footer"] ?? null;
   const columns: FooterColumn[] = footer?.columns ?? [
-    { title: "Explore", links: [{ label: "The Shop", href: "/shop" }, { label: "Recipes", href: "/recipes" }, { label: "Journal", href: "/blog" }, { label: "Free Resources", href: "/free" }] },
+    { title: "Explore", links: [{ label: "The Shop", href: "/shop" }, { label: "Recipes", href: "/recipes" }, { label: "Blog", href: "/blog" }, { label: "Free Resources", href: "/free" }] },
     { title: "Community", links: [{ label: "About", href: "/about" }, { label: "Contact", href: "/contact" }, { label: "Privacy", href: "/privacy" }, { label: "Refund", href: "/refund" }] },
   ];
   return (

@@ -19,7 +19,7 @@ export const Route = createFileRoute("/search")({
   head: () => ({
     meta: [
       { title: "Search — PlantedAndSimple" },
-      { name: "description", content: "Search recipes, cookbooks, guides and journal articles across the PlantedAndSimple library." },
+      { name: "description", content: "Search recipes, cookbooks, guides and blog articles across the PlantedAndSimple library." },
       { property: "og:title", content: "Search — PlantedAndSimple" },
       { property: "og:description", content: "Find recipes, cookbooks and guides in one place." },
       { property: "og:type", content: "website" },
