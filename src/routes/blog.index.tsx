@@ -10,9 +10,9 @@ export const Route = createFileRoute("/blog/")({
   },
   head: () => ({
     meta: [
-      { title: "The Journal — PlantedAndSimple" },
+      { title: "The Blog — PlantedAndSimple" },
       { name: "description", content: "Recipes, rituals, and plant-based technique from the PlantedAndSimple kitchen." },
-      { property: "og:title", content: "The Journal — PlantedAndSimple" },
+      { property: "og:title", content: "The Blog — PlantedAndSimple" },
       { property: "og:description", content: "Recipes, rituals, and plant-based technique from the PlantedAndSimple kitchen." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -26,7 +26,7 @@ function BlogPage() {
     <SiteLayout>
       <section className="mx-auto max-w-6xl px-6 py-20">
         <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.25em] text-sage">From the kitchen</p>
-        <h1 className="mt-3 font-display text-5xl italic text-forest-deep md:text-6xl">The Journal</h1>
+        <h1 className="mt-3 font-display text-5xl italic text-forest-deep md:text-6xl">The Blog</h1>
         <p className="mt-4 max-w-2xl text-lg text-charcoal/70">
           A slow read on plant-based cooking, seasonal eating, and gentle kitchen rituals.
         </p>

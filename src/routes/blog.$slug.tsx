@@ -21,7 +21,7 @@ export const Route = createFileRoute("/blog/$slug")({
       <div className="mx-auto max-w-3xl px-6 py-24 text-center">
         <h1 className="font-display text-4xl italic text-forest-deep">Article not found</h1>
         <Link to="/blog" className="mt-6 inline-block text-forest underline">
-          Back to The Journal
+          Back to The Blog
         </Link>
       </div>
     </SiteLayout>
@@ -29,7 +29,7 @@ export const Route = createFileRoute("/blog/$slug")({
   head: ({ loaderData }) => {
     const post = loaderData?.post;
     const title = post ? `${post.seo_title ?? post.title} — PlantedAndSimple` : "Article — PlantedAndSimple";
-    const desc = post?.seo_description ?? post?.excerpt ?? "A plant-based journal article.";
+    const desc = post?.seo_description ?? post?.excerpt ?? "A plant-based blog article.";
     const img = post?.featured_image_url;
     return {
       meta: [
@@ -56,7 +56,7 @@ function PostPage() {
     <SiteLayout>
       <article className="mx-auto max-w-3xl px-6 py-16">
         <Link to="/blog" className="text-xs font-bold uppercase tracking-[0.25em] text-forest/70 hover:text-forest">
-          ← The Journal
+          ← The Blog
         </Link>
         {post.category && (
           <p className="mt-8 font-mono text-[11px] font-bold uppercase tracking-[0.25em] text-sage">{post.category}</p>
