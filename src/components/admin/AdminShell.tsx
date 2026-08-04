@@ -337,7 +337,9 @@ export function AdminShell({
               <h1 className="truncate font-display text-xl italic text-forest-deep sm:text-2xl">
                 {activeTab === "dashboard" ? `${greeting()} ✨` : (active?.label ?? activeTab)}
               </h1>
-              <p className="hidden truncate text-[11px] text-charcoal/50 sm:block">{ws.mood}</p>
+              <p className="hidden truncate text-[11px] text-charcoal/50 sm:block">
+                <AiThought />
+              </p>
             </div>
             <a
               href="/"
@@ -352,6 +354,22 @@ export function AdminShell({
         </header>
 
         <main key={activeTab} className="animate-blur-in mx-auto max-w-7xl px-4 pb-24 pt-7 sm:px-6">
+          {intro && (
+            <section className="relative mb-7 overflow-hidden rounded-[1.75rem] border border-white/60 bg-white/45 px-5 py-6 backdrop-blur-xl sm:px-8 sm:py-8">
+              <div
+                aria-hidden
+                className="animate-float pointer-events-none absolute -right-12 -top-14 size-52 rounded-full blur-3xl"
+                style={{ background: "color-mix(in oklab, var(--ws-accent) 20%, transparent)" }}
+              />
+              <p className="relative font-mono text-[9px] font-bold uppercase tracking-[0.26em] text-[var(--ws-accent)]">
+                {ws.mood}
+              </p>
+              <h2 className="relative mt-2 max-w-2xl font-display text-2xl italic leading-[1.15] text-forest-deep sm:text-4xl">
+                ✨ {intro.headline}
+              </h2>
+              <p className="relative mt-2 max-w-xl text-[13px] leading-relaxed text-charcoal/55">{intro.sub}</p>
+            </section>
+          )}
           {children}
         </main>
       </div>
