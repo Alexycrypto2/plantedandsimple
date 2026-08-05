@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { generateText, NoObjectGeneratedError, Output } from "ai";
 import { z } from "zod";
-import { createGateway, DEFAULT_CHAT_MODEL } from "./gateway.server";
+import { textModel, describeAiError } from "./gateway.server";
 
 async function requireBoss(supabase: any, userId: string) {
   const { data } = await supabase.from("user_roles").select("role").eq("user_id", userId);
@@ -34,8 +34,8 @@ export const suggestTopics = createServerFn({ method: "POST" })
   }))
   .handler(async ({ data, context }) => {
     await requireBoss(context.supabase, context.userId);
-    const gateway = createGateway({ structuredOutputs: true });
-    const model = gateway(DEFAULT_CHAT_MODEL);
+    const model = await textModel("topics");
+    
     try {
       const { output } = await generateText({
         model,
@@ -127,10 +127,10 @@ export const scanTrends = createServerFn({ method: "POST" })
       .join("\n\n")
       .slice(0, 8000);
 
-    const gateway = createGateway({ structuredOutputs: true });
+    const model = await textModel("topics");
     try {
       const { output } = await generateText({
-        model: gateway(DEFAULT_CHAT_MODEL),
+        model,
         output: Output.object({ schema: TrendsSchema }),
         prompt: `You are the trend analyst for PlantedAndSimple, a premium plant-based cookbook and food-content brand.
 Niche: ${data.niche}.

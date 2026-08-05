@@ -1,6 +1,6 @@
 import { generateText, NoObjectGeneratedError, Output } from "ai";
 import { z } from "zod";
-import { createGateway, DEFAULT_CHAT_MODEL } from "./gateway.server";
+import { textModel, describeAiError } from "./gateway.server";
 
 export const QUALITY_THRESHOLD = 78;
 
@@ -63,7 +63,7 @@ export async function scoreArticle(input: {
   primaryKeyword?: string | null;
 }): Promise<QualityReport> {
   const mech = mechanicalIssues(input);
-  const model = createGateway({ structuredOutputs: true })(DEFAULT_CHAT_MODEL);
+  const model = await textModel("quality");
   const body = input.html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").slice(0, 14000);
 
   let out: z.infer<typeof QualitySchema>;

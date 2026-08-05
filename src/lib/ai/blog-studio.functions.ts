@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { generateText, NoObjectGeneratedError, Output } from "ai";
 import { z } from "zod";
-import { createGateway, DEFAULT_CHAT_MODEL } from "./gateway.server";
+import { textModel, describeAiError } from "./gateway.server";
 import { requireBossFactory } from "./studio.server";
 import type { ArticleBrief } from "./blog-core.server";
 
@@ -57,7 +57,7 @@ export const researchTopic = createServerFn({ method: "POST" })
   }))
   .handler(async ({ data, context }): Promise<Research> => {
     await requireBoss(context.supabase, context.userId);
-    const model = createGateway({ structuredOutputs: true })(DEFAULT_CHAT_MODEL);
+    const model = await textModel("blog-studio");
     try {
       const { output } = await generateText({
         model,
@@ -85,7 +85,7 @@ export const suggestTitles = createServerFn({ method: "POST" })
   }))
   .handler(async ({ data, context }): Promise<string[]> => {
     await requireBoss(context.supabase, context.userId);
-    const model = createGateway({ structuredOutputs: true })(DEFAULT_CHAT_MODEL);
+    const model = await textModel("blog-studio");
     try {
       const { output } = await generateText({
         model,

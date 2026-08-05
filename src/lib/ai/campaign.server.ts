@@ -1,6 +1,6 @@
 import { generateText, NoObjectGeneratedError, Output } from "ai";
 import { z } from "zod";
-import { createGateway, DEFAULT_CHAT_MODEL, DEFAULT_IMAGE_MODEL } from "./gateway.server";
+import { textModel, describeAiError, DEFAULT_IMAGE_MODEL } from "./gateway.server";
 import { FRAMING, PIN_STYLES, renderImageSafe } from "./studio.server";
 
 export type CampaignStep = { key: string; label: string };
@@ -99,7 +99,7 @@ export async function runCampaign(opts: {
   });
 
   /* ------------------------------- campaign copy ---------------------------- */
-  const model = createGateway({ structuredOutputs: true })(DEFAULT_CHAT_MODEL);
+  const model = await textModel("campaign");
   const { getMemoryContext } = await import("@/lib/learning/engine.server");
   const memory = await getMemoryContext("general");
 

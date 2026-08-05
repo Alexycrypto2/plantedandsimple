@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { generateText, NoObjectGeneratedError, Output } from "ai";
 import { z } from "zod";
-import { createGateway, DEFAULT_CHAT_MODEL } from "@/lib/ai/gateway.server";
+import { textModel, describeAiError } from "@/lib/ai/gateway.server";
 
 async function requireStaff(supabase: any, userId: string) {
   const { data } = await supabase.from("user_roles").select("role").eq("user_id", userId);
@@ -164,11 +164,11 @@ export const generateDailyBriefing = createServerFn({ method: "POST" })
       db.from("ai_generations").select("kind").eq("status", "pending"),
     ]);
 
-    const gateway = createGateway({ structuredOutputs: true });
+    const model = await textModel("learning");
     let output: z.infer<typeof BriefingSchema>;
     try {
       const res = await generateText({
-        model: gateway(DEFAULT_CHAT_MODEL),
+        model,
         output: Output.object({ schema: BriefingSchema }),
         prompt: `You are the head of growth for PrimeDownloads / PlantedAndSimple, a premium plant-based digital cookbook publisher.
 Write today's morning briefing.
@@ -378,9 +378,9 @@ export const suggestExperiments = createServerFn({ method: "POST" })
       ),
     });
 
-    const gateway = createGateway({ structuredOutputs: true });
+    const model = await textModel("learning");
     const { output } = await generateText({
-      model: gateway(DEFAULT_CHAT_MODEL),
+      model,
       output: Output.object({ schema: Schema }),
       prompt: `${memory}
 
@@ -483,9 +483,9 @@ export const brandCheckGeneration = createServerFn({ method: "POST" })
     ]);
     if (!gen) throw new Error("Generation not found");
 
-    const gateway = createGateway({ structuredOutputs: true });
+    const model = await textModel("learning");
     const { output } = await generateText({
-      model: gateway(DEFAULT_CHAT_MODEL),
+      model,
       output: Output.object({ schema: BrandCheckSchema }),
       prompt: `Audit this generated ${gen.kind} asset against the PlantedAndSimple brand rules.
 

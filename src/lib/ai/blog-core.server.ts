@@ -1,6 +1,6 @@
 import { generateText, NoObjectGeneratedError, Output } from "ai";
 import { z } from "zod";
-import { createGateway, DEFAULT_CHAT_MODEL, DEFAULT_IMAGE_MODEL } from "./gateway.server";
+import { textModel, describeAiError, DEFAULT_IMAGE_MODEL } from "./gateway.server";
 import { assembleArticleHtml, FRAMING, renderImageSafe } from "./studio.server";
 import { scoreArticle, QUALITY_THRESHOLD } from "./quality.server";
 
@@ -143,7 +143,7 @@ ${brief.includeInternalLinks ? "- internal_link_slugs: 3-5 related blog slugs." 
 }
 
 export async function writeArticle(brief: ArticleBrief): Promise<Article> {
-  const model = createGateway({ structuredOutputs: true })(DEFAULT_CHAT_MODEL);
+  const model = await textModel("blog-core");
   const { getMemoryContext } = await import("@/lib/learning/engine.server");
   const memory = await getMemoryContext("blog");
   try {

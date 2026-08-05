@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { generateText, NoObjectGeneratedError, Output } from "ai";
 import { z } from "zod";
-import { createGateway, DEFAULT_CHAT_MODEL } from "./gateway.server";
+import { textModel, describeAiError } from "./gateway.server";
 import { FRAMING, renderImageSafe, requireBossFactory } from "./studio.server";
 
 const requireBoss = requireBossFactory();
@@ -57,7 +57,7 @@ export const generateStudioRecipe = createServerFn({ method: "POST" })
     await requireBoss(context.supabase, context.userId);
     if (!data.idea) throw new Error("Tell the AI what to cook.");
 
-    const model = createGateway({ structuredOutputs: true })(DEFAULT_CHAT_MODEL);
+    const model = await textModel("recipe-studio");
     const { getMemoryContext } = await import("@/lib/learning/engine.server");
     const memory = await getMemoryContext("general");
 

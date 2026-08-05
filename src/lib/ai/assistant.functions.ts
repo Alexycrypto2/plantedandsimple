@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { generateText, NoObjectGeneratedError, Output } from "ai";
 import { z } from "zod";
-import { createGateway, DEFAULT_CHAT_MODEL } from "./gateway.server";
+import { textModel, describeAiError } from "./gateway.server";
 
 async function requireBoss(supabase: any, userId: string) {
   const { data } = await supabase.from("user_roles").select("role").eq("user_id", userId);
@@ -137,14 +137,14 @@ export const runAssistantCommand = createServerFn({ method: "POST" })
       ].join("\n") || "(no published pages yet)";
     }
 
-    const gateway = createGateway({ structuredOutputs: true });
+    const model = await textModel("assistant");
     try {
       const { getMemoryContext } = await import("@/lib/learning/engine.server");
       const memoryKind =
         data.command === "pinterest_pin" ? "pinterest" : data.command === "product_desc" ? "product" : "general";
       const memory = await getMemoryContext(memoryKind as any);
       const { output } = await generateText({
-        model: gateway(DEFAULT_CHAT_MODEL),
+        model,
         output: Output.object({ schema: cfg.schema as any }),
         prompt: `${BRAND_CONTEXT}\n\n${memory}\n\n${(cfg.prompt as any)(data.input, siteContext)}`,
         providerOptions: { lovable: { reasoningEffort: "none" } },
