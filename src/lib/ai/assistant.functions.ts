@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { generateText, NoObjectGeneratedError, Output } from "ai";
 import { z } from "zod";
-import { textModel, describeAiError } from "./gateway.server";
+import { textModel, describeAiError, DEFAULT_CHAT_MODEL } from "./gateway.server";
 
 async function requireBoss(supabase: any, userId: string) {
   const { data } = await supabase.from("user_roles").select("role").eq("user_id", userId);

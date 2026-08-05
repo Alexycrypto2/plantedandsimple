@@ -1,6 +1,6 @@
 import { generateText, NoObjectGeneratedError, Output } from "ai";
 import { z } from "zod";
-import { textModel, describeAiError, DEFAULT_IMAGE_MODEL } from "./gateway.server";
+import { textModel, describeAiError, DEFAULT_CHAT_MODEL, DEFAULT_IMAGE_MODEL } from "./gateway.server";
 import { assembleArticleHtml, FRAMING, renderImageSafe } from "./studio.server";
 import { scoreArticle, QUALITY_THRESHOLD } from "./quality.server";
 

@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { generateText, NoObjectGeneratedError, Output } from "ai";
 import { z } from "zod";
-import { textModel, describeAiError, DEFAULT_IMAGE_MODEL } from "./gateway.server";
+import { textModel, describeAiError, DEFAULT_CHAT_MODEL, DEFAULT_IMAGE_MODEL } from "./gateway.server";
 import { FRAMING, PIN_STYLES, renderImageSafe, requireBossFactory } from "./studio.server";
 
 const requireBoss = requireBossFactory();
