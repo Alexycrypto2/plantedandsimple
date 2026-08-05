@@ -4,7 +4,7 @@ export const AI_GATEWAY_URL = "https://ai.gateway.lovable.dev/v1";
 export const DEFAULT_CHAT_MODEL = "openai/gpt-5.6-sol";
 export const DEFAULT_IMAGE_MODEL = "google/gemini-3.1-flash-image";
 export const GEMINI_OPENAI_URL = "https://generativelanguage.googleapis.com/v1beta/openai";
-export const DEFAULT_GEMINI_TEXT_MODEL = "gemini-2.5-flash";
+export const DEFAULT_GEMINI_TEXT_MODEL = "gemini-3.6-flash";
 
 export type AiProviderName = "gemini" | "lovable";
 
