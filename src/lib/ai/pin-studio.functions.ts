@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { generateText, NoObjectGeneratedError, Output } from "ai";
 import { z } from "zod";
-import { createGateway, DEFAULT_CHAT_MODEL, DEFAULT_IMAGE_MODEL } from "./gateway.server";
+import { textModel, describeAiError, DEFAULT_CHAT_MODEL, DEFAULT_IMAGE_MODEL } from "./gateway.server";
 import { FRAMING, PIN_STYLES, renderImageSafe, requireBossFactory } from "./studio.server";
 
 const requireBoss = requireBossFactory();
@@ -48,7 +48,7 @@ export const generatePinSet = createServerFn({ method: "POST" })
   }))
   .handler(async ({ data, context }) => {
     await requireBoss(context.supabase, context.userId);
-    const model = createGateway({ structuredOutputs: true })(DEFAULT_CHAT_MODEL);
+    const model = await textModel("pin-studio");
 
     const { getMemoryContext } = await import("@/lib/learning/engine.server");
     const memory = await getMemoryContext("pinterest");
@@ -71,7 +71,7 @@ Return JSON only.`,
       output = res.output;
     } catch (err: any) {
       if (NoObjectGeneratedError.isInstance(err)) throw new Error("AI returned invalid JSON — try again.");
-      throw err;
+      throw describeAiError(err);
     }
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -205,7 +205,7 @@ export const generatePinPreviewPack = createServerFn({ method: "POST" })
   }))
   .handler(async ({ data, context }) => {
     await requireBoss(context.supabase, context.userId);
-    const model = createGateway({ structuredOutputs: true })(DEFAULT_CHAT_MODEL);
+    const model = await textModel("pin-studio");
     const { getMemoryContext } = await import("@/lib/learning/engine.server");
     const memory = await getMemoryContext("pinterest");
 
@@ -226,7 +226,7 @@ Also add why_it_works: one sentence on the psychology of that hook. Return JSON 
       output = res.output;
     } catch (err) {
       if (NoObjectGeneratedError.isInstance(err)) throw new Error("AI returned invalid JSON — try again.");
-      throw err;
+      throw describeAiError(err);
     }
 
     const pins = [];
@@ -268,4 +268,188 @@ export const savePinPreviews = createServerFn({ method: "POST" })
       saved.push({ id: row.id, ...pin });
     }
     return { ok: true, saved: saved.length, pins: saved };
+  });
+
+/* ------------------------- content-source aware pins ----------------------- */
+
+export type PinSourceType = "recipe" | "blog" | "product" | "custom";
+
+export type PinSource = {
+  type: PinSourceType;
+  id: string;
+  title: string;
+  slug: string;
+  summary: string | null;
+  image_url: string | null;
+  url: string;
+};
+
+const SITE = "https://www.primedownloads.store";
+
+/** Everything the studio can turn into pins, grouped by content type. */
+export const listPinSources = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }): Promise<{ recipe: PinSource[]; blog: PinSource[]; product: PinSource[] }> => {
+    await requireBoss(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const db = supabaseAdmin as any;
+    const [recipes, blogs, products] = await Promise.all([
+      db.from("recipes").select("id, slug, title, description").order("created_at", { ascending: false }).limit(60),
+      db.from("blog_posts").select("id, slug, title, excerpt, featured_image_url").order("created_at", { ascending: false }).limit(60),
+      db.from("products").select("id, slug, title, subtitle, cover_image_url").order("created_at", { ascending: false }).limit(60),
+    ]);
+    const map = (rows: any[], type: PinSourceType, base: string, sum: string, img: string): PinSource[] =>
+      (rows ?? []).map((r) => ({
+        type,
+        id: r.id,
+        title: r.title,
+        slug: r.slug,
+        summary: r[sum] ?? null,
+        image_url: r[img] ?? null,
+        url: `${SITE}/${base}/${r.slug}`,
+      }));
+    return {
+      recipe: map(recipes.data, "recipe", "recipes", "description", "__none"),
+      blog: map(blogs.data, "blog", "blog", "excerpt", "featured_image_url"),
+      product: map(products.data, "product", "shop", "subtitle", "cover_image_url"),
+    };
+  });
+
+/** Per-type direction so the AI picks the layout that actually fits the content. */
+const SOURCE_PLAYBOOK: Record<PinSourceType, string> = {
+  recipe:
+    "This is a RECIPE pin. Lead with the finished dish and the eating benefit (protein, 30 minutes, one pan). Best layouts: Food Magazine, Recipe Card, Organic Food, Minimal Editorial. Overlay text should read like a dish name plus one proof point. Never invent ingredients that are not in the recipe.",
+  blog:
+    "This is an ARTICLE pin. Lead with the reader problem the article solves and promise the takeaway, not a dish. Best layouts: Minimal Editorial, Clean White, Bold Colors, Luxury. Overlay text should be a curiosity or list hook (e.g. '7 swaps that actually fill you up'). Imagery should be atmospheric and editorial rather than a single plated recipe.",
+  product:
+    "This is a PRODUCT pin for a paid digital cookbook. Lead with the transformation and what is inside, and keep it aspirational, never spammy or discount-shouty. Best layouts: Luxury, Minimal Editorial, Clean White. Imagery should feel like a premium cookbook shoot — styled table scenes, layered dishes, calm luxury. Never show text, book covers, mockups or devices in the image.",
+  custom: "This is a free-form subject. Choose the layouts that suit it best.",
+};
+
+/**
+ * Premium generator: pulls the real content, picks fitting layouts, and renders
+ * a preview pack that is only saved when the editor approves it.
+ */
+export const generatePinsFromSource = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { type: PinSourceType; id?: string; subject?: string; count?: number; angle?: string }) => ({
+    type: (["recipe", "blog", "product", "custom"].includes(d.type) ? d.type : "custom") as PinSourceType,
+    id: d.id ? String(d.id) : undefined,
+    subject: String(d.subject ?? "").slice(0, 400),
+    count: Math.min(Math.max(Number(d.count ?? 5), 1), 5),
+    angle: d.angle ? String(d.angle).slice(0, 200) : undefined,
+  }))
+  .handler(async ({ data, context }) => {
+    await requireBoss(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const db = supabaseAdmin as any;
+
+    let brief = data.subject;
+    let link: string | null = null;
+    let sourceTitle = data.subject;
+
+    if (data.type !== "custom" && data.id) {
+      if (data.type === "recipe") {
+        const { data: r } = await db
+          .from("recipes")
+          .select("title, slug, subtitle, description, ingredients, instructions, prep_minutes, cook_minutes, servings, tags")
+          .eq("id", data.id)
+          .maybeSingle();
+        if (!r) throw new Error("Recipe not found");
+        sourceTitle = r.title;
+        link = `${SITE}/recipes/${r.slug}`;
+        brief = [
+          `Recipe: ${r.title}`,
+          r.description ? `About: ${r.description}` : "",
+          (r.prep_minutes || r.cook_minutes) ? `Total time: ${(r.prep_minutes ?? 0) + (r.cook_minutes ?? 0)} minutes` : "",
+          r.servings ? `Serves: ${r.servings}` : "",
+          Array.isArray(r.tags) && r.tags.length ? `Tags: ${r.tags.join(", ")}` : "",
+          `Key ingredients: ${JSON.stringify(r.ingredients ?? []).slice(0, 900)}`,
+        ]
+          .filter(Boolean)
+          .join("\n");
+      } else if (data.type === "blog") {
+        const { data: b } = await db
+          .from("blog_posts")
+          .select("title, slug, excerpt, seo_description, content, tags")
+          .eq("id", data.id)
+          .maybeSingle();
+        if (!b) throw new Error("Article not found");
+        sourceTitle = b.title;
+        link = `${SITE}/blog/${b.slug}`;
+        brief = [
+          `Article: ${b.title}`,
+          b.excerpt ? `Excerpt: ${b.excerpt}` : "",
+          b.seo_description ? `Meta: ${b.seo_description}` : "",
+          Array.isArray(b.tags) && b.tags.length ? `Tags: ${b.tags.join(", ")}` : "",
+          `Opening: ${String(b.content ?? "").replace(/<[^>]+>/g, " ").slice(0, 900)}`,
+        ]
+          .filter(Boolean)
+          .join("\n");
+      } else {
+        const { data: p } = await db
+          .from("products")
+          .select("title, slug, subtitle, description, price_cents, compare_at_cents, benefits, features")
+          .eq("id", data.id)
+          .maybeSingle();
+        if (!p) throw new Error("Product not found");
+        sourceTitle = p.title;
+        link = `${SITE}/shop/${p.slug}`;
+        brief = [
+          `Product: ${p.title}`,
+          p.subtitle ? `Subtitle: ${p.subtitle}` : "",
+          p.description ? `Description: ${String(p.description).replace(/<[^>]+>/g, " ").slice(0, 800)}` : "",
+          p.benefits ? `Benefits: ${JSON.stringify(p.benefits).slice(0, 400)}` : "",
+          p.features ? `Includes: ${JSON.stringify(p.features).slice(0, 400)}` : "",
+        ]
+          .filter(Boolean)
+          .join("\n");
+      }
+    }
+
+    if (!brief.trim()) throw new Error("Pick a piece of content or type a subject first.");
+
+    const model = await textModel("pin-studio-source");
+    const { getMemoryContext } = await import("@/lib/learning/engine.server");
+    const memory = await getMemoryContext("pinterest");
+
+    let output: z.infer<typeof PreviewSchema>;
+    try {
+      const res = await generateText({
+        model,
+        output: Output.object({ schema: PreviewSchema }),
+        prompt: `${memory}
+
+${PIN_BRIEF}
+
+${SOURCE_PLAYBOOK[data.type]}
+${data.angle ? `Editor's angle for this batch: ${data.angle}` : ""}
+
+Use ONLY the facts below — never invent claims, numbers, ingredients or timings.
+---
+${brief}
+---
+
+Create exactly ${data.count} pin variants. Each must use a different layout chosen from: ${PIN_STYLES.join(", ")} — choose the ones that genuinely fit this content type, do not cycle through all of them mechanically. Each must use a different hook angle. Add why_it_works: one sentence on why that hook converts for this exact content. Return JSON only.`,
+        providerOptions: { lovable: { reasoningEffort: "none" } },
+      });
+      output = res.output;
+    } catch (err) {
+      if (NoObjectGeneratedError.isInstance(err)) throw new Error("AI returned invalid JSON — try again.");
+      throw describeAiError(err);
+    }
+
+    const pins = [];
+    for (const pin of output.pins.slice(0, data.count)) {
+      const img = await renderImageSafe(pin.image_prompt, "pinterest/previews", FRAMING.pin);
+      pins.push({ ...pin, image_url: img?.url ?? null, storage_path: img?.path ?? null });
+    }
+
+    return {
+      ok: true,
+      subject: sourceTitle,
+      source: { type: data.type, id: data.id ?? null, title: sourceTitle },
+      link,
+      pins,
+    };
   });

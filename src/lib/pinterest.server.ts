@@ -3,10 +3,22 @@ import { getConfig } from "./settings.server";
 
 export const PINTEREST_SCOPES = "boards:read,pins:read,pins:write,user_accounts:read";
 export const PINTEREST_API = "https://api.pinterest.com/v5";
+export const PINTEREST_STATE_COOKIE = "pin_oauth_state";
+export const DEFAULT_PINTEREST_REDIRECT_URI =
+  "https://www.primedownloads.store/api/public/pinterest/oauth/callback";
 
-export function pinterestRedirectUri(origin?: string) {
-  const base = origin || "https://primedownloads.store";
-  return `${base.replace(/\/$/, "")}/api/public/pinterest/oauth/callback`;
+/**
+ * The redirect URI must be byte-identical in the authorize request, on the Pinterest
+ * app config, and in the token exchange. So it is ONE canonical value, overridable in
+ * Settings → Integrations, never derived from the browser origin.
+ */
+export async function pinterestRedirectUri(): Promise<string> {
+  const configured = (await getConfig("PINTEREST_REDIRECT_URI"))?.trim();
+  return (configured || DEFAULT_PINTEREST_REDIRECT_URI).replace(/\/$/, "");
+}
+
+export function pinLog(step: string, fields: Record<string, unknown> = {}) {
+  console.log(`[pinterest-oauth] ${step} ${JSON.stringify(fields)}`);
 }
 
 export async function pinterestCredentials() {
@@ -37,9 +49,21 @@ async function tokenRequest(body: URLSearchParams) {
 }
 
 export async function exchangeCode(code: string, redirectUri: string) {
-  return tokenRequest(
-    new URLSearchParams({ grant_type: "authorization_code", code, redirect_uri: redirectUri }),
-  );
+  pinLog("token-exchange:start", { redirectUri, codeLength: code.length });
+  try {
+    const tokens = await tokenRequest(
+      new URLSearchParams({ grant_type: "authorization_code", code, redirect_uri: redirectUri }),
+    );
+    pinLog("token-exchange:ok", {
+      hasRefresh: Boolean(tokens.refresh_token),
+      expiresIn: tokens.expires_in ?? null,
+      scope: tokens.scope ?? null,
+    });
+    return tokens;
+  } catch (e: any) {
+    pinLog("token-exchange:failed", { error: String(e?.message ?? e).slice(0, 400), redirectUri });
+    throw e;
+  }
 }
 
 export async function refreshToken(refresh: string) {

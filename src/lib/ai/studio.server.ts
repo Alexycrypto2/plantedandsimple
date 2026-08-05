@@ -45,7 +45,8 @@ export async function renderImageSafe(
 ): Promise<RenderedImage | null> {
   try {
     return await renderImage(prompt, folder, framing);
-  } catch {
+  } catch (err) {
+    console.error(`[ai] image render failed (${folder}): ${String((err as Error)?.message ?? err).slice(0, 400)}`);
     return null;
   }
 }

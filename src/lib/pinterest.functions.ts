@@ -34,7 +34,7 @@ export const pinterestStatus = createServerFn({ method: "GET" })
       username: data?.username ?? null,
       expires_at: data?.expires_at ?? null,
       scopes: data?.scopes ?? null,
-      redirect_uri: pinterestRedirectUri("https://primedownloads.store"),
+      redirect_uri: await pinterestRedirectUri(),
       credentials_configured: Boolean(id && secret),
     };
   });
@@ -44,17 +44,32 @@ export const pinterestAuthUrl = createServerFn({ method: "POST" })
   .inputValidator((d: { origin: string }) => ({ origin: String(d.origin || "") }))
   .handler(async ({ data, context }) => {
     await requireBoss(context.supabase, context.userId);
-    const { pinterestCredentials, pinterestRedirectUri, PINTEREST_SCOPES } = await import("./pinterest.server");
+    const { pinterestCredentials, pinterestRedirectUri, PINTEREST_SCOPES, PINTEREST_STATE_COOKIE, pinLog } =
+      await import("./pinterest.server");
     const { signState } = await import("./crypto.server");
+    const { setCookie } = await import("@tanstack/react-start/server");
     const { clientId } = await pinterestCredentials();
-    const redirectUri = pinterestRedirectUri(data.origin);
-    const state = signState({ uid: context.userId, origin: data.origin });
+    const redirectUri = await pinterestRedirectUri();
+    const nonce = crypto.randomUUID();
+    const state = signState({ uid: context.userId, origin: data.origin, n: nonce });
+
+    // Second factor: the same nonce in a first-party cookie, so a callback cannot be
+    // replayed or opened directly without the session that started the flow.
+    setCookie(PINTEREST_STATE_COOKIE, nonce, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "lax",
+      path: "/",
+      maxAge: 15 * 60,
+    });
+
     const url = new URL("https://www.pinterest.com/oauth/");
     url.searchParams.set("client_id", clientId);
     url.searchParams.set("redirect_uri", redirectUri);
     url.searchParams.set("response_type", "code");
     url.searchParams.set("scope", PINTEREST_SCOPES);
     url.searchParams.set("state", state);
+    pinLog("authorize:generated", { redirectUri, clientIdTail: clientId.slice(-4), stateLength: state.length });
     return { url: url.toString(), redirect_uri: redirectUri };
   });
 

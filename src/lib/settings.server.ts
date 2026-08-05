@@ -3,8 +3,10 @@ import { decrypt, encrypt } from "./crypto.server";
 export const SETTING_KEYS = [
   "PINTEREST_CLIENT_ID",
   "PINTEREST_CLIENT_SECRET",
+  "PINTEREST_REDIRECT_URI",
   "GEMINI_API_KEY",
   "GEMINI_IMAGE_MODEL",
+  "GEMINI_TEXT_MODEL",
 ] as const;
 export type SettingKey = (typeof SETTING_KEYS)[number];
 
