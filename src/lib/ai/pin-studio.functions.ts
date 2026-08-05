@@ -71,7 +71,7 @@ Return JSON only.`,
       output = res.output;
     } catch (err: any) {
       if (NoObjectGeneratedError.isInstance(err)) throw new Error("AI returned invalid JSON — try again.");
-      throw err;
+      throw describeAiError(err);
     }
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -226,7 +226,7 @@ Also add why_it_works: one sentence on the psychology of that hook. Return JSON 
       output = res.output;
     } catch (err) {
       if (NoObjectGeneratedError.isInstance(err)) throw new Error("AI returned invalid JSON — try again.");
-      throw err;
+      throw describeAiError(err);
     }
 
     const pins = [];

@@ -192,7 +192,7 @@ action is a single concrete instruction the studio can execute.`,
       output = res.output;
     } catch (err: any) {
       if (NoObjectGeneratedError.isInstance(err)) throw new Error("AI returned invalid JSON — try again.");
-      throw err;
+      throw describeAiError(err);
     }
 
     const today = new Date().toISOString().slice(0, 10);

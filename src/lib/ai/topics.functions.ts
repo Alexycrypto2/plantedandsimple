@@ -65,7 +65,7 @@ Return JSON only.`,
       return { ok: true, count: rows.length };
     } catch (err: any) {
       if (NoObjectGeneratedError.isInstance(err)) throw new Error("AI returned invalid JSON — try again.");
-      throw err;
+      throw describeAiError(err);
     }
   });
 
@@ -176,6 +176,6 @@ Rules:
       return { ok: true, count: rows.length, sources: signals.map((s) => s.source) };
     } catch (err: any) {
       if (NoObjectGeneratedError.isInstance(err)) throw new Error("AI returned invalid JSON — try again.");
-      throw err;
+      throw describeAiError(err);
     }
   });

@@ -71,7 +71,7 @@ Give realistic, specific estimates. difficulty and popularity are 0-100. Return 
       return output;
     } catch (err) {
       if (NoObjectGeneratedError.isInstance(err)) throw new Error("Research failed — try again.");
-      throw err;
+      throw describeAiError(err);
     }
   });
 
@@ -98,7 +98,7 @@ Each headline under 60 characters, specific, no clickbait, no numbering. Return 
       return output.titles.slice(0, 6);
     } catch (err) {
       if (NoObjectGeneratedError.isInstance(err)) throw new Error("Could not generate titles — try again.");
-      throw err;
+      throw describeAiError(err);
     }
   });
 

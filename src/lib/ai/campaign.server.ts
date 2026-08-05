@@ -127,7 +127,7 @@ Banned words: delve, elevate, unlock, game-changer, dive into, look no further. 
     copy = res.output;
   } catch (err) {
     if (NoObjectGeneratedError.isInstance(err)) throw new Error("Campaign copy failed — try again.");
-    throw err;
+    throw describeAiError(err);
   }
 
   /* ---------------------------------- pins ---------------------------------- */

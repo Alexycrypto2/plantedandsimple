@@ -174,6 +174,6 @@ export const runAssistantCommand = createServerFn({ method: "POST" })
       };
     } catch (err: any) {
       if (NoObjectGeneratedError.isInstance(err)) throw new Error("AI returned invalid JSON — try again.");
-      throw err;
+      throw describeAiError(err);
     }
   });

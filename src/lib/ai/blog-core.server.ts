@@ -156,7 +156,7 @@ export async function writeArticle(brief: ArticleBrief): Promise<Article> {
     return res.output;
   } catch (err) {
     if (NoObjectGeneratedError.isInstance(err)) throw new Error("AI returned invalid JSON — try again.");
-    throw err;
+    throw describeAiError(err);
   }
 }
 
