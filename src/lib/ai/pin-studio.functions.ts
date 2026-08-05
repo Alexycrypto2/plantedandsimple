@@ -294,7 +294,7 @@ export const listPinSources = createServerFn({ method: "GET" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const db = supabaseAdmin as any;
     const [recipes, blogs, products] = await Promise.all([
-      db.from("recipes").select("id, slug, title, description, hero_image_url").order("created_at", { ascending: false }).limit(60),
+      db.from("recipes").select("id, slug, title, description").order("created_at", { ascending: false }).limit(60),
       db.from("blog_posts").select("id, slug, title, excerpt, featured_image_url").order("created_at", { ascending: false }).limit(60),
       db.from("products").select("id, slug, title, subtitle, cover_image_url").order("created_at", { ascending: false }).limit(60),
     ]);
@@ -309,7 +309,7 @@ export const listPinSources = createServerFn({ method: "GET" })
         url: `${SITE}/${base}/${r.slug}`,
       }));
     return {
-      recipe: map(recipes.data, "recipe", "recipes", "description", "hero_image_url"),
+      recipe: map(recipes.data, "recipe", "recipes", "description", "__none"),
       blog: map(blogs.data, "blog", "blog", "excerpt", "featured_image_url"),
       product: map(products.data, "product", "shop", "subtitle", "cover_image_url"),
     };
@@ -352,7 +352,7 @@ export const generatePinsFromSource = createServerFn({ method: "POST" })
       if (data.type === "recipe") {
         const { data: r } = await db
           .from("recipes")
-          .select("title, slug, description, ingredients, instructions, total_time_minutes, servings, tags")
+          .select("title, slug, subtitle, description, ingredients, instructions, prep_minutes, cook_minutes, servings, tags")
           .eq("id", data.id)
           .maybeSingle();
         if (!r) throw new Error("Recipe not found");
@@ -361,7 +361,7 @@ export const generatePinsFromSource = createServerFn({ method: "POST" })
         brief = [
           `Recipe: ${r.title}`,
           r.description ? `About: ${r.description}` : "",
-          r.total_time_minutes ? `Total time: ${r.total_time_minutes} minutes` : "",
+          (r.prep_minutes || r.cook_minutes) ? `Total time: ${(r.prep_minutes ?? 0) + (r.cook_minutes ?? 0)} minutes` : "",
           r.servings ? `Serves: ${r.servings}` : "",
           Array.isArray(r.tags) && r.tags.length ? `Tags: ${r.tags.join(", ")}` : "",
           `Key ingredients: ${JSON.stringify(r.ingredients ?? []).slice(0, 900)}`,
@@ -389,7 +389,7 @@ export const generatePinsFromSource = createServerFn({ method: "POST" })
       } else {
         const { data: p } = await db
           .from("products")
-          .select("title, slug, subtitle, description, price_cents, compare_at_cents, highlights")
+          .select("title, slug, subtitle, description, price_cents, compare_at_cents, benefits, features")
           .eq("id", data.id)
           .maybeSingle();
         if (!p) throw new Error("Product not found");
@@ -399,7 +399,8 @@ export const generatePinsFromSource = createServerFn({ method: "POST" })
           `Product: ${p.title}`,
           p.subtitle ? `Subtitle: ${p.subtitle}` : "",
           p.description ? `Description: ${String(p.description).replace(/<[^>]+>/g, " ").slice(0, 800)}` : "",
-          p.highlights ? `Highlights: ${JSON.stringify(p.highlights).slice(0, 500)}` : "",
+          p.benefits ? `Benefits: ${JSON.stringify(p.benefits).slice(0, 400)}` : "",
+          p.features ? `Includes: ${JSON.stringify(p.features).slice(0, 400)}` : "",
         ]
           .filter(Boolean)
           .join("\n");
