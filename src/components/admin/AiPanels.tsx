@@ -13,7 +13,7 @@ import { scheduleGeneration, generatePinsForBlog } from "@/lib/ai/pin-studio.fun
 import { generateStudioImage, type ImagePreset } from "@/lib/ai/image-studio.functions";
 import { suggestTopics, listTopics } from "@/lib/ai/topics.functions";
 import { runAssistantCommand, ASSISTANT_COMMANDS, type AssistantCommand } from "@/lib/ai/assistant.functions";
-import { adminListSettings, adminSaveSetting, type SettingRow } from "@/lib/settings.functions";
+import { adminListSettings, adminSaveSetting, aiDiagnostics, type SettingRow } from "@/lib/settings.functions";
 import {
   pinterestStatus,
   pinterestAuthUrl,
@@ -402,6 +402,20 @@ export function IntegrationsPanel() {
   const [status, setStatus] = useState<PinterestStatus | null>(null);
   const [msg, setMsg] = useToast();
   const [busy, setBusy] = useState(false);
+  const [diag, setDiag] = useState<any>(null);
+  const [diagBusy, setDiagBusy] = useState(false);
+
+  const runDiagnostics = async () => {
+    setDiagBusy(true);
+    setDiag(null);
+    try {
+      setDiag(await aiDiagnostics());
+    } catch (e: any) {
+      setMsg(e?.message ?? "Diagnostics failed");
+    } finally {
+      setDiagBusy(false);
+    }
+  };
 
   const load = () => {
     adminListSettings().then(setSettings).catch(() => {});
@@ -436,6 +450,50 @@ export function IntegrationsPanel() {
     <div className="space-y-6">
       <Heading title="Settings & Integrations" sub="API keys are encrypted before they are stored." />
       {msg && <p className="rounded-xl bg-forest/10 px-4 py-3 text-sm text-forest-deep">{msg}</p>}
+
+      <section className={card}>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h3 className="font-semibold text-forest-deep">AI provider health</h3>
+            <p className="mt-1 text-sm text-charcoal/60">
+              Runs one real text request and one real image request, and shows exactly which provider, key and model
+              answered.
+            </p>
+          </div>
+          <button className={btn} onClick={runDiagnostics} disabled={diagBusy}>
+            {diagBusy ? "Testing…" : "Run AI test"}
+          </button>
+        </div>
+        {diag && (
+          <dl className="mt-4 grid gap-3 sm:grid-cols-2">
+            <div className="rounded-xl bg-cream/60 p-3">
+              <dt className="text-xs font-semibold uppercase tracking-widest text-sage">Text</dt>
+              <dd className="mt-1 text-sm text-forest-deep">
+                {diag.text_provider} · {diag.text_model}
+              </dd>
+              <dd className={`mt-1 text-xs ${diag.text?.ok ? "text-forest" : "text-red-600"}`}>
+                {diag.text?.ok ? `OK — “${diag.text.detail}”` : diag.text?.detail}
+              </dd>
+            </div>
+            <div className="rounded-xl bg-cream/60 p-3">
+              <dt className="text-xs font-semibold uppercase tracking-widest text-sage">Images</dt>
+              <dd className="mt-1 text-sm text-forest-deep">
+                {diag.image_provider} · {diag.image_model}
+              </dd>
+              <dd className={`mt-1 text-xs ${diag.image?.ok ? "text-forest" : "text-red-600"}`}>
+                {diag.image?.ok ? `OK — ${diag.image.detail}` : diag.image?.detail}
+              </dd>
+            </div>
+            <div className="rounded-xl bg-cream/60 p-3 sm:col-span-2">
+              <dt className="text-xs font-semibold uppercase tracking-widest text-sage">Keys</dt>
+              <dd className="mt-1 text-xs text-charcoal/70">
+                Gemini key: {diag.gemini_key_present ? `present (${diag.gemini_key_source})` : "missing"} · Lovable AI
+                key: {diag.lovable_key_present ? "present" : "missing"}
+              </dd>
+            </div>
+          </dl>
+        )}
+      </section>
 
       <section className={card}>
         <h3 className="font-semibold text-forest-deep">Pinterest</h3>
