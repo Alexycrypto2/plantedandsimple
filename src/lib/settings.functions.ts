@@ -14,6 +14,12 @@ const FIELDS: { key: string; label: string; hint: string }[] = [
   { key: "PINTEREST_CLIENT_SECRET", label: "Pinterest App Secret", hint: "Keep this private" },
   { key: "GEMINI_API_KEY", label: "Gemini API key", hint: "Optional — leave empty to use built-in Lovable AI images" },
   { key: "GEMINI_IMAGE_MODEL", label: "Gemini image model", hint: "Default: gemini-2.5-flash-image" },
+  { key: "GEMINI_TEXT_MODEL", label: "Gemini text model", hint: "Default: gemini-2.5-flash — powers blogs, recipes, pins, assistant" },
+  {
+    key: "PINTEREST_REDIRECT_URI",
+    label: "Pinterest redirect URI",
+    hint: "Must match your Pinterest app exactly. Default: https://www.primedownloads.store/api/public/pinterest/oauth/callback",
+  },
 ];
 
 async function requireBoss(supabase: any, userId: string) {
@@ -66,4 +72,33 @@ export const adminSaveSetting = createServerFn({ method: "POST" })
     }
     await setConfig(data.key as any, data.value);
     return { ok: true, cleared: false };
+  });
+
+/** Live provider audit — runs one real text + one real image request and reports the raw outcome. */
+export const aiDiagnostics = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await requireBoss(context.supabase, context.userId);
+    const { aiProviderSnapshot, resolveTextModel, generateImageBase64 } = await import("./ai/gateway.server");
+    const snapshot = await aiProviderSnapshot();
+
+    let text: { ok: boolean; detail: string } = { ok: false, detail: "" };
+    try {
+      const { generateText } = await import("ai");
+      const { model } = await resolveTextModel({ structuredOutputs: false, feature: "diagnostics" });
+      const res = await generateText({ model, prompt: "Reply with the single word: ready" });
+      text = { ok: true, detail: (res.text || "").slice(0, 80) };
+    } catch (e: any) {
+      text = { ok: false, detail: String(e?.message ?? e).slice(0, 500) };
+    }
+
+    let image: { ok: boolean; detail: string } = { ok: false, detail: "" };
+    try {
+      const img = await generateImageBase64("A single ripe avocado on a cream linen surface, soft daylight.");
+      image = { ok: true, detail: `${img.mime}, ${Math.round(img.base64.length / 1366)}KB` };
+    } catch (e: any) {
+      image = { ok: false, detail: String(e?.message ?? e).slice(0, 500) };
+    }
+
+    return { ...snapshot, text, image };
   });
