@@ -2,17 +2,17 @@ import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 
 export const AI_GATEWAY_URL = "https://ai.gateway.lovable.dev/v1";
 export const DEFAULT_CHAT_MODEL = "openai/gpt-5.6-sol";
-export const DEFAULT_IMAGE_MODEL = "google/gemini-3.1-flash-image";
+export const DEFAULT_IMAGE_MODEL = "google/gemini-1.5-flash-image";
 export const GEMINI_OPENAI_URL = "https://generativelanguage.googleapis.com/v1beta/openai";
 /** Google's own API only accepts its published model ids — this one is always available. */
-export const DEFAULT_GEMINI_TEXT_MODEL = "gemini-2.5-flash";
-export const DEFAULT_GEMINI_IMAGE_MODEL = "gemini-2.5-flash-image";
+export const DEFAULT_GEMINI_TEXT_MODEL = "gemini-1.5-flash";
+export const DEFAULT_GEMINI_IMAGE_MODEL = "gemini-1.5-flash-image";
 
 /** Model ids Google's direct API accepts. Anything else is normalised to the default. */
 export const SUPPORTED_GEMINI_TEXT_MODELS = [
-  "gemini-2.5-flash",
-  "gemini-2.5-flash-lite",
-  "gemini-2.5-pro",
+  "gemini-1.5-flash",
+  "gemini-1.5-flash-lite",
+  "gemini-1.5-pro",
   "gemini-2.0-flash",
 ] as const;
 
@@ -98,9 +98,6 @@ export async function resolveTextModel(opts?: { structuredOutputs?: boolean; fea
     const info: AiProviderInfo = { provider: "gemini", modelId, keySource: gemini.source };
     logAi("request", { feature: opts?.feature ?? "unknown", ...info });
     const provider = createOpenAICompatible({
-      // NOTE: must NOT be "lovable" — the AI SDK forwards providerOptions that match the
-      // provider name into the request body, and Google rejects gateway-only fields
-      // (e.g. reasoningEffort) with 400 INVALID_ARGUMENT.
       name: "google",
       baseURL: GEMINI_OPENAI_URL,
       supportsStructuredOutputs: structuredOutputs,
@@ -118,13 +115,11 @@ export async function resolveTextModel(opts?: { structuredOutputs?: boolean; fea
   return { model: createGateway({ structuredOutputs })(DEFAULT_CHAT_MODEL), info };
 }
 
-/** Convenience: returns just the model, used by every AI feature. */
 export async function textModel(feature?: string, structuredOutputs = true) {
   const { model } = await resolveTextModel({ structuredOutputs, feature });
   return model;
 }
 
-/** Runs an AI call with provider logging and real, actionable error messages. */
 export async function runAi<T>(feature: string, fn: (model: any) => Promise<T>): Promise<T> {
   const { model, info } = await resolveTextModel({ structuredOutputs: true, feature });
   const started = Date.now();
@@ -144,7 +139,6 @@ export async function runAi<T>(feature: string, fn: (model: any) => Promise<T>):
   }
 }
 
-/** Read-only snapshot for the admin diagnostics panel. */
 export async function aiProviderSnapshot() {
   const gemini = await resolveGeminiKey();
   const { getConfig } = await import("../settings.server");
@@ -177,10 +171,14 @@ export function createGateway(opts?: { structuredOutputs?: boolean }) {
 }
 
 /** Raw gateway image call — Gemini image via chat completions with image modality. */
-export async function generateImageBase64(prompt: string, model = DEFAULT_IMAGE_MODEL): Promise<{ base64: string; mime: string }> {
-  // If the boss configured their own Gemini API key in admin settings, use it directly.
+export async function generateImageBase64(
+  prompt: string, 
+  model = DEFAULT_IMAGE_MODEL, 
+  skipGemini = false
+): Promise<{ base64: string; mime: string; provider: string; modelId: string }> {
   const { getConfig } = await import("../settings.server");
-  const gemini = await resolveGeminiKey();
+  const gemini = skipGemini ? null : await resolveGeminiKey();
+  
   if (gemini) {
     const geminiKey = gemini.key;
     const geminiModel = normalizeGeminiImageModel(await getConfig("GEMINI_IMAGE_MODEL"));
@@ -193,16 +191,23 @@ export async function generateImageBase64(prompt: string, model = DEFAULT_IMAGE_
         body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }),
       },
     );
-    const text = await res.text();
-    if (!res.ok) {
+    
+    if (res.ok) {
+      const text = await res.text();
+      const json: any = JSON.parse(text);
+      const parts: any[] = json?.candidates?.[0]?.content?.parts ?? [];
+      const inline = parts.find((p) => p?.inlineData?.data)?.inlineData;
+      if (inline) {
+        return { base64: inline.data, mime: inline.mimeType || "image/png", provider: "gemini", modelId: geminiModel };
+      }
+    } else if (res.status === 429) {
+      logAi("image-warn", { provider: "gemini", modelId: geminiModel, status: res.status, note: "429 encountered, falling back to Lovable" });
+      return await generateImageBase64(prompt, model, true);
+    } else {
+      const text = await res.text();
       logAi("image-error", { provider: "gemini", modelId: geminiModel, status: res.status, body: text.slice(0, 600) });
       throw new Error(`Gemini image ${res.status} (${geminiModel}): ${text.slice(0, 500)}`);
     }
-    const json: any = JSON.parse(text);
-    const parts: any[] = json?.candidates?.[0]?.content?.parts ?? [];
-    const inline = parts.find((p) => p?.inlineData?.data)?.inlineData;
-    if (!inline) throw new Error("Gemini returned no image data");
-    return { base64: inline.data, mime: inline.mimeType || "image/png" };
   }
 
   const key = requireApiKey();
@@ -220,6 +225,7 @@ export async function generateImageBase64(prompt: string, model = DEFAULT_IMAGE_
       modalities: ["image", "text"],
     }),
   });
+  
   if (!res.ok) {
     const text = await res.text();
     logAi("image-error", { provider: "lovable", modelId: model, status: res.status, body: text.slice(0, 600) });
@@ -228,15 +234,15 @@ export async function generateImageBase64(prompt: string, model = DEFAULT_IMAGE_
       { provider: "lovable", modelId: model, keySource: "lovable_managed" },
     );
   }
+  
   const data: any = await res.json();
   const msg = data?.choices?.[0]?.message;
   const images: any[] = msg?.images ?? [];
   const first = images[0];
   const url: string | undefined = first?.image_url?.url ?? first?.url;
-  if (!url || !url.startsWith("data:")) {
-    throw new Error("Image gateway returned no image data");
-  }
+  if (!url || !url.startsWith("data:")) throw new Error("Image gateway returned no image data");
+  
   const match = /^data:([^;]+);base64,(.+)$/.exec(url);
   if (!match) throw new Error("Unexpected image data URL");
-  return { mime: match[1], base64: match[2] };
+  return { mime: match[1], base64: match[2], provider: "lovable", modelId: model };
 }

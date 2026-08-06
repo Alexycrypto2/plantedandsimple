@@ -364,7 +364,42 @@ export function ApprovalQueuePanel() {
                 Brand check
               </button>
             </div>
-            {open === g.id && (
+            {open === g.id && g.kind === "pinterest_pin" && (
+              <div className="mt-4 grid gap-6 md:grid-cols-[280px_1fr]">
+                {g.preview_url ? (
+                  <img src={g.preview_url} alt="" className="aspect-[2/3] w-full rounded-2xl object-cover shadow-lg" />
+                ) : (
+                  <div className="grid aspect-[2/3] w-full place-items-center rounded-2xl bg-forest/5 text-xs text-charcoal/40">No image</div>
+                )}
+                <div className="space-y-4 text-sm">
+                  <div>
+                    <p className="font-mono text-[10px] font-bold uppercase tracking-widest text-sage">Overlay text</p>
+                    <p className="mt-1 font-display text-xl italic text-forest-deep">{g.payload?.overlay_text ?? "—"}</p>
+                  </div>
+                  <div>
+                    <p className="font-mono text-[10px] font-bold uppercase tracking-widest text-sage">Description</p>
+                    <p className="mt-1 text-charcoal/70 leading-relaxed">{g.payload?.description ?? "—"}</p>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="font-mono text-[10px] font-bold uppercase tracking-widest text-sage">Style</p>
+                      <p className="mt-1 font-semibold text-forest-deep">{g.payload?.style ?? "—"}</p>
+                    </div>
+                    <div>
+                      <p className="font-mono text-[10px] font-bold uppercase tracking-widest text-sage">Keyword</p>
+                      <p className="mt-1 font-semibold text-forest-deep">{g.payload?.primary_keyword ?? "—"}</p>
+                    </div>
+                  </div>
+                  {g.payload?.link && (
+                    <div>
+                      <p className="font-mono text-[10px] font-bold uppercase tracking-widest text-sage">Destination link</p>
+                      <p className="mt-1 truncate text-xs text-forest underline">{g.payload.link}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+            {open === g.id && g.kind !== "pinterest_pin" && (
               g.kind === "campaign" ? (
                 <div className="mt-4 grid gap-3 md:grid-cols-3">
                   {[
@@ -545,6 +580,31 @@ export function IntegrationsPanel() {
                 Use {uri.includes("//www.") ? "www" : "non-www"}
               </button>
             ))}
+          </div>
+          <div className={`mt-4 rounded-xl border p-4 ${
+            status?.redirect_audit?.exact_match === true
+              ? "border-forest/20 bg-forest/5"
+              : status?.redirect_audit?.exact_match === false
+                ? "border-red-200 bg-red-50"
+                : "border-amber-200 bg-amber-50"
+          }`}>
+            <p className="text-xs font-semibold uppercase tracking-widest text-sage">Automatic mismatch check</p>
+            <p className={`mt-2 text-sm font-semibold ${status?.redirect_audit?.exact_match === false ? "text-red-700" : "text-forest-deep"}`}>
+              {status?.redirect_audit?.exact_match === true
+                ? "Exact match — Pinterest and PrimeDownloads use the same callback."
+                : status?.redirect_audit?.exact_match === false
+                  ? "Mismatch found"
+                  : "Pinterest value needed"}
+            </p>
+            {status?.redirect_audit?.issue && <p className="mt-1 text-xs text-charcoal/70">{status.redirect_audit.issue}</p>}
+            {status?.redirect_audit?.exact_match === false && (
+              <p className="mt-2 break-all rounded-lg bg-white/70 p-2 font-mono text-xs text-red-700">
+                Change the Redirect URI in Pinterest to: {status.redirect_uri}
+              </p>
+            )}
+            <p className="mt-2 text-[11px] text-charcoal/50">
+              Pinterest does not provide developer-app settings through its API, so save the value shown in your Pinterest app in the field below once; checks after that are automatic.
+            </p>
           </div>
         </div>
         <div className="mt-4 flex flex-wrap gap-2">

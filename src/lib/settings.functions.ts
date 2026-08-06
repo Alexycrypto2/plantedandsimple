@@ -13,12 +13,17 @@ const FIELDS: { key: string; label: string; hint: string }[] = [
   { key: "PINTEREST_CLIENT_ID", label: "Pinterest App ID", hint: "From your Pinterest developer app" },
   { key: "PINTEREST_CLIENT_SECRET", label: "Pinterest App Secret", hint: "Keep this private" },
   { key: "GEMINI_API_KEY", label: "Gemini API key", hint: "Optional — leave empty to use built-in Lovable AI images" },
-  { key: "GEMINI_IMAGE_MODEL", label: "Gemini image model", hint: "Default: gemini-2.5-flash-image" },
-  { key: "GEMINI_TEXT_MODEL", label: "Gemini text model", hint: "Default: gemini-2.5-flash — powers blogs, recipes, pins, assistant" },
+  { key: "GEMINI_IMAGE_MODEL", label: "Gemini image model", hint: "Default: gemini-1.5-flash-image" },
+  { key: "GEMINI_TEXT_MODEL", label: "Gemini text model", hint: "Default: gemini-1.5-flash — powers blogs, recipes, pins, assistant" },
   {
     key: "PINTEREST_REDIRECT_URI",
     label: "Pinterest redirect URI",
     hint: "Must match your Pinterest app exactly. Default: https://www.primedownloads.store/api/public/pinterest/oauth/callback",
+  },
+  {
+    key: "PINTEREST_REGISTERED_REDIRECT_URI",
+    label: "Callback saved in Pinterest",
+    hint: "Paste the Redirect URI shown in your Pinterest developer app; the checker compares it character for character",
   },
 ];
 
@@ -95,7 +100,10 @@ export const aiDiagnostics = createServerFn({ method: "POST" })
     let image: { ok: boolean; detail: string } = { ok: false, detail: "" };
     try {
       const img = await generateImageBase64("A single ripe avocado on a cream linen surface, soft daylight.");
-      image = { ok: true, detail: `${img.mime}, ${Math.round(img.base64.length / 1366)}KB` };
+      image = {
+        ok: true,
+        detail: `${img.mime}, ${Math.round(img.base64.length / 1366)}KB · ${img.provider ?? snapshot.image_provider} · ${img.modelId ?? snapshot.image_model}`,
+      };
     } catch (e: any) {
       image = { ok: false, detail: String(e?.message ?? e).slice(0, 500) };
     }
