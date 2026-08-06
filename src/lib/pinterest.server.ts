@@ -14,7 +14,9 @@ export const DEFAULT_PINTEREST_REDIRECT_URI =
  */
 export async function pinterestRedirectUri(): Promise<string> {
   const configured = (await getConfig("PINTEREST_REDIRECT_URI"))?.trim();
-  return (configured || DEFAULT_PINTEREST_REDIRECT_URI).replace(/\/$/, "");
+  // Pinterest compares this byte-for-byte. Preserve a configured trailing slash
+  // instead of silently changing the value the editor copied from Pinterest.
+  return configured || DEFAULT_PINTEREST_REDIRECT_URI;
 }
 
 export function pinLog(step: string, fields: Record<string, unknown> = {}) {

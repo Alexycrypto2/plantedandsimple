@@ -399,7 +399,7 @@ export function ApprovalQueuePanel() {
                 </div>
               </div>
             )}
-            {open === g.id && (
+            {open === g.id && g.kind !== "pinterest_pin" && (
               g.kind === "campaign" ? (
                 <div className="mt-4 grid gap-3 md:grid-cols-3">
                   {[
