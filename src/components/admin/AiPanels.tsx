@@ -364,6 +364,41 @@ export function ApprovalQueuePanel() {
                 Brand check
               </button>
             </div>
+            {open === g.id && g.kind === "pinterest_pin" && (
+              <div className="mt-4 grid gap-6 md:grid-cols-[280px_1fr]">
+                {g.preview_url ? (
+                  <img src={g.preview_url} alt="" className="aspect-[2/3] w-full rounded-2xl object-cover shadow-lg" />
+                ) : (
+                  <div className="grid aspect-[2/3] w-full place-items-center rounded-2xl bg-forest/5 text-xs text-charcoal/40">No image</div>
+                )}
+                <div className="space-y-4 text-sm">
+                  <div>
+                    <p className="font-mono text-[10px] font-bold uppercase tracking-widest text-sage">Overlay text</p>
+                    <p className="mt-1 font-display text-xl italic text-forest-deep">{g.payload?.overlay_text ?? "—"}</p>
+                  </div>
+                  <div>
+                    <p className="font-mono text-[10px] font-bold uppercase tracking-widest text-sage">Description</p>
+                    <p className="mt-1 text-charcoal/70 leading-relaxed">{g.payload?.description ?? "—"}</p>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="font-mono text-[10px] font-bold uppercase tracking-widest text-sage">Style</p>
+                      <p className="mt-1 font-semibold text-forest-deep">{g.payload?.style ?? "—"}</p>
+                    </div>
+                    <div>
+                      <p className="font-mono text-[10px] font-bold uppercase tracking-widest text-sage">Keyword</p>
+                      <p className="mt-1 font-semibold text-forest-deep">{g.payload?.primary_keyword ?? "—"}</p>
+                    </div>
+                  </div>
+                  {g.payload?.link && (
+                    <div>
+                      <p className="font-mono text-[10px] font-bold uppercase tracking-widest text-sage">Destination link</p>
+                      <p className="mt-1 truncate text-xs text-forest underline">{g.payload.link}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
             {open === g.id && (
               g.kind === "campaign" ? (
                 <div className="mt-4 grid gap-3 md:grid-cols-3">
