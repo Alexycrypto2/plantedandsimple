@@ -520,7 +520,32 @@ export function IntegrationsPanel() {
               Copy
             </button>
           </div>
-          <p className="mt-1 text-xs text-charcoal/50">Paste this into your Pinterest developer app’s Redirect URIs.</p>
+          <p className="mt-1 text-xs text-charcoal/50">
+            This must match a Redirect URI in your Pinterest app <em>character for character</em>. If Pinterest shows
+            “400 — the provided redirect URI does not match”, switch to the exact variant you registered:
+          </p>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {[
+              "https://www.primedownloads.store/api/public/pinterest/oauth/callback",
+              "https://primedownloads.store/api/public/pinterest/oauth/callback",
+            ].map((uri) => (
+              <button
+                key={uri}
+                className={`${btnGhost} ${status?.redirect_uri === uri ? "border-forest bg-forest/10" : ""}`}
+                onClick={async () => {
+                  try {
+                    await adminSaveSetting({ data: { key: "PINTEREST_REDIRECT_URI", value: uri } });
+                    setMsg("Redirect URI updated — make sure the same value is saved in your Pinterest app.");
+                    load();
+                  } catch (e: any) {
+                    setMsg(e?.message ?? "Could not update redirect URI");
+                  }
+                }}
+              >
+                Use {uri.includes("//www.") ? "www" : "non-www"}
+              </button>
+            ))}
+          </div>
         </div>
         <div className="mt-4 flex flex-wrap gap-2">
           <button className={btn} onClick={connect} disabled={!status?.credentials_configured}>

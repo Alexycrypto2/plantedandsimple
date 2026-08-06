@@ -3,11 +3,14 @@ import {
   BookOpen,
   Check,
   ChefHat,
+  ChevronLeft,
+  ChevronRight,
   Loader2,
   Newspaper,
   RefreshCw,
   Search,
   Sparkles,
+  X,
   Wand2,
 } from "lucide-react";
 import {
@@ -52,6 +55,7 @@ export function PinterestStudioPanel() {
   const [picked, setPicked] = useState<number[]>([]);
   const [link, setLink] = useState<string | null>(null);
   const [heading, setHeading] = useState("");
+  const [reviewIndex, setReviewIndex] = useState<number | null>(null);
 
   const loadSources = () => {
     setLoadingSources(true);
@@ -101,12 +105,16 @@ export function PinterestStudioPanel() {
       const res: any = await savePinPreviews({ data: { subject: heading, link, pins: chosen } });
       setMsg(`${res.saved} pin${res.saved === 1 ? "" : "s"} sent to the Approval Queue — approve them in Pinterest → Publishing.`);
       setPack(null);
+      setReviewIndex(null);
     } catch (e: any) {
       setErr(e?.message ?? "Could not save pins");
     } finally {
       setSaving(false);
     }
   };
+
+  const patchPin = (index: number, patch: Record<string, unknown>) =>
+    setPack((c) => (c ? c.map((p, i) => (i === index ? { ...p, ...patch } : p)) : c));
 
   return (
     <div className="space-y-6">
@@ -283,7 +291,7 @@ export function PinterestStudioPanel() {
               return (
                 <button
                   key={i}
-                  onClick={() => setPicked((c) => (on ? c.filter((x) => x !== i) : [...c, i]))}
+                  onClick={() => setReviewIndex(i)}
                   className={`overflow-hidden rounded-2xl border-2 p-2 text-left transition ${
                     on ? "border-forest bg-forest/5" : "border-transparent bg-cream/40 opacity-70 hover:opacity-100"
                   }`}
@@ -310,12 +318,16 @@ export function PinterestStudioPanel() {
                   <p className="mt-1 truncate font-mono text-[9px] uppercase tracking-wider text-sage">
                     {p.primary_keyword}
                   </p>
+                  <p className="mt-1 text-[10px] font-semibold text-forest underline">Review this pin</p>
                 </button>
               );
             })}
           </div>
 
           <div className="mt-5 flex flex-wrap gap-3">
+            <button className={btnGhost} onClick={() => setReviewIndex(0)}>
+              Review pin by pin
+            </button>
             <button className={btn} disabled={!picked.length || saving} onClick={save}>
               {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
               Send {picked.length} pin{picked.length === 1 ? "" : "s"} to approvals
@@ -326,6 +338,145 @@ export function PinterestStudioPanel() {
           </div>
         </section>
       )}
+
+      {pack && reviewIndex !== null && pack[reviewIndex] && (
+        <PinReviewer
+          pin={pack[reviewIndex]}
+          index={reviewIndex}
+          total={pack.length}
+          included={picked.includes(reviewIndex)}
+          link={link}
+          onLinkChange={setLink}
+          onToggle={() =>
+            setPicked((c) =>
+              c.includes(reviewIndex) ? c.filter((x) => x !== reviewIndex) : [...c, reviewIndex],
+            )
+          }
+          onPatch={(patch) => patchPin(reviewIndex, patch)}
+          onPrev={() => setReviewIndex((i) => (i === null ? null : Math.max(0, i - 1)))}
+          onNext={() => setReviewIndex((i) => (i === null ? null : Math.min(pack.length - 1, i + 1)))}
+          onClose={() => setReviewIndex(null)}
+        />
+      )}
+    </div>
+  );
+}
+
+function PinReviewer({
+  pin,
+  index,
+  total,
+  included,
+  link,
+  onLinkChange,
+  onToggle,
+  onPatch,
+  onPrev,
+  onNext,
+  onClose,
+}: {
+  pin: any;
+  index: number;
+  total: number;
+  included: boolean;
+  link: string | null;
+  onLinkChange: (v: string) => void;
+  onToggle: () => void;
+  onPatch: (patch: Record<string, unknown>) => void;
+  onPrev: () => void;
+  onNext: () => void;
+  onClose: () => void;
+}) {
+  const hashtags = Array.isArray(pin.hashtags) ? pin.hashtags.join(" ") : "";
+  return (
+    <div className="fixed inset-0 z-50 grid place-items-center bg-charcoal/60 p-4 backdrop-blur-sm duration-200 animate-in fade-in">
+      <div className="max-h-[92vh] w-full max-w-4xl overflow-y-auto rounded-3xl border border-forest/10 bg-cream p-6 shadow-2xl duration-300 animate-in zoom-in-95">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <p className={label}>
+              Pin {index + 1} of {total} · pre-flight review
+            </p>
+            <h3 className="mt-1 font-display text-2xl italic text-forest-deep">{pin.style}</h3>
+            <p className="mt-1 text-xs text-charcoal/55">
+              Nothing is saved or scheduled until you send the selected pins to approvals.
+            </p>
+          </div>
+          <button className={btnGhost} onClick={onClose}>
+            <X className="h-3.5 w-3.5" /> Close
+          </button>
+        </div>
+
+        <div className="mt-5 grid gap-6 md:grid-cols-[minmax(0,260px)_1fr]">
+          <div>
+            {pin.image_url ? (
+              <img src={pin.image_url} alt={pin.alt} className="aspect-[2/3] w-full rounded-2xl object-cover" />
+            ) : (
+              <div className="grid aspect-[2/3] w-full place-items-center rounded-2xl bg-forest/10 text-xs text-charcoal/50">
+                image failed
+              </div>
+            )}
+            <div className="mt-3 rounded-2xl bg-white/70 p-3">
+              <p className={label}>Layout logic</p>
+              <p className="mt-1 text-xs text-charcoal/65">{pin.why_it_works ?? "—"}</p>
+            </div>
+            <button
+              className={`mt-3 w-full justify-center ${included ? btn : btnGhost}`}
+              onClick={onToggle}
+            >
+              {included ? <Check className="h-4 w-4" /> : null}
+              {included ? "Included in this batch" : "Excluded — tap to include"}
+            </button>
+          </div>
+
+          <div className="space-y-4">
+            <Field label="Title" value={pin.title} onChange={(v) => onPatch({ title: v })} />
+            <Field label="Overlay text" value={pin.overlay_text} onChange={(v) => onPatch({ overlay_text: v })} />
+            <div className="space-y-1.5">
+              <p className={label}>Description (caption)</p>
+              <textarea
+                className={`${input} min-h-[130px] resize-y`}
+                value={pin.description ?? ""}
+                onChange={(e) => onPatch({ description: e.target.value })}
+              />
+              <p className="text-[11px] text-charcoal/50">{(pin.description ?? "").length} characters</p>
+            </div>
+            <Field
+              label="Hashtags"
+              value={hashtags}
+              onChange={(v) => onPatch({ hashtags: v.split(/\s+/).filter(Boolean) })}
+            />
+            <Field label="Alt text" value={pin.alt ?? ""} onChange={(v) => onPatch({ alt: v })} />
+            <Field label="Board suggestion" value={pin.board_suggestion ?? ""} onChange={(v) => onPatch({ board_suggestion: v })} />
+            <div className="space-y-1.5">
+              <p className={label}>Destination link (applies to every pin in this batch)</p>
+              <input className={input} value={link ?? ""} onChange={(e) => onLinkChange(e.target.value)} />
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
+          <div className="flex gap-2">
+            <button className={btnGhost} disabled={index === 0} onClick={onPrev}>
+              <ChevronLeft className="h-3.5 w-3.5" /> Previous
+            </button>
+            <button className={btnGhost} disabled={index === total - 1} onClick={onNext}>
+              Next <ChevronRight className="h-3.5 w-3.5" />
+            </button>
+          </div>
+          <button className={btn} onClick={onClose}>
+            Done reviewing
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Field({ label: name, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
+  return (
+    <div className="space-y-1.5">
+      <p className={label}>{name}</p>
+      <input className={input} value={value ?? ""} onChange={(e) => onChange(e.target.value)} />
     </div>
   );
 }
