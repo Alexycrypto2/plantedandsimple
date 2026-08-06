@@ -8,6 +8,11 @@ export type PinterestStatus = {
   scopes: string | null;
   redirect_uri: string;
   credentials_configured: boolean;
+  redirect_audit: {
+    registered_uri: string | null;
+    exact_match: boolean | null;
+    issue: string | null;
+  };
 };
 
 async function requireBoss(supabase: any, userId: string) {
@@ -29,13 +34,28 @@ export const pinterestStatus = createServerFn({ method: "GET" })
       .maybeSingle();
     const id = await getConfig("PINTEREST_CLIENT_ID");
     const secret = await getConfig("PINTEREST_CLIENT_SECRET");
+    const redirectUri = await pinterestRedirectUri();
+    const registeredUri = await getConfig("PINTEREST_REGISTERED_REDIRECT_URI");
+    const exactMatch = registeredUri ? registeredUri === redirectUri : null;
+    let issue: string | null = null;
+    if (!registeredUri) issue = "Paste the callback URL currently saved in your Pinterest app below to run the exact comparison.";
+    else if (!exactMatch) {
+      const configuredHost = new URL(redirectUri).host;
+      const registeredHost = (() => {
+        try { return new URL(registeredUri).host; } catch { return "invalid URL"; }
+      })();
+      issue = configuredHost !== registeredHost
+        ? `Domain mismatch: this app sends ${configuredHost}, but Pinterest is configured for ${registeredHost}.`
+        : "The values differ by path, protocol, capitalization, query text, or a trailing slash.";
+    }
     return {
       connected: Boolean(data),
       username: data?.username ?? null,
       expires_at: data?.expires_at ?? null,
       scopes: data?.scopes ?? null,
-      redirect_uri: await pinterestRedirectUri(),
+      redirect_uri: redirectUri,
       credentials_configured: Boolean(id && secret),
+      redirect_audit: { registered_uri: registeredUri, exact_match: exactMatch, issue },
     };
   });
 

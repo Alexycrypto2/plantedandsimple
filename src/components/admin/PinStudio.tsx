@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   BookOpen,
   Check,
@@ -56,6 +56,7 @@ export function PinterestStudioPanel() {
   const [link, setLink] = useState<string | null>(null);
   const [heading, setHeading] = useState("");
   const [reviewIndex, setReviewIndex] = useState<number | null>(null);
+  const reviewRef = useRef<HTMLElement | null>(null);
 
   const loadSources = () => {
     setLoadingSources(true);
@@ -89,6 +90,7 @@ export function PinterestStudioPanel() {
       setPicked((res.pins ?? []).map((_: any, i: number) => i));
       setLink(res.link ?? null);
       setHeading(res.subject ?? subject);
+      if ((res.pins ?? []).length) setReviewIndex(0);
     } catch (e: any) {
       setErr(e?.message ?? "Pin generation failed");
     } finally {
@@ -115,6 +117,11 @@ export function PinterestStudioPanel() {
 
   const patchPin = (index: number, patch: Record<string, unknown>) =>
     setPack((c) => (c ? c.map((p, i) => (i === index ? { ...p, ...patch } : p)) : c));
+
+  useEffect(() => {
+    if (!pack) return;
+    reviewRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [pack]);
 
   return (
     <div className="space-y-6">
@@ -276,7 +283,7 @@ export function PinterestStudioPanel() {
       )}
 
       {pack && (
-        <section className={`${shell} duration-500 animate-in fade-in`}>
+        <section ref={reviewRef} className={`${shell} scroll-mt-6 duration-500 animate-in fade-in`}>
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <p className={label}>Step 3 · Review</p>

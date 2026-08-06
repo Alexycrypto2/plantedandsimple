@@ -177,36 +177,11 @@ export function createGateway(opts?: { structuredOutputs?: boolean }) {
 }
 
 /** Raw gateway image call — Gemini image via chat completions with image modality. */
-export async function generateImageBase64(prompt: string, model = DEFAULT_IMAGE_MODEL): Promise<{ base64: string; mime: string }> {
-  // If the boss configured their own Gemini API key in admin settings, use it directly.
-  const { getConfig } = await import("../settings.server");
-  const gemini = await resolveGeminiKey();
-  if (gemini) {
-    const geminiKey = gemini.key;
-    const geminiModel = normalizeGeminiImageModel(await getConfig("GEMINI_IMAGE_MODEL"));
-    logAi("image-request", { provider: "gemini", modelId: geminiModel, keySource: gemini.source });
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "x-goog-api-key": geminiKey },
-        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }),
-      },
-    );
-    const text = await res.text();
-    if (!res.ok) {
-      logAi("image-error", { provider: "gemini", modelId: geminiModel, status: res.status, body: text.slice(0, 600) });
-      throw new Error(`Gemini image ${res.status} (${geminiModel}): ${text.slice(0, 500)}`);
-    }
-    const json: any = JSON.parse(text);
-    const parts: any[] = json?.candidates?.[0]?.content?.parts ?? [];
-    const inline = parts.find((p) => p?.inlineData?.data)?.inlineData;
-    if (!inline) throw new Error("Gemini returned no image data");
-    return { base64: inline.data, mime: inline.mimeType || "image/png" };
-  }
+type GeneratedImage = { base64: string; mime: string; provider?: "gemini" | "lovable"; modelId?: string; fallbackReason?: string };
 
+async function generateGatewayImageBase64(prompt: string, model: string, fallbackReason?: string): Promise<GeneratedImage> {
   const key = requireApiKey();
-  logAi("image-request", { provider: "lovable", modelId: model, keySource: "lovable_managed" });
+  logAi("image-request", { provider: "lovable", modelId: model, keySource: "lovable_managed", fallbackReason });
   const res = await fetch(`${AI_GATEWAY_URL}/chat/completions`, {
     method: "POST",
     headers: {
@@ -233,10 +208,42 @@ export async function generateImageBase64(prompt: string, model = DEFAULT_IMAGE_
   const images: any[] = msg?.images ?? [];
   const first = images[0];
   const url: string | undefined = first?.image_url?.url ?? first?.url;
-  if (!url || !url.startsWith("data:")) {
-    throw new Error("Image gateway returned no image data");
-  }
+  if (!url || !url.startsWith("data:")) throw new Error("Image gateway returned no image data");
   const match = /^data:([^;]+);base64,(.+)$/.exec(url);
   if (!match) throw new Error("Unexpected image data URL");
-  return { mime: match[1], base64: match[2] };
+  return { mime: match[1], base64: match[2], provider: "lovable", modelId: model, fallbackReason };
+}
+
+export async function generateImageBase64(prompt: string, model = DEFAULT_IMAGE_MODEL): Promise<GeneratedImage> {
+  // If the boss configured their own Gemini API key in admin settings, use it directly.
+  const { getConfig } = await import("../settings.server");
+  const gemini = await resolveGeminiKey();
+  if (gemini) {
+    const geminiKey = gemini.key;
+    const geminiModel = normalizeGeminiImageModel(await getConfig("GEMINI_IMAGE_MODEL"));
+    logAi("image-request", { provider: "gemini", modelId: geminiModel, keySource: gemini.source });
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-goog-api-key": geminiKey },
+        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }),
+      },
+    );
+    const text = await res.text();
+    if (!res.ok) {
+      logAi("image-error", { provider: "gemini", modelId: geminiModel, status: res.status, body: text.slice(0, 600) });
+      const reason = `Gemini image ${res.status} (${geminiModel})`;
+      if ([402, 429, 500, 502, 503, 504].includes(res.status)) {
+        return generateGatewayImageBase64(prompt, model, reason);
+      }
+      throw new Error(`${reason}: ${text.slice(0, 500)}`);
+    }
+    const json: any = JSON.parse(text);
+    const parts: any[] = json?.candidates?.[0]?.content?.parts ?? [];
+    const inline = parts.find((p) => p?.inlineData?.data)?.inlineData;
+    if (!inline) throw new Error("Gemini returned no image data");
+    return { base64: inline.data, mime: inline.mimeType || "image/png", provider: "gemini", modelId: geminiModel };
+  }
+  return generateGatewayImageBase64(prompt, model);
 }

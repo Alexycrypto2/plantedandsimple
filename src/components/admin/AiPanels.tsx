@@ -546,6 +546,31 @@ export function IntegrationsPanel() {
               </button>
             ))}
           </div>
+          <div className={`mt-4 rounded-xl border p-4 ${
+            status?.redirect_audit?.exact_match === true
+              ? "border-forest/20 bg-forest/5"
+              : status?.redirect_audit?.exact_match === false
+                ? "border-red-200 bg-red-50"
+                : "border-amber-200 bg-amber-50"
+          }`}>
+            <p className="text-xs font-semibold uppercase tracking-widest text-sage">Automatic mismatch check</p>
+            <p className={`mt-2 text-sm font-semibold ${status?.redirect_audit?.exact_match === false ? "text-red-700" : "text-forest-deep"}`}>
+              {status?.redirect_audit?.exact_match === true
+                ? "Exact match — Pinterest and PrimeDownloads use the same callback."
+                : status?.redirect_audit?.exact_match === false
+                  ? "Mismatch found"
+                  : "Pinterest value needed"}
+            </p>
+            {status?.redirect_audit?.issue && <p className="mt-1 text-xs text-charcoal/70">{status.redirect_audit.issue}</p>}
+            {status?.redirect_audit?.exact_match === false && (
+              <p className="mt-2 break-all rounded-lg bg-white/70 p-2 font-mono text-xs text-red-700">
+                Change the Redirect URI in Pinterest to: {status.redirect_uri}
+              </p>
+            )}
+            <p className="mt-2 text-[11px] text-charcoal/50">
+              Pinterest does not provide developer-app settings through its API, so save the value shown in your Pinterest app in the field below once; checks after that are automatic.
+            </p>
+          </div>
         </div>
         <div className="mt-4 flex flex-wrap gap-2">
           <button className={btn} onClick={connect} disabled={!status?.credentials_configured}>

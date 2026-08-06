@@ -20,6 +20,11 @@ const FIELDS: { key: string; label: string; hint: string }[] = [
     label: "Pinterest redirect URI",
     hint: "Must match your Pinterest app exactly. Default: https://www.primedownloads.store/api/public/pinterest/oauth/callback",
   },
+  {
+    key: "PINTEREST_REGISTERED_REDIRECT_URI",
+    label: "Callback saved in Pinterest",
+    hint: "Paste the Redirect URI shown in your Pinterest developer app; the checker compares it character for character",
+  },
 ];
 
 async function requireBoss(supabase: any, userId: string) {
@@ -95,7 +100,10 @@ export const aiDiagnostics = createServerFn({ method: "POST" })
     let image: { ok: boolean; detail: string } = { ok: false, detail: "" };
     try {
       const img = await generateImageBase64("A single ripe avocado on a cream linen surface, soft daylight.");
-      image = { ok: true, detail: `${img.mime}, ${Math.round(img.base64.length / 1366)}KB` };
+      image = {
+        ok: true,
+        detail: `${img.mime}, ${Math.round(img.base64.length / 1366)}KB · ${img.provider ?? snapshot.image_provider} · ${img.modelId ?? snapshot.image_model}`,
+      };
     } catch (e: any) {
       image = { ok: false, detail: String(e?.message ?? e).slice(0, 500) };
     }
