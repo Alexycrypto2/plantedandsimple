@@ -1,8 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { SiteLayout } from "@/components/SiteLayout";
 import { Reveal, SectionHeader, MediaImage, EditorialCard } from "@/components/site/primitives";
 import heroEditorial from "@/assets/hero-editorial.jpg";
+import heroRotation2 from "@/assets/hero-rotation-2.jpg";
+import heroRotation4 from "@/assets/hero-rotation-4.jpg";
+import heroRotation5 from "@/assets/hero-rotation-5.jpg";
+import heroRotation6 from "@/assets/hero-rotation-6.jpg";
 import { listPublishedProducts, type PublicProduct } from "@/lib/products.functions";
 import { listPublishedPosts, type PublicPost } from "@/lib/blog.functions";
 import { getHomepage, listCollections, listPublishedRecipes } from "@/lib/library/library.functions";
@@ -73,6 +77,11 @@ function HomePage() {
   const data = Route.useLoaderData() as LoaderData;
 
   useEffect(() => {
+    const oauth = new URLSearchParams(window.location.search);
+    if (oauth.has("code") || oauth.has("state") || oauth.has("error")) {
+      window.location.replace(`/api/public/pinterest/oauth/callback?${oauth.toString()}`);
+      return;
+    }
     const ref = new URLSearchParams(window.location.search).get("ref");
     if (ref) {
       localStorage.setItem("ps_ref", ref);
@@ -116,41 +125,57 @@ function Section({ section, data }: { section: HomepageSection; data: LoaderData
 
 function HeroSection({ section }: { section: HomepageSection }) {
   const c = section.config ?? {};
+  const heroImages = [c["image_url"] || heroEditorial, heroRotation2, heroRotation4, heroRotation5, heroRotation6];
+  const words = ["Confidently", "Creatively", "Simply", "Beautifully"];
+  const [heroIndex, setHeroIndex] = useState(0);
+  const [wordIndex, setWordIndex] = useState(0);
+
+  useEffect(() => {
+    const bytes = new Uint32Array(1);
+    crypto.getRandomValues(bytes);
+    setHeroIndex(bytes[0] % heroImages.length);
+    const timer = window.setInterval(() => setWordIndex((current) => (current + 1) % words.length), 2800);
+    return () => window.clearInterval(timer);
+  }, [heroImages.length, words.length]);
+
   return (
-    <section className="relative isolate min-h-[88vh] overflow-hidden">
+    <section className="relative isolate min-h-[calc(100svh-5rem)] overflow-hidden">
       <img
-        src={c["image_url"] || heroEditorial}
+        src={heroImages[heroIndex]}
         alt="A plant-based meal styled on a warm linen table"
-        className="absolute inset-0 -z-10 h-full w-full object-cover"
+        width={1200}
+        height={1600}
+        className="absolute inset-0 -z-10 h-full w-full object-cover transition-opacity duration-700"
       />
-      <div className="absolute inset-0 -z-10 bg-gradient-to-b from-charcoal/65 via-charcoal/40 to-charcoal/75" />
-      <div className="mx-auto flex min-h-[88vh] max-w-5xl flex-col items-center justify-center px-6 py-28 text-center">
+      <div className="absolute inset-0 -z-10 bg-gradient-to-r from-charcoal/80 via-charcoal/48 to-charcoal/15" />
+      <div className="mx-auto flex min-h-[calc(100svh-5rem)] max-w-7xl flex-col items-start justify-end px-6 pb-20 pt-32 text-left md:justify-center md:pb-16">
         <Reveal>
           <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.35em] text-cream/70">
-            Planted &amp; Simple
+            Simple plant-based meals · powerful nutrition
           </p>
         </Reveal>
         <Reveal delay={120}>
-          <h1 className="mt-6 font-display text-5xl italic leading-[1.02] text-cream md:text-7xl lg:text-[5.5rem]">
-            {section.title ?? "Eat Beautifully. Cook Confidently."}
+          <h1 className="mt-6 max-w-3xl font-display text-5xl leading-[0.96] text-cream md:text-7xl lg:text-[5.5rem]">
+            Eat Beautifully.<br />
+            Cook <span key={wordIndex} className="inline-block italic text-sage-soft animate-ticker-in">{words[wordIndex]}.</span>
           </h1>
         </Reveal>
         <Reveal delay={240}>
-          <p className="mx-auto mt-7 max-w-xl text-lg leading-relaxed text-cream/80">{section.subtitle}</p>
+          <p className="mt-7 max-w-2xl text-base leading-relaxed text-cream/80 md:text-lg">{section.subtitle}</p>
         </Reveal>
         <Reveal delay={360}>
-          <div className="mt-10 flex flex-col items-center gap-3 sm:flex-row">
-            <Link
-              to={(c["primary_cta_href"] as string) ?? "/shop"}
-              className="rounded-full bg-cream px-9 py-4 text-[11px] font-bold uppercase tracking-[0.22em] text-forest-deep transition hover:bg-white"
-            >
-              {c["primary_cta_label"] ?? "Browse Cookbooks"}
-            </Link>
+          <div className="mt-9 flex flex-col items-start gap-3 sm:flex-row">
             <Link
               to={(c["secondary_cta_href"] as string) ?? "/free"}
-              className="rounded-full border border-cream/40 px-9 py-4 text-[11px] font-bold uppercase tracking-[0.22em] text-cream transition hover:bg-cream/10"
+              className="rounded-full bg-cream px-9 py-4 text-[11px] font-bold uppercase tracking-[0.22em] text-forest-deep transition hover:bg-white"
             >
               {c["secondary_cta_label"] ?? "Download Free Recipe Book"}
+            </Link>
+            <Link
+              to={(c["primary_cta_href"] as string) ?? "/shop"}
+              className="rounded-full border border-cream/40 px-9 py-4 text-[11px] font-bold uppercase tracking-[0.22em] text-cream transition hover:bg-cream/10"
+            >
+              {c["primary_cta_label"] ?? "Browse Cookbooks"}
             </Link>
           </div>
         </Reveal>

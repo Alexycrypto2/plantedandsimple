@@ -13,8 +13,8 @@ const FIELDS: { key: string; label: string; hint: string }[] = [
   { key: "PINTEREST_CLIENT_ID", label: "Pinterest App ID", hint: "From your Pinterest developer app" },
   { key: "PINTEREST_CLIENT_SECRET", label: "Pinterest App Secret", hint: "Keep this private" },
   { key: "GEMINI_API_KEY", label: "Gemini API key", hint: "Optional — leave empty to use built-in Lovable AI images" },
-  { key: "GEMINI_IMAGE_MODEL", label: "Gemini image model", hint: "Default: gemini-1.5-flash-image" },
-  { key: "GEMINI_TEXT_MODEL", label: "Gemini text model", hint: "Default: gemini-1.5-flash — powers blogs, recipes, pins, assistant" },
+  { key: "GEMINI_IMAGE_MODEL", label: "Gemini image model", hint: "Default: gemini-2.5-flash-image" },
+  { key: "GEMINI_TEXT_MODEL", label: "Gemini text model", hint: "Default: gemini-2.5-flash — powers blogs, recipes, pins, assistant" },
   {
     key: "PINTEREST_REDIRECT_URI",
     label: "Pinterest redirect URI",
@@ -89,10 +89,10 @@ export const aiDiagnostics = createServerFn({ method: "POST" })
 
     let text: { ok: boolean; detail: string } = { ok: false, detail: "" };
     try {
-      const { generateText } = await import("ai");
+      const { streamText } = await import("ai");
       const { model } = await resolveTextModel({ structuredOutputs: false, feature: "diagnostics" });
-      const res = await generateText({ model, prompt: "Reply with the single word: ready" });
-      text = { ok: true, detail: (res.text || "").slice(0, 80) };
+      const res = streamText({ model, prompt: "Reply with the single word: ready", maxRetries: 0 });
+      text = { ok: true, detail: ((await res.text) || "").slice(0, 80) };
     } catch (e: any) {
       text = { ok: false, detail: String(e?.message ?? e).slice(0, 500) };
     }

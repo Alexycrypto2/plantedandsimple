@@ -2,29 +2,16 @@ import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 
 export const AI_GATEWAY_URL = "https://ai.gateway.lovable.dev/v1";
 export const DEFAULT_CHAT_MODEL = "openai/gpt-5.6-sol";
-export const DEFAULT_IMAGE_MODEL = "google/gemini-1.5-flash-image";
+export const DEFAULT_IMAGE_MODEL = "google/gemini-3.1-flash-image";
 export const GEMINI_OPENAI_URL = "https://generativelanguage.googleapis.com/v1beta/openai";
 /** Google's own API only accepts its published model ids — this one is always available. */
-export const DEFAULT_GEMINI_TEXT_MODEL = "gemini-1.5-flash";
-export const DEFAULT_GEMINI_IMAGE_MODEL = "gemini-1.5-flash-image";
+export const DEFAULT_GEMINI_TEXT_MODEL = "gemini-2.5-flash";
+export const DEFAULT_GEMINI_IMAGE_MODEL = "gemini-2.5-flash-image";
 
-/** Model ids Google's direct API accepts. Anything else is normalised to the default. */
-export const SUPPORTED_GEMINI_TEXT_MODELS = [
-  "gemini-1.5-flash",
-  "gemini-1.5-flash-lite",
-  "gemini-1.5-pro",
-  "gemini-2.0-flash",
-] as const;
-
-/**
- * Admins (and older settings rows) can hold gateway-style ids such as
- * "google/gemini-3.6-flash" that Google itself rejects with INVALID_ARGUMENT.
- */
+/** Preserve the admin's Google model choice; Google's catalog changes frequently. */
 export function normalizeGeminiTextModel(raw?: string | null): string {
   const id = (raw ?? "").trim().replace(/^google\//, "");
-  return (SUPPORTED_GEMINI_TEXT_MODELS as readonly string[]).includes(id)
-    ? id
-    : DEFAULT_GEMINI_TEXT_MODEL;
+  return id || DEFAULT_GEMINI_TEXT_MODEL;
 }
 
 export function normalizeGeminiImageModel(raw?: string | null): string {
@@ -200,8 +187,8 @@ export async function generateImageBase64(
       if (inline) {
         return { base64: inline.data, mime: inline.mimeType || "image/png", provider: "gemini", modelId: geminiModel };
       }
-    } else if (res.status === 429) {
-      logAi("image-warn", { provider: "gemini", modelId: geminiModel, status: res.status, note: "429 encountered, falling back to Lovable" });
+    } else if ([402, 404, 429, 500, 502, 503, 504].includes(res.status)) {
+      logAi("image-warn", { provider: "gemini", modelId: geminiModel, status: res.status, note: "direct image provider unavailable, falling back to Lovable" });
       return await generateImageBase64(prompt, model, true);
     } else {
       const text = await res.text();
