@@ -5,7 +5,7 @@ export const PINTEREST_SCOPES = "boards:read,pins:read,pins:write,user_accounts:
 export const PINTEREST_API = "https://api.pinterest.com/v5";
 export const PINTEREST_STATE_COOKIE = "pin_oauth_state";
 export const DEFAULT_PINTEREST_REDIRECT_URI =
-  "https://www.primedownloads.store/api/public/pinterest/oauth/callback";
+  "https://primedownloads.store";
 
 /**
  * The redirect URI must be byte-identical in the authorize request, on the Pinterest
