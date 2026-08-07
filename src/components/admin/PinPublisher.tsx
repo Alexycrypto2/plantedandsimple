@@ -117,6 +117,19 @@ export function PinPublisher() {
           </div>
         </div>
 
+        {status?.redirect_uri && (
+          <div
+            className={`mt-4 rounded-xl border px-3 py-2 text-xs ${
+              status?.redirect_audit?.issue
+                ? "border-amber-300 bg-amber-50 text-amber-900"
+                : "border-forest/15 bg-forest/5 text-forest-deep"
+            }`}
+          >
+            <p className="break-all font-semibold">Redirect URI: {status.redirect_uri}</p>
+            <p className="mt-1">{status.redirect_audit?.issue ?? "Exact Pinterest redirect match confirmed."}</p>
+          </div>
+        )}
+
         {connected && (
           <div className="mt-5 grid gap-4 sm:grid-cols-2">
             <label className="block space-y-1.5">

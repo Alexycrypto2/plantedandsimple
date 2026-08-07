@@ -8,23 +8,10 @@ export const GEMINI_OPENAI_URL = "https://generativelanguage.googleapis.com/v1be
 export const DEFAULT_GEMINI_TEXT_MODEL = "gemini-2.5-flash";
 export const DEFAULT_GEMINI_IMAGE_MODEL = "gemini-2.5-flash-image";
 
-/** Model ids Google's direct API accepts. Anything else is normalised to the default. */
-export const SUPPORTED_GEMINI_TEXT_MODELS = [
-  "gemini-2.0-flash",
-  "gemini-2.5-flash",
-  "gemini-2.5-flash-lite",
-  "gemini-2.5-pro",
-] as const;
-
-/**
- * Admins (and older settings rows) can hold gateway-style ids such as
- * "google/gemini-3.6-flash" that Google itself rejects with INVALID_ARGUMENT.
- */
+/** Preserve the admin's Google model choice; Google's catalog changes frequently. */
 export function normalizeGeminiTextModel(raw?: string | null): string {
   const id = (raw ?? "").trim().replace(/^google\//, "");
-  return (SUPPORTED_GEMINI_TEXT_MODELS as readonly string[]).includes(id)
-    ? id
-    : DEFAULT_GEMINI_TEXT_MODEL;
+  return id || DEFAULT_GEMINI_TEXT_MODEL;
 }
 
 export function normalizeGeminiImageModel(raw?: string | null): string {
