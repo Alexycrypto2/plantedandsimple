@@ -89,10 +89,10 @@ export const aiDiagnostics = createServerFn({ method: "POST" })
 
     let text: { ok: boolean; detail: string } = { ok: false, detail: "" };
     try {
-      const { generateText } = await import("ai");
+      const { streamText } = await import("ai");
       const { model } = await resolveTextModel({ structuredOutputs: false, feature: "diagnostics" });
-      const res = await generateText({ model, prompt: "Reply with the single word: ready" });
-      text = { ok: true, detail: (res.text || "").slice(0, 80) };
+      const res = streamText({ model, prompt: "Reply with the single word: ready", maxRetries: 0 });
+      text = { ok: true, detail: ((await res.text) || "").slice(0, 80) };
     } catch (e: any) {
       text = { ok: false, detail: String(e?.message ?? e).slice(0, 500) };
     }

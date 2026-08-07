@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { CheckCircle2, Cloud, Eye, EyeOff, KeyRound, Loader2, RefreshCw, Save, Sparkles, Unplug, Zap } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   listGenerations,
   setGenerationStatus,
@@ -439,6 +441,8 @@ export function IntegrationsPanel() {
   const [busy, setBusy] = useState(false);
   const [diag, setDiag] = useState<any>(null);
   const [diagBusy, setDiagBusy] = useState(false);
+  const [showKeys, setShowKeys] = useState<Record<string, boolean>>({});
+  const [quickKey, setQuickKey] = useState("");
 
   const runDiagnostics = async () => {
     setDiagBusy(true);
@@ -483,21 +487,29 @@ export function IntegrationsPanel() {
 
   return (
     <div className="space-y-6">
-      <Heading title="Settings & Integrations" sub="API keys are encrypted before they are stored." />
+      <Heading title="AI API Configuration" sub="Choose which AI powers your publishing studio. Your keys are encrypted before storage." />
       {msg && <p className="rounded-xl bg-forest/10 px-4 py-3 text-sm text-forest-deep">{msg}</p>}
 
-      <section className={card}>
+      <section className={`${card} overflow-hidden`}>
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h3 className="font-semibold text-forest-deep">AI provider health</h3>
+            <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-sage">AI provider status</p>
+            <h3 className="mt-1 font-semibold text-forest-deep">Live provider health</h3>
             <p className="mt-1 text-sm text-charcoal/60">
               Runs one real text request and one real image request, and shows exactly which provider, key and model
               answered.
             </p>
           </div>
-          <button className={btn} onClick={runDiagnostics} disabled={diagBusy}>
-            {diagBusy ? "Testing…" : "Run AI test"}
-          </button>
+          <Button onClick={runDiagnostics} disabled={diagBusy} className="rounded-full">
+            {diagBusy ? <Loader2 className="animate-spin" /> : <RefreshCw />} {diagBusy ? "Testing" : "Recheck"}
+          </Button>
+        </div>
+        <div className="mt-5 flex items-center justify-between rounded-xl border border-forest/10 bg-cream/50 p-4">
+          <div className="flex items-center gap-3">
+            <span className="grid h-9 w-9 place-items-center rounded-full bg-forest/10 text-forest"><Sparkles className="h-4 w-4" /></span>
+            <div><p className="text-[10px] uppercase tracking-widest text-charcoal/45">Next request will use</p><p className="text-sm font-semibold text-forest-deep">{diag?.text_provider === "gemini" || settings.find((s) => s.key === "GEMINI_API_KEY")?.source !== "missing" ? "Google Gemini" : "Built-in Lovable AI"}</p></div>
+          </div>
+          <span className="rounded-full bg-forest/10 px-3 py-1 text-[10px] font-bold uppercase text-forest">My API first</span>
         </div>
         {diag && (
           <dl className="mt-4 grid gap-3 sm:grid-cols-2">
@@ -530,6 +542,22 @@ export function IntegrationsPanel() {
         )}
       </section>
 
+      <section className="rounded-2xl border border-forest/20 bg-forest/5 p-5">
+        <div className="flex gap-3">
+          <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-forest" />
+          <div><h3 className="text-sm font-semibold text-forest-deep">Your API key is the default — no waiting if built-in credits run out.</h3><p className="mt-1 text-xs leading-relaxed text-charcoal/60">Text requests use your Gemini key first. Image requests use Gemini first and automatically fall back when its image quota is unavailable.</p></div>
+        </div>
+      </section>
+
+      <section className={card}>
+        <div className="flex items-center gap-2"><KeyRound className="h-4 w-4 text-sage" /><h3 className="font-semibold text-forest-deep">Quick add: Gemini key</h3></div>
+        <p className="mt-1 text-xs text-charcoal/50">Paste a Google AI Studio API key and activate it in one click.</p>
+        <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+          <input className={input} type="password" value={quickKey} onChange={(e) => setQuickKey(e.target.value)} placeholder="Paste Gemini API key" />
+          <Button className="h-auto rounded-xl px-5" disabled={busy || !quickKey.trim()} onClick={async () => { setValues((v) => ({ ...v, GEMINI_API_KEY: quickKey })); setBusy(true); try { await adminSaveSetting({ data: { key: "GEMINI_API_KEY", value: quickKey } }); setQuickKey(""); setMsg("Gemini saved and activated."); load(); await runDiagnostics(); } catch (e: any) { setMsg(e?.message ?? "Could not activate key"); } finally { setBusy(false); } }}><Save /> Save &amp; activate</Button>
+        </div>
+      </section>
+
       <section className={card}>
         <h3 className="font-semibold text-forest-deep">Pinterest</h3>
         <p className="mt-2 text-sm text-charcoal/70">
@@ -555,32 +583,7 @@ export function IntegrationsPanel() {
               Copy
             </button>
           </div>
-          <p className="mt-1 text-xs text-charcoal/50">
-            This must match a Redirect URI in your Pinterest app <em>character for character</em>. If Pinterest shows
-            “400 — the provided redirect URI does not match”, switch to the exact variant you registered:
-          </p>
-          <div className="mt-2 flex flex-wrap gap-2">
-            {[
-              "https://www.primedownloads.store/api/public/pinterest/oauth/callback",
-              "https://primedownloads.store/api/public/pinterest/oauth/callback",
-            ].map((uri) => (
-              <button
-                key={uri}
-                className={`${btnGhost} ${status?.redirect_uri === uri ? "border-forest bg-forest/10" : ""}`}
-                onClick={async () => {
-                  try {
-                    await adminSaveSetting({ data: { key: "PINTEREST_REDIRECT_URI", value: uri } });
-                    setMsg("Redirect URI updated — make sure the same value is saved in your Pinterest app.");
-                    load();
-                  } catch (e: any) {
-                    setMsg(e?.message ?? "Could not update redirect URI");
-                  }
-                }}
-              >
-                Use {uri.includes("//www.") ? "www" : "non-www"}
-              </button>
-            ))}
-          </div>
+          <p className="mt-1 text-xs text-charcoal/50">This is the exact production Redirect URI registered for your Pinterest app. Do not add a slash or callback path.</p>
           <div className={`mt-4 rounded-xl border p-4 ${
             status?.redirect_audit?.exact_match === true
               ? "border-forest/20 bg-forest/5"
@@ -608,9 +611,10 @@ export function IntegrationsPanel() {
           </div>
         </div>
         <div className="mt-4 flex flex-wrap gap-2">
-          <button className={btn} onClick={connect} disabled={!status?.credentials_configured}>
+          <Button className="rounded-full" onClick={connect} disabled={!status?.credentials_configured}>
+            <Zap />
             {status?.connected ? "Reconnect" : "Connect Pinterest"}
-          </button>
+          </Button>
           {status?.connected && (
             <button
               className={btnGhost}
@@ -630,10 +634,10 @@ export function IntegrationsPanel() {
       </section>
 
       <section className={card}>
-        <h3 className="font-semibold text-forest-deep">API keys</h3>
+        <div className="flex items-center gap-2"><Cloud className="h-4 w-4 text-sage" /><h3 className="font-semibold text-forest-deep">Provider details</h3></div>
         <div className="mt-4 space-y-4">
-          {settings.map((s) => (
-            <div key={s.key}>
+          {settings.filter((s) => s.key.startsWith("GEMINI_")).map((s) => (
+            <div key={s.key} className="rounded-xl border border-forest/10 bg-cream/30 p-4">
               <label className="text-sm font-semibold text-forest-deep">{s.label}</label>
               <p className="text-xs text-charcoal/50">
                 {s.hint} · {s.source === "missing" ? "not set" : `current: ${s.masked} (${s.source === "panel" ? "saved here" : "project secret"})`}
@@ -641,15 +645,27 @@ export function IntegrationsPanel() {
               <div className="mt-2 flex flex-col gap-2 sm:flex-row">
                 <input
                   className={input}
-                  type="password"
+                  type={showKeys[s.key] ? "text" : "password"}
                   placeholder="Enter new value (leave empty and save to clear)"
                   value={values[s.key] ?? ""}
                   onChange={(e) => setValues((v) => ({ ...v, [s.key]: e.target.value }))}
                 />
-                <button className={btn} disabled={busy} onClick={() => save(s.key)}>
-                  Save
-                </button>
+                <Button variant="outline" size="icon" aria-label={showKeys[s.key] ? "Hide value" : "Show value"} onClick={() => setShowKeys((v) => ({ ...v, [s.key]: !v[s.key] }))}>{showKeys[s.key] ? <EyeOff /> : <Eye />}</Button>
+                <Button className="h-auto rounded-xl" disabled={busy} onClick={() => save(s.key)}><Save /> Save</Button>
               </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className={card}>
+        <div className="flex items-center gap-2"><Unplug className="h-4 w-4 text-sage" /><h3 className="font-semibold text-forest-deep">Pinterest app credentials</h3></div>
+        <div className="mt-4 space-y-4">
+          {settings.filter((s) => s.key.startsWith("PINTEREST_")).map((s) => (
+            <div key={s.key} className="rounded-xl border border-forest/10 bg-cream/30 p-4">
+              <label className="text-sm font-semibold text-forest-deep">{s.label}</label>
+              <p className="text-xs text-charcoal/50">{s.hint} · {s.source === "missing" ? "not set" : `current: ${s.masked}`}</p>
+              <div className="mt-2 flex flex-col gap-2 sm:flex-row"><input className={input} type="password" value={values[s.key] ?? ""} onChange={(e) => setValues((v) => ({ ...v, [s.key]: e.target.value }))} placeholder="Enter a replacement value" /><Button className="h-auto rounded-xl" disabled={busy} onClick={() => save(s.key)}><Save /> Save</Button></div>
             </div>
           ))}
         </div>
