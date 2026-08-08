@@ -66,7 +66,6 @@ export const researchTopic = createServerFn({ method: "POST" })
 Research this topic as if you had just reviewed the current Google top 10.
 Topic: "${data.topic}"${data.primaryKeyword ? `\nPrimary keyword: ${data.primaryKeyword}` : ""}${data.audience ? `\nAudience: ${data.audience}` : ""}
 Give realistic, specific estimates. difficulty and popularity are 0-100. Return JSON only.`,
-        providerOptions: { lovable: { reasoningEffort: "none" } },
       });
       return output;
     } catch (err) {
@@ -93,7 +92,6 @@ export const suggestTitles = createServerFn({ method: "POST" })
         prompt: `Write 6 click-worthy, SEO-strong blog headlines for a premium plant-based food brand.
 Topic: "${data.topic}"${data.keywords ? `\nTarget keywords: ${data.keywords}` : ""}
 Each headline under 60 characters, specific, no clickbait, no numbering. Return JSON only.`,
-        providerOptions: { lovable: { reasoningEffort: "none" } },
       });
       return output.titles.slice(0, 6);
     } catch (err) {

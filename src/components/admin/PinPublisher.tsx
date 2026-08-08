@@ -125,7 +125,7 @@ export function PinPublisher() {
                 : "border-forest/15 bg-forest/5 text-forest-deep"
             }`}
           >
-            <p className="break-all font-semibold">Redirect URI: {status.redirect_uri}</p>
+            <p className="break-all font-semibold">Add this exact Redirect URI in Pinterest: {status.redirect_uri}</p>
             <p className="mt-1">{status.redirect_audit?.issue ?? "Exact Pinterest redirect match confirmed."}</p>
           </div>
         )}

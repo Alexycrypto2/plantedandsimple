@@ -77,11 +77,6 @@ function HomePage() {
   const data = Route.useLoaderData() as LoaderData;
 
   useEffect(() => {
-    const oauth = new URLSearchParams(window.location.search);
-    if (oauth.has("code") || oauth.has("state") || oauth.has("error")) {
-      window.location.replace(`/api/public/pinterest/oauth/callback?${oauth.toString()}`);
-      return;
-    }
     const ref = new URLSearchParams(window.location.search).get("ref");
     if (ref) {
       localStorage.setItem("ps_ref", ref);

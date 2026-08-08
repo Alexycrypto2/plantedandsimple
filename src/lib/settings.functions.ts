@@ -12,13 +12,13 @@ export type SettingRow = {
 const FIELDS: { key: string; label: string; hint: string }[] = [
   { key: "PINTEREST_CLIENT_ID", label: "Pinterest App ID", hint: "From your Pinterest developer app" },
   { key: "PINTEREST_CLIENT_SECRET", label: "Pinterest App Secret", hint: "Keep this private" },
-  { key: "GEMINI_API_KEY", label: "Gemini API key", hint: "Optional — leave empty to use built-in Lovable AI images" },
+  { key: "GEMINI_API_KEY", label: "Gemini API key", hint: "Required — every AI feature connects directly to Google Gemini" },
   { key: "GEMINI_IMAGE_MODEL", label: "Gemini image model", hint: "Default: gemini-2.5-flash-image" },
   { key: "GEMINI_TEXT_MODEL", label: "Gemini text model", hint: "Default: gemini-2.5-flash — powers blogs, recipes, pins, assistant" },
   {
     key: "PINTEREST_REDIRECT_URI",
     label: "Pinterest redirect URI",
-    hint: "Must match your Pinterest app exactly. Default: https://www.primedownloads.store/api/public/pinterest/oauth/callback",
+    hint: "Use exactly: https://www.primedownloads.store/api/public/pinterest/oauth/callback",
   },
   {
     key: "PINTEREST_REGISTERED_REDIRECT_URI",
@@ -109,4 +109,28 @@ export const aiDiagnostics = createServerFn({ method: "POST" })
     }
 
     return { ...snapshot, text, image };
+  });
+
+export const listGeminiModels = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await requireBoss(context.supabase, context.userId);
+    const { resolveGeminiKey } = await import("./ai/gateway.server");
+    const gemini = await resolveGeminiKey();
+    if (!gemini) throw new Error("Save a Gemini API key first.");
+    const res = await fetch("https://generativelanguage.googleapis.com/v1beta/models?pageSize=1000", {
+      headers: { "x-goog-api-key": gemini.key },
+    });
+    const body = await res.text();
+    if (!res.ok) throw new Error(`Gemini model catalog ${res.status}: ${body.slice(0, 400)}`);
+    const data = JSON.parse(body) as { models?: Array<{ name?: string; displayName?: string; supportedGenerationMethods?: string[] }> };
+    return (data.models ?? [])
+      .filter((model) => model.supportedGenerationMethods?.includes("generateContent"))
+      .map((model) => ({
+        id: String(model.name ?? "").replace(/^models\//, ""),
+        name: model.displayName ?? model.name ?? "Gemini model",
+        image: /image/i.test(`${model.name} ${model.displayName}`),
+      }))
+      .filter((model) => model.id.startsWith("gemini-"))
+      .sort((a, b) => a.id.localeCompare(b.id));
   });

@@ -3,7 +3,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { generateText, NoObjectGeneratedError, Output } from "ai";
 import { z } from "zod";
 import { textModel, describeAiError, DEFAULT_CHAT_MODEL, DEFAULT_IMAGE_MODEL } from "./gateway.server";
-import { FRAMING, PIN_STYLES, renderImageSafe, requireBossFactory } from "./studio.server";
+import { FRAMING, PIN_STYLES, renderImage, renderImageSafe, requireBossFactory } from "./studio.server";
 
 const requireBoss = requireBossFactory();
 
@@ -66,7 +66,6 @@ Create ${data.count} pins.
 Subject: "${data.subject}"
 ${data.styles.length ? `Use these visual styles, one per pin: ${data.styles.join(", ")}.` : `Use ${data.count} clearly different visual styles from: ${PIN_STYLES.join(", ")}.`}
 Return JSON only.`,
-        providerOptions: { lovable: { reasoningEffort: "none" } },
       });
       output = res.output;
     } catch (err: any) {
@@ -221,7 +220,6 @@ ${PIN_BRIEF}
 Create exactly 5 pin variants, each a different visual style from: ${PIN_STYLES.join(", ")}.
 Subject: "${data.subject}"
 Also add why_it_works: one sentence on the psychology of that hook. Return JSON only.`,
-        providerOptions: { lovable: { reasoningEffort: "none" } },
       });
       output = res.output;
     } catch (err) {
@@ -273,6 +271,7 @@ export const savePinPreviews = createServerFn({ method: "POST" })
 /* ------------------------- content-source aware pins ----------------------- */
 
 export type PinSourceType = "recipe" | "blog" | "product" | "custom";
+export type PinLayout = "top-banner" | "center-card" | "middle-band" | "bottom-card" | "minimal-label" | "split-collage";
 
 export type PinSource = {
   type: PinSourceType;
@@ -332,12 +331,13 @@ const SOURCE_PLAYBOOK: Record<PinSourceType, string> = {
  */
 export const generatePinsFromSource = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { type: PinSourceType; id?: string; subject?: string; count?: number; angle?: string }) => ({
+  .inputValidator((d: { type: PinSourceType; id?: string; subject?: string; count?: number; angle?: string; layouts?: PinLayout[] }) => ({
     type: (["recipe", "blog", "product", "custom"].includes(d.type) ? d.type : "custom") as PinSourceType,
     id: d.id ? String(d.id) : undefined,
     subject: String(d.subject ?? "").slice(0, 400),
     count: Math.min(Math.max(Number(d.count ?? 5), 1), 5),
     angle: d.angle ? String(d.angle).slice(0, 200) : undefined,
+    layouts: (d.layouts ?? []).filter((layout): layout is PinLayout => ["top-banner", "center-card", "middle-band", "bottom-card", "minimal-label", "split-collage"].includes(layout)).slice(0, 5),
   }))
   .handler(async ({ data, context }) => {
     await requireBoss(context.supabase, context.userId);
@@ -430,8 +430,7 @@ Use ONLY the facts below — never invent claims, numbers, ingredients or timing
 ${brief}
 ---
 
-Create exactly ${data.count} pin variants. Each must use a different layout chosen from: ${PIN_STYLES.join(", ")} — choose the ones that genuinely fit this content type, do not cycle through all of them mechanically. Each must use a different hook angle. Add why_it_works: one sentence on why that hook converts for this exact content. Return JSON only.`,
-        providerOptions: { lovable: { reasoningEffort: "none" } },
+Create exactly ${data.count} pin variants. Use these selected overlay layouts: ${data.layouts.length ? data.layouts.join(", ") : "top-banner, center-card, middle-band, bottom-card, minimal-label"}. Put the exact layout id in style. Make every hook distinct. Add why_it_works: one sentence on why that layout and hook convert for this content. Return JSON only.`,
       });
       output = res.output;
     } catch (err) {
@@ -441,8 +440,8 @@ Create exactly ${data.count} pin variants. Each must use a different layout chos
 
     const pins = [];
     for (const pin of output.pins.slice(0, data.count)) {
-      const img = await renderImageSafe(pin.image_prompt, "pinterest/previews", FRAMING.pin);
-      pins.push({ ...pin, image_url: img?.url ?? null, storage_path: img?.path ?? null });
+      const img = await renderImage(pin.image_prompt, "pinterest/previews", FRAMING.pin);
+      pins.push({ ...pin, image_url: img.url, storage_path: img.path });
     }
 
     return {

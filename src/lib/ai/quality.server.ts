@@ -85,7 +85,6 @@ Draft:
 
 Score 0-100 for: clarity (is every sentence useful and easy to follow), seo (keyword coverage, headings, meta, intent match), originality (does it say anything a generic AI post would not), readability (rhythm, paragraph length, scannability).
 problems: the concrete faults, each with the exact fix. rewrite_brief: instructions a writer could follow to fix the draft in one pass. Return JSON only.`,
-      providerOptions: { lovable: { reasoningEffort: "none" } },
     });
     out = res.output;
   } catch (err) {

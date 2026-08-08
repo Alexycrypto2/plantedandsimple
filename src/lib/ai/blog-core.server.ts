@@ -151,7 +151,6 @@ export async function writeArticle(brief: ArticleBrief): Promise<Article> {
       model,
       output: Output.object({ schema: ArticleSchema }),
       prompt: buildArticlePrompt(brief, memory),
-      providerOptions: { lovable: { reasoningEffort: "none" } },
     });
     return res.output;
   } catch (err) {

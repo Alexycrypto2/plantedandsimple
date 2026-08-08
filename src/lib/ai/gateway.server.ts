@@ -1,12 +1,10 @@
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 
-export const AI_GATEWAY_URL = "https://ai.gateway.lovable.dev/v1";
-export const DEFAULT_CHAT_MODEL = "openai/gpt-5.6-sol";
-export const DEFAULT_IMAGE_MODEL = "google/gemini-3.1-flash-image";
 export const GEMINI_OPENAI_URL = "https://generativelanguage.googleapis.com/v1beta/openai";
-/** Google's own API only accepts its published model ids — this one is always available. */
 export const DEFAULT_GEMINI_TEXT_MODEL = "gemini-2.5-flash";
 export const DEFAULT_GEMINI_IMAGE_MODEL = "gemini-2.5-flash-image";
+export const DEFAULT_CHAT_MODEL = DEFAULT_GEMINI_TEXT_MODEL;
+export const DEFAULT_IMAGE_MODEL = DEFAULT_GEMINI_IMAGE_MODEL;
 
 /** Preserve the admin's Google model choice; Google's catalog changes frequently. */
 export function normalizeGeminiTextModel(raw?: string | null): string {
@@ -19,12 +17,12 @@ export function normalizeGeminiImageModel(raw?: string | null): string {
   return id.startsWith("gemini-") && id.includes("image") ? id : DEFAULT_GEMINI_IMAGE_MODEL;
 }
 
-export type AiProviderName = "gemini" | "lovable";
+export type AiProviderName = "gemini";
 
 export type AiProviderInfo = {
   provider: AiProviderName;
   modelId: string;
-  keySource: "admin_settings" | "environment" | "lovable_managed";
+  keySource: "admin_settings" | "environment";
 };
 
 /** Reads the Gemini key from admin settings first, then env (GEMINI_API_KEY / GOOGLE_API_KEY). */
@@ -39,12 +37,6 @@ export async function resolveGeminiKey(): Promise<{ key: string; source: "admin_
   return env ? { key: env, source: "environment" } : null;
 }
 
-export function requireApiKey(): string {
-  const k = process.env.LOVABLE_API_KEY;
-  if (!k) throw new Error("LOVABLE_API_KEY is not set");
-  return k;
-}
-
 /** Turns provider/gateway failures into an error the admin can act on. */
 export function describeAiError(err: unknown, info?: AiProviderInfo): Error {
   const raw = err instanceof Error ? err.message : String(err);
@@ -54,7 +46,7 @@ export function describeAiError(err: unknown, info?: AiProviderInfo): Error {
   const where = info ? `${info.provider} · ${info.modelId}` : "AI provider";
   if (status === 402 || /payment_required|Not enough credits/i.test(raw + body)) {
     return new Error(
-      `Lovable AI credits are exhausted (402) and no Gemini key was used. Add a valid Gemini API key in Settings → Integrations so requests go to Google directly. [${where}]`,
+      `Gemini billing or quota is unavailable (402). Check this API key's Google AI billing and quota. [${where}]`,
     );
   }
   if (status === 401 || status === 403 || /API_KEY_INVALID|PERMISSION_DENIED|Unauthorized/i.test(raw + body)) {
@@ -73,33 +65,24 @@ function logAi(stage: string, fields: Record<string, unknown>) {
 
 /**
  * THE single place every AI text feature resolves its provider.
- * Gemini (admin key) is preferred; Lovable AI Gateway is the fallback.
+ * Every feature uses the administrator's Gemini key directly. There is no fallback provider.
  */
 export async function resolveTextModel(opts?: { structuredOutputs?: boolean; feature?: string }) {
   const structuredOutputs = opts?.structuredOutputs ?? true;
   const gemini = await resolveGeminiKey();
 
-  if (gemini) {
-    const { getConfig } = await import("../settings.server");
-    const modelId = normalizeGeminiTextModel(await getConfig("GEMINI_TEXT_MODEL"));
-    const info: AiProviderInfo = { provider: "gemini", modelId, keySource: gemini.source };
-    logAi("request", { feature: opts?.feature ?? "unknown", ...info });
-    const provider = createOpenAICompatible({
-      name: "google",
-      baseURL: GEMINI_OPENAI_URL,
-      supportsStructuredOutputs: structuredOutputs,
-      headers: { Authorization: `Bearer ${gemini.key}` },
-    });
-    return { model: provider(modelId), info };
-  }
-
-  const info: AiProviderInfo = {
-    provider: "lovable",
-    modelId: DEFAULT_CHAT_MODEL,
-    keySource: "lovable_managed",
-  };
-  logAi("request", { feature: opts?.feature ?? "unknown", ...info, note: "no Gemini key configured" });
-  return { model: createGateway({ structuredOutputs })(DEFAULT_CHAT_MODEL), info };
+  if (!gemini) throw new Error("Gemini API key is missing. Add it in Admin → Settings → Integrations, then run the live test.");
+  const { getConfig } = await import("../settings.server");
+  const modelId = normalizeGeminiTextModel(await getConfig("GEMINI_TEXT_MODEL"));
+  const info: AiProviderInfo = { provider: "gemini", modelId, keySource: gemini.source };
+  logAi("request", { feature: opts?.feature ?? "unknown", ...info });
+  const provider = createOpenAICompatible({
+    name: "google",
+    baseURL: GEMINI_OPENAI_URL,
+    supportsStructuredOutputs: structuredOutputs,
+    headers: { Authorization: `Bearer ${gemini.key}` },
+  });
+  return { model: provider(modelId), info };
 }
 
 export async function textModel(feature?: string, structuredOutputs = true) {
@@ -130,43 +113,23 @@ export async function aiProviderSnapshot() {
   const gemini = await resolveGeminiKey();
   const { getConfig } = await import("../settings.server");
   return {
-    text_provider: gemini ? "gemini" : "lovable",
-    text_model: gemini
-      ? normalizeGeminiTextModel(await getConfig("GEMINI_TEXT_MODEL"))
-      : DEFAULT_CHAT_MODEL,
-    image_provider: gemini ? "gemini" : "lovable",
-    image_model: gemini
-      ? normalizeGeminiImageModel(await getConfig("GEMINI_IMAGE_MODEL"))
-      : DEFAULT_IMAGE_MODEL,
+    text_provider: "gemini",
+    text_model: normalizeGeminiTextModel(await getConfig("GEMINI_TEXT_MODEL")),
+    image_provider: "gemini",
+    image_model: normalizeGeminiImageModel(await getConfig("GEMINI_IMAGE_MODEL")),
     gemini_key_present: Boolean(gemini),
     gemini_key_source: gemini?.source ?? null,
-    lovable_key_present: Boolean(process.env.LOVABLE_API_KEY),
   };
-}
-
-export function createGateway(opts?: { structuredOutputs?: boolean }) {
-  const key = requireApiKey();
-  return createOpenAICompatible({
-    name: "lovable",
-    baseURL: AI_GATEWAY_URL,
-    supportsStructuredOutputs: opts?.structuredOutputs ?? true,
-    headers: {
-      "Lovable-API-Key": key,
-      "X-Lovable-AIG-SDK": "vercel-ai-sdk",
-    },
-  });
 }
 
 /** Raw gateway image call — Gemini image via chat completions with image modality. */
 export async function generateImageBase64(
-  prompt: string, 
-  model = DEFAULT_IMAGE_MODEL, 
-  skipGemini = false
+  prompt: string,
 ): Promise<{ base64: string; mime: string; provider: string; modelId: string }> {
   const { getConfig } = await import("../settings.server");
-  const gemini = skipGemini ? null : await resolveGeminiKey();
-  
-  if (gemini) {
+  const gemini = await resolveGeminiKey();
+  if (!gemini) throw new Error("Gemini API key is missing. Add it in Admin → Settings → Integrations.");
+  {
     const geminiKey = gemini.key;
     const geminiModel = normalizeGeminiImageModel(await getConfig("GEMINI_IMAGE_MODEL"));
     logAi("image-request", { provider: "gemini", modelId: geminiModel, keySource: gemini.source });
@@ -187,49 +150,12 @@ export async function generateImageBase64(
       if (inline) {
         return { base64: inline.data, mime: inline.mimeType || "image/png", provider: "gemini", modelId: geminiModel };
       }
-    } else if ([402, 404, 429, 500, 502, 503, 504].includes(res.status)) {
-      logAi("image-warn", { provider: "gemini", modelId: geminiModel, status: res.status, note: "direct image provider unavailable, falling back to Lovable" });
-      return await generateImageBase64(prompt, model, true);
     } else {
       const text = await res.text();
       logAi("image-error", { provider: "gemini", modelId: geminiModel, status: res.status, body: text.slice(0, 600) });
-      throw new Error(`Gemini image ${res.status} (${geminiModel}): ${text.slice(0, 500)}`);
+      const reason = res.status === 429 ? "Quota exhausted or rate limited" : "Request failed";
+      throw new Error(`Gemini image ${res.status} · ${geminiModel} · ${reason}: ${text.slice(0, 500)}`);
     }
   }
-
-  const key = requireApiKey();
-  logAi("image-request", { provider: "lovable", modelId: model, keySource: "lovable_managed" });
-  const res = await fetch(`${AI_GATEWAY_URL}/chat/completions`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Lovable-API-Key": key,
-      "X-Lovable-AIG-SDK": "primedownloads",
-    },
-    body: JSON.stringify({
-      model,
-      messages: [{ role: "user", content: prompt }],
-      modalities: ["image", "text"],
-    }),
-  });
-  
-  if (!res.ok) {
-    const text = await res.text();
-    logAi("image-error", { provider: "lovable", modelId: model, status: res.status, body: text.slice(0, 600) });
-    throw describeAiError(
-      Object.assign(new Error(text.slice(0, 400)), { statusCode: res.status, responseBody: text }),
-      { provider: "lovable", modelId: model, keySource: "lovable_managed" },
-    );
-  }
-  
-  const data: any = await res.json();
-  const msg = data?.choices?.[0]?.message;
-  const images: any[] = msg?.images ?? [];
-  const first = images[0];
-  const url: string | undefined = first?.image_url?.url ?? first?.url;
-  if (!url || !url.startsWith("data:")) throw new Error("Image gateway returned no image data");
-  
-  const match = /^data:([^;]+);base64,(.+)$/.exec(url);
-  if (!match) throw new Error("Unexpected image data URL");
-  return { mime: match[1], base64: match[2], provider: "lovable", modelId: model };
+  throw new Error("Gemini returned no image data. Confirm the selected model supports image generation.");
 }

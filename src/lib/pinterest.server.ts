@@ -5,7 +5,7 @@ export const PINTEREST_SCOPES = "boards:read,pins:read,pins:write,user_accounts:
 export const PINTEREST_API = "https://api.pinterest.com/v5";
 export const PINTEREST_STATE_COOKIE = "pin_oauth_state";
 export const DEFAULT_PINTEREST_REDIRECT_URI =
-  "https://primedownloads.store";
+  "https://www.primedownloads.store/api/public/pinterest/oauth/callback";
 
 /**
  * The redirect URI must be byte-identical in the authorize request, on the Pinterest
@@ -14,12 +14,14 @@ export const DEFAULT_PINTEREST_REDIRECT_URI =
  */
 export async function pinterestRedirectUri(): Promise<string> {
   const configured = (await getConfig("PINTEREST_REDIRECT_URI"))?.trim();
-  // The Pinterest app was registered with the production homepage. Older builds
-  // saved our API callback path, which Pinterest rejects before returning a code.
-  if (!configured || configured.includes("/api/public/pinterest/oauth/callback")) {
+  if (!configured) return DEFAULT_PINTEREST_REDIRECT_URI;
+  try {
+    const url = new URL(configured);
+    if (url.pathname !== "/api/public/pinterest/oauth/callback") return DEFAULT_PINTEREST_REDIRECT_URI;
+    return url.toString().replace(/\/$/, "");
+  } catch {
     return DEFAULT_PINTEREST_REDIRECT_URI;
   }
-  return configured;
 }
 
 export function pinLog(step: string, fields: Record<string, unknown> = {}) {

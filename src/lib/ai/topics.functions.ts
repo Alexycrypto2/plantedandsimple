@@ -44,7 +44,6 @@ export const suggestTopics = createServerFn({ method: "POST" })
 Seed themes: ${data.seed}.
 Score each on trend_score, conversion_score, pinterest_potential (0-100). Prefer evergreen high-intent searches.
 Return JSON only.`,
-        providerOptions: { lovable: { reasoningEffort: "none" } },
       });
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
       const bucket = (b: string) => (b === "high" ? 90 : b === "medium" ? 55 : 20);
@@ -147,7 +146,6 @@ Rules:
 - sources: name the signals you inferred it from, e.g. "Google Trends", "Pinterest", "Reddit r/veganrecipes", "Seasonality".
 - rating, google_score, pinterest_score: 0-100 honest estimates. rating reflects overall opportunity for us (demand x fit x conversion).
 - Order by rating, highest first. No duplicates.`,
-        providerOptions: { lovable: { reasoningEffort: "none" } },
       });
 
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");

@@ -122,7 +122,6 @@ Produce:
 - promo: a product promo block for the PlantedAndSimple digital cookbook that grows naturally out of this recipe. body_html is 2 short <p> paragraphs. No hype, no exclamation marks.
 - pins: exactly 5 Pinterest pins, each a different style from ${PIN_STYLES.join(", ")} and a different hook. overlay_text <= 8 words, description <= 480 chars with 4-5 hashtags, image_prompt is a vertical photorealistic food photography brief with clean space in the top third and never any text in the frame.
 Banned words: delve, elevate, unlock, game-changer, dive into, look no further. Return JSON only.`,
-      providerOptions: { lovable: { reasoningEffort: "none" } },
     });
     copy = res.output;
   } catch (err) {
