@@ -19,6 +19,7 @@ import {
   savePinPreviews,
   type PinSource,
   type PinSourceType,
+  type PinLayout,
 } from "@/lib/ai/pin-studio.functions";
 
 const shell = "rounded-3xl border border-forest/10 bg-white/80 p-6 shadow-[0_18px_60px_-40px_rgba(46,94,59,0.6)] backdrop-blur";
@@ -37,6 +38,15 @@ const SOURCES: { id: PinSourceType; label: string; blurb: string; icon: typeof C
   { id: "custom", label: "Free subject", blurb: "Type anything and let AI shape it", icon: Sparkles },
 ];
 
+const LAYOUTS: Array<{ id: PinLayout; label: string; blurb: string }> = [
+  { id: "top-banner", label: "Top banner", blurb: "Bold color bar above the food" },
+  { id: "center-card", label: "Center card", blurb: "Large white editorial title block" },
+  { id: "middle-band", label: "Middle band", blurb: "High-contrast stripe across the image" },
+  { id: "bottom-card", label: "Bottom recipe card", blurb: "Food first, structured caption below" },
+  { id: "minimal-label", label: "Floating label", blurb: "Small clean label with lots of image" },
+  { id: "split-collage", label: "Photo collage", blurb: "Grid-led list or roundup pin" },
+];
+
 export function PinterestStudioPanel() {
   const [type, setType] = useState<PinSourceType>("recipe");
   const [sources, setSources] = useState<Record<string, PinSource[]>>({});
@@ -46,6 +56,7 @@ export function PinterestStudioPanel() {
   const [subject, setSubject] = useState("");
   const [angle, setAngle] = useState("");
   const [count, setCount] = useState(5);
+  const [layouts, setLayouts] = useState<PinLayout[]>(["top-banner", "center-card", "middle-band", "bottom-card", "minimal-label"]);
 
   const [busy, setBusy] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -84,7 +95,7 @@ export function PinterestStudioPanel() {
     setPicked([]);
     try {
       const res: any = await generatePinsFromSource({
-        data: { type, id: pickedId ?? undefined, subject, count, angle: angle || undefined },
+        data: { type, id: pickedId ?? undefined, subject, count, angle: angle || undefined, layouts: layouts.slice(0, count) },
       });
       setPack(res.pins ?? []);
       setPicked((res.pins ?? []).map((_: any, i: number) => i));
@@ -258,6 +269,19 @@ export function PinterestStudioPanel() {
           </div>
         </div>
 
+        <div className="mt-6">
+          <p className={label}>Overlay layout</p>
+          <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            {LAYOUTS.map((layout) => {
+              const on = layouts.includes(layout.id);
+              return <button key={layout.id} type="button" onClick={() => setLayouts((current) => on ? current.filter((id) => id !== layout.id) : [...current, layout.id])} className={`rounded-2xl border p-3 text-left transition ${on ? "border-forest bg-forest/5" : "border-forest/10 bg-cream/30"}`}>
+                <span className="text-sm font-semibold text-forest-deep">{layout.label}</span>
+                <span className="mt-1 block text-xs text-charcoal/55">{layout.blurb}</span>
+              </button>;
+            })}
+          </div>
+        </div>
+
         <div className="mt-6 flex flex-wrap items-center gap-3">
           <button className={btn} disabled={!ready || busy} onClick={run}>
             {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Wand2 className="h-4 w-4" />}
@@ -305,7 +329,7 @@ export function PinterestStudioPanel() {
                 >
                   <div className="relative">
                     {p.image_url ? (
-                      <img src={p.image_url} alt={p.alt} className="aspect-[2/3] w-full rounded-xl object-cover" />
+                      <PinVisual pin={p} className="rounded-xl" />
                     ) : (
                       <div className="grid aspect-[2/3] w-full place-items-center rounded-xl bg-forest/10 text-[10px] text-charcoal/50">
                         image failed
@@ -416,7 +440,7 @@ function PinReviewer({
         <div className="mt-5 grid gap-6 md:grid-cols-[minmax(0,260px)_1fr]">
           <div>
             {pin.image_url ? (
-              <img src={pin.image_url} alt={pin.alt} className="aspect-[2/3] w-full rounded-2xl object-cover" />
+              <PinVisual pin={pin} className="rounded-2xl" />
             ) : (
               <div className="grid aspect-[2/3] w-full place-items-center rounded-2xl bg-forest/10 text-xs text-charcoal/50">
                 image failed
@@ -477,6 +501,19 @@ function PinReviewer({
       </div>
     </div>
   );
+}
+
+function PinVisual({ pin, className = "" }: { pin: any; className?: string }) {
+  const layout = String(pin.style ?? "center-card").toLowerCase();
+  const text = pin.overlay_text ?? pin.title;
+  const base = "absolute left-3 right-3 text-center font-display text-xl font-bold leading-tight shadow-lg";
+  let overlay = `${base} top-3 bg-forest px-3 py-3 text-cream`;
+  if (layout.includes("center")) overlay = `${base} top-1/2 -translate-y-1/2 bg-cream px-3 py-5 text-forest-deep`;
+  if (layout.includes("middle")) overlay = `${base} left-0 right-0 top-1/2 -translate-y-1/2 bg-forest px-3 py-4 text-cream`;
+  if (layout.includes("bottom")) overlay = `${base} bottom-3 bg-cream px-3 py-4 text-forest-deep`;
+  if (layout.includes("minimal")) overlay = "absolute bottom-4 left-4 max-w-[80%] bg-cream px-3 py-2 font-display text-base font-bold leading-tight text-forest-deep shadow-lg";
+  if (layout.includes("split")) overlay = `${base} top-1/2 -translate-y-1/2 border-4 border-cream bg-forest px-3 py-5 text-cream`;
+  return <div className={`relative aspect-[2/3] w-full overflow-hidden ${className}`}><img src={pin.image_url} alt={pin.alt ?? "Pinterest pin preview"} className="h-full w-full object-cover" /><div className={overlay}>{text}</div></div>;
 }
 
 function Field({ label: name, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
