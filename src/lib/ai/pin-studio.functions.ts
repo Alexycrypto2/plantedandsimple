@@ -432,19 +432,6 @@ Use ONLY the facts below — never invent claims, numbers, ingredients or timing
 ${brief}
 ---
 
-Create exactly ${data.count} pin variants. Each must use a different layout chosen from: ${PIN_STYLES.join(", ")} — choose the ones that genuinely fit this content type, do not cycle through all of them mechanically. Each must use a different hook angle. Add why_it_works: one sentence on why that hook converts for this exact content. Return JSON only.`,
-        prompt: `${memory}
-
-${PIN_BRIEF}
-
-${SOURCE_PLAYBOOK[data.type]}
-${data.angle ? `Editor's angle for this batch: ${data.angle}` : ""}
-
-Use ONLY the facts below — never invent claims, numbers, ingredients or timings.
----
-${brief}
----
-
 Create exactly ${data.count} pin variants. Use these selected overlay layouts: ${data.layouts.length ? data.layouts.join(", ") : "top-banner, center-card, middle-band, bottom-card, minimal-label"}. Put the exact layout id in style. Make every hook distinct. Add why_it_works: one sentence on why that layout and hook convert for this content. Return JSON only.`,
         providerOptions: { lovable: { reasoningEffort: "none" } },
       });
