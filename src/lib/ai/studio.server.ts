@@ -5,14 +5,12 @@ export const PHOTO_STYLE =
   "Shot on a Canon R5 with an 85mm f/1.4 lens: ultra-realistic professional food photography, magazine editorial quality, soft directional window light with gentle falloff, shallow depth of field, real crumbs, steam and imperfect edges, matte linen, ceramic and warm cream surfaces, muted olive and warm beige palette, natural soft shadows, styled by a food stylist for a premium cookbook. The food must be exactly the dish described — correct ingredients, colours and portion size. Absolutely no text, no lettering, no captions, no logos, no watermarks, no borders, no collage, no split frames, no illustration, no 3D render, no CGI or plastic-looking food, no extra hands or distorted cutlery, no oversaturated colours.";
 
 export const PIN_STYLES = [
-  "Minimal Editorial",
-  "Food Magazine",
-  "Recipe Card",
-  "Lifestyle",
-  "Clean White",
-  "Bold Colors",
-  "Organic Food",
-  "Luxury",
+  "top-banner",
+  "center-card",
+  "middle-band",
+  "bottom-card",
+  "minimal-label",
+  "split-collage",
 ] as const;
 export type PinStyle = (typeof PIN_STYLES)[number];
 

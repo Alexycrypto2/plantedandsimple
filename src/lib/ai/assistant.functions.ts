@@ -147,7 +147,6 @@ export const runAssistantCommand = createServerFn({ method: "POST" })
         model,
         output: Output.object({ schema: cfg.schema as any }),
         prompt: `${BRAND_CONTEXT}\n\n${memory}\n\n${(cfg.prompt as any)(data.input, siteContext)}`,
-        providerOptions: { lovable: { reasoningEffort: "none" } },
       });
 
       const title = (cfg.title as any)(output, data.input);

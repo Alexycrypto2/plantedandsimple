@@ -187,7 +187,6 @@ Produce 4-6 recommendations for TODAY. Every recommendation MUST state the reaso
 "X performed N% better over the last 90 days, so today we will ...". If a pattern has too little data,
 say so honestly and recommend an experiment instead of inventing numbers. priority is 1 (highest) to 5.
 action is a single concrete instruction the studio can execute.`,
-        providerOptions: { lovable: { reasoningEffort: "none" } },
       });
       output = res.output;
     } catch (err: any) {
@@ -390,7 +389,6 @@ Propose 3 NEW experiments for PlantedAndSimple that test genuinely different cre
 (pin layouts, blog structures, CTA styles, headline styles, image treatments or publishing times).
 Do not duplicate existing experiment names or dimensions that already have a running test.
 Every variant must stay inside the brand rules.`,
-      providerOptions: { lovable: { reasoningEffort: "none" } },
     });
 
     const rows = output.experiments.map((e) => ({
@@ -498,7 +496,6 @@ ${JSON.stringify(gen.payload).slice(0, 8000)}
 
 Score 0-100 for brand consistency across writing tone, editorial quality, image style direction,
 Pinterest branding and CTA style. List only real issues, each with a concrete fix.`,
-      providerOptions: { lovable: { reasoningEffort: "none" } },
     });
 
     const { error } = await db.from("brand_checks").insert({

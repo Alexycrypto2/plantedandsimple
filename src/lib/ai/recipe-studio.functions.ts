@@ -84,7 +84,6 @@ Non-negotiable rules:
         model,
         output: Output.object({ schema: RecipeSchema }),
         prompt,
-        providerOptions: { lovable: { reasoningEffort: "none" } },
       });
       out = res.output;
     } catch (err: any) {
