@@ -22,6 +22,7 @@ export const Route = createFileRoute("/api/public/pinterest/oauth/callback")({
 
         const {
           exchangeCode,
+          consumeOAuthState,
           pinterestRedirectUri,
           saveAccount,
           pinLog,
@@ -60,7 +61,17 @@ export const Route = createFileRoute("/api/public/pinterest/oauth/callback")({
           );
         }
 
-        // Cookie must match the nonce baked into the signed state.
+        const storedState = await consumeOAuthState(state, parsed.uid);
+        if (!storedState) {
+          return html(
+            "Pinterest connection failed",
+            "The authorization state was not found, expired, or was already used. Start a fresh connection from Admin.",
+            "step: stored_state_validation",
+          );
+        }
+
+        // The cookie is a useful browser-origin diagnostic. Durable one-time state above
+        // remains authoritative so www/apex browser redirects cannot silently lose OAuth.
         const cookieNonce =
           request.headers
             .get("cookie")
@@ -68,18 +79,34 @@ export const Route = createFileRoute("/api/public/pinterest/oauth/callback")({
             .map((c) => c.trim())
             .find((c) => c.startsWith(`${PINTEREST_STATE_COOKIE}=`))
             ?.split("=")[1] ?? null;
-        if (parsed.n && cookieNonce && cookieNonce !== parsed.n) {
-          pinLog("callback:nonce-mismatch", {});
+        const cookieMatches = parsed.n ? cookieNonce === parsed.n : null;
+        pinLog("callback:cookie-check", { cookiePresent: Boolean(cookieNonce), cookieMatches });
+        if (parsed.n && cookieNonce && !cookieMatches) {
+          pinLog("callback:nonce-mismatch", { storedStateMatched: true });
           return html(
             "Pinterest connection failed",
             "This sign-in did not start in this browser. Please try connecting again.",
             "step: state_cookie_mismatch",
           );
         }
-        pinLog("callback:state-verified", { uid: parsed.uid, cookiePresent: Boolean(cookieNonce) });
+        pinLog("callback:state-verified", {
+          uid: parsed.uid,
+          signedStateValid: true,
+          storedStateMatched: true,
+          cookiePresent: Boolean(cookieNonce),
+        });
 
         try {
-          const redirectUri = await pinterestRedirectUri();
+          const redirectUri = storedState.redirectUri;
+          const canonicalRedirectUri = await pinterestRedirectUri();
+          if (redirectUri !== canonicalRedirectUri) {
+            pinLog("callback:redirect-uri-mismatch", { stored: redirectUri, canonical: canonicalRedirectUri });
+            return html(
+              "Pinterest connection failed",
+              "The callback URL changed after this connection started. Start a fresh connection.",
+              "step: redirect_uri_consistency",
+            );
+          }
           const tokens = await exchangeCode(code, redirectUri);
           let username: string | null = null;
           try {
@@ -92,7 +119,7 @@ export const Route = createFileRoute("/api/public/pinterest/oauth/callback")({
               `step: database_save — ${String(dbErr?.message ?? dbErr).slice(0, 240)}`,
             );
           }
-          pinLog("callback:connected", { uid: parsed.uid, username });
+          pinLog("callback:connected", { uid: parsed.uid, username, finalConnectionStatus: "connected" });
           return html(
             "Pinterest connected",
             `Your account${username ? ` @${username}` : ""} is now linked to PrimeDownloads.`,

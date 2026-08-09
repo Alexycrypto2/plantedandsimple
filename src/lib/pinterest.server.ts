@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { decrypt, encrypt } from "./crypto.server";
 import { getConfig } from "./settings.server";
 
@@ -13,15 +14,7 @@ export const DEFAULT_PINTEREST_REDIRECT_URI =
  * Settings → Integrations, never derived from the browser origin.
  */
 export async function pinterestRedirectUri(): Promise<string> {
-  const configured = (await getConfig("PINTEREST_REDIRECT_URI"))?.trim();
-  if (!configured) return DEFAULT_PINTEREST_REDIRECT_URI;
-  try {
-    const url = new URL(configured);
-    if (url.pathname !== "/api/public/pinterest/oauth/callback") return DEFAULT_PINTEREST_REDIRECT_URI;
-    return url.toString().replace(/\/$/, "");
-  } catch {
-    return DEFAULT_PINTEREST_REDIRECT_URI;
-  }
+  return DEFAULT_PINTEREST_REDIRECT_URI;
 }
 
 export function pinLog(step: string, fields: Record<string, unknown> = {}) {
@@ -35,6 +28,18 @@ export async function pinterestCredentials() {
   return { clientId, clientSecret };
 }
 
+function sanitizePinterestResponse(text: string): string {
+  try {
+    const value = JSON.parse(text) as Record<string, unknown>;
+    for (const key of ["access_token", "refresh_token", "client_secret"]) {
+      if (key in value) value[key] = "[redacted]";
+    }
+    return JSON.stringify(value).slice(0, 600);
+  } catch {
+    return text.replace(/(access_token|refresh_token|client_secret)["'=:\s]+[^\s,"'}]+/gi, "$1=[redacted]").slice(0, 600);
+  }
+}
+
 async function tokenRequest(body: URLSearchParams) {
   const { clientId, clientSecret } = await pinterestCredentials();
   const res = await fetch(`${PINTEREST_API}/oauth/token`, {
@@ -46,13 +51,71 @@ async function tokenRequest(body: URLSearchParams) {
     body,
   });
   const text = await res.text();
-  if (!res.ok) throw new Error(`Pinterest token ${res.status}: ${text.slice(0, 400)}`);
+  pinLog("token-exchange:response", {
+    status: res.status,
+    ok: res.ok,
+    response: sanitizePinterestResponse(text),
+  });
+  if (!res.ok) throw new Error(`Pinterest token ${res.status}: ${sanitizePinterestResponse(text)}`);
   return JSON.parse(text) as {
     access_token: string;
     refresh_token?: string;
     expires_in?: number;
     scope?: string;
   };
+}
+
+export function pinterestStateHash(state: string): string {
+  return createHash("sha256").update(state).digest("hex");
+}
+
+export async function persistOAuthState(state: string, userId: string, redirectUri: string) {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const stateHash = pinterestStateHash(state);
+  const { error } = await (supabaseAdmin as any).from("pinterest_oauth_states").insert({
+    state_hash: stateHash,
+    user_id: userId,
+    redirect_uri: redirectUri,
+    expires_at: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
+  });
+  pinLog("authorize:state-persisted", { persisted: !error, stateHashTail: stateHash.slice(-8) });
+  if (error) throw new Error(`Could not persist Pinterest OAuth state: ${error.message}`);
+}
+
+export async function consumeOAuthState(state: string, expectedUserId: string) {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const stateHash = pinterestStateHash(state);
+  const { data, error } = await (supabaseAdmin as any)
+    .from("pinterest_oauth_states")
+    .select("user_id, redirect_uri, expires_at, consumed_at")
+    .eq("state_hash", stateHash)
+    .maybeSingle();
+  const valid = Boolean(
+    !error &&
+      data &&
+      data.user_id === expectedUserId &&
+      !data.consumed_at &&
+      new Date(data.expires_at).getTime() > Date.now(),
+  );
+  pinLog("callback:state-storage-check", {
+    found: Boolean(data),
+    userMatch: data?.user_id === expectedUserId,
+    expired: data ? new Date(data.expires_at).getTime() <= Date.now() : null,
+    alreadyConsumed: Boolean(data?.consumed_at),
+    valid,
+    stateHashTail: stateHash.slice(-8),
+  });
+  if (!valid) return null;
+  const consumedAt = new Date().toISOString();
+  const { data: consumed, error: consumeError } = await (supabaseAdmin as any)
+    .from("pinterest_oauth_states")
+    .update({ consumed_at: consumedAt })
+    .eq("state_hash", stateHash)
+    .is("consumed_at", null)
+    .select("redirect_uri")
+    .maybeSingle();
+  if (consumeError || !consumed) return null;
+  return { redirectUri: consumed.redirect_uri as string };
 }
 
 export async function exchangeCode(code: string, redirectUri: string) {
@@ -81,12 +144,14 @@ export async function saveAccount(userId: string, tokens: Awaited<ReturnType<typ
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   let username: string | null = null;
   let pinterestUserId: string | null = null;
+  let profileStatus: "loaded" | "failed" = "loaded";
   try {
     const me = await pinterestFetch(tokens.access_token, "/user_account");
     username = me?.username ?? null;
     pinterestUserId = me?.id ?? null;
-  } catch {
-    /* profile fetch is best-effort */
+  } catch (error) {
+    profileStatus = "failed";
+    pinLog("account-profile:failed", { error: String(error instanceof Error ? error.message : error).slice(0, 300) });
   }
   const row = {
     user_id: userId,
@@ -103,6 +168,7 @@ export async function saveAccount(userId: string, tokens: Awaited<ReturnType<typ
   const { error } = await (supabaseAdmin as any)
     .from("pinterest_accounts")
     .upsert(row, { onConflict: "user_id" });
+  pinLog("database-save:result", { ok: !error, profileStatus, hasUsername: Boolean(username), error: error?.message ?? null });
   if (error) throw new Error(error.message);
   return { username };
 }
