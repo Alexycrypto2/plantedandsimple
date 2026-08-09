@@ -82,7 +82,7 @@ export async function persistOAuthState(state: string, userId: string, redirectU
   if (error) throw new Error(`Could not persist Pinterest OAuth state: ${error.message}`);
 }
 
-export async function consumeOAuthState(state: string, expectedUserId: string) {
+export async function consumeOAuthState(state: string) {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const stateHash = pinterestStateHash(state);
   const { data, error } = await (supabaseAdmin as any)
@@ -93,13 +93,11 @@ export async function consumeOAuthState(state: string, expectedUserId: string) {
   const valid = Boolean(
     !error &&
       data &&
-      data.user_id === expectedUserId &&
       !data.consumed_at &&
       new Date(data.expires_at).getTime() > Date.now(),
   );
   pinLog("callback:state-storage-check", {
     found: Boolean(data),
-    userMatch: data?.user_id === expectedUserId,
     expired: data ? new Date(data.expires_at).getTime() <= Date.now() : null,
     alreadyConsumed: Boolean(data?.consumed_at),
     valid,
@@ -115,7 +113,7 @@ export async function consumeOAuthState(state: string, expectedUserId: string) {
     .select("redirect_uri")
     .maybeSingle();
   if (consumeError || !consumed) return null;
-  return { redirectUri: consumed.redirect_uri as string };
+  return { redirectUri: consumed.redirect_uri as string, userId: data.user_id as string };
 }
 
 export async function exchangeCode(code: string, redirectUri: string) {

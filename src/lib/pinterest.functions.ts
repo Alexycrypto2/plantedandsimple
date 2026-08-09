@@ -66,12 +66,11 @@ export const pinterestAuthUrl = createServerFn({ method: "POST" })
     await requireBoss(context.supabase, context.userId);
     const { pinterestCredentials, pinterestRedirectUri, persistOAuthState, PINTEREST_SCOPES, PINTEREST_STATE_COOKIE, pinLog } =
       await import("./pinterest.server");
-    const { signState } = await import("./crypto.server");
     const { setCookie } = await import("@tanstack/react-start/server");
     const { clientId } = await pinterestCredentials();
     const redirectUri = await pinterestRedirectUri();
     const nonce = crypto.randomUUID();
-    const state = signState({ uid: context.userId, origin: data.origin, n: nonce });
+    const state = `${crypto.randomUUID()}${crypto.randomUUID().replaceAll("-", "")}`;
     pinLog("authorize:state-created", { created: Boolean(state), stateLength: state.length });
     await persistOAuthState(state, context.userId, redirectUri);
 
