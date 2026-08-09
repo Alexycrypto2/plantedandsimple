@@ -15,6 +15,8 @@ const FIELDS: { key: string; label: string; hint: string }[] = [
   { key: "GEMINI_API_KEY", label: "Gemini API key", hint: "Required — every AI feature connects directly to Google Gemini" },
   { key: "GEMINI_IMAGE_MODEL", label: "Gemini image model", hint: "Default: gemini-2.5-flash-image" },
   { key: "GEMINI_TEXT_MODEL", label: "Gemini text model", hint: "Default: gemini-2.5-flash — powers blogs, recipes, pins, assistant" },
+  { key: "AI_MODE", label: "AI model selection", hint: "Automatic chooses a suitable model for each task; Manual uses your selected models" },
+  { key: "AI_BUDGET_MODE", label: "AI budget mode", hint: "Economy, Balanced, Quality, or Automatic" },
   {
     key: "PINTEREST_REDIRECT_URI",
     label: "Pinterest redirect URI",
@@ -133,4 +135,16 @@ export const listGeminiModels = createServerFn({ method: "GET" })
       }))
       .filter((model) => model.id.startsWith("gemini-"))
       .sort((a, b) => a.id.localeCompare(b.id));
+  });
+
+export const aiModelManager = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await requireBoss(context.supabase, context.userId);
+    const { getConfig } = await import("./settings.server");
+    const { aiRecommendationSummary } = await import("./ai/gateway.server");
+    return aiRecommendationSummary({
+      mode: await getConfig("AI_MODE"),
+      budget: await getConfig("AI_BUDGET_MODE"),
+    });
   });

@@ -25,6 +25,46 @@ export type AiProviderInfo = {
   keySource: "admin_settings" | "environment";
 };
 
+export type AiBudgetMode = "economy" | "balanced" | "quality" | "automatic";
+
+const COMPLEX_FEATURES = new Set(["campaign", "blog-core", "blog-studio", "recipe-studio"]);
+const FAST_FEATURES = new Set(["topics", "quality", "pin-studio", "pin-studio-source", "assistant", "diagnostics"]);
+
+function normalizeBudget(raw?: string | null): AiBudgetMode {
+  return raw === "economy" || raw === "balanced" || raw === "quality" ? raw : "automatic";
+}
+
+function automaticTextModel(feature: string, budget: AiBudgetMode): string {
+  if (budget === "economy") return "gemini-2.5-flash-lite";
+  if (budget === "quality") return COMPLEX_FEATURES.has(feature) ? "gemini-2.5-pro" : "gemini-2.5-flash";
+  if (FAST_FEATURES.has(feature)) return "gemini-2.5-flash";
+  if (COMPLEX_FEATURES.has(feature)) return budget === "balanced" ? "gemini-2.5-flash" : "gemini-2.5-pro";
+  return "gemini-2.5-flash";
+}
+
+export function aiRecommendationSummary(input: { mode?: string | null; budget?: string | null }) {
+  const mode = input.mode === "manual" ? "manual" : "automatic";
+  const budget = normalizeBudget(input.budget);
+  return {
+    mode,
+    budget,
+    provider: "Gemini",
+    recommendations: {
+      blog: automaticTextModel("blog-core", budget),
+      recipe: automaticTextModel("recipe-studio", budget),
+      seo: automaticTextModel("quality", budget),
+      pinterest_copy: automaticTextModel("pin-studio", budget),
+      campaign: automaticTextModel("campaign", budget),
+      images: "Use the selected live Gemini image model",
+    },
+    alternatives: [
+      { label: "Best quality", model: "gemini-2.5-pro", use: "Long-form blogs and complex campaigns" },
+      { label: "Best value", model: "gemini-2.5-flash", use: "Blogs, recipes, SEO and Pinterest copy" },
+      { label: "Cheapest", model: "gemini-2.5-flash-lite", use: "High-volume descriptions and variations" },
+    ],
+  };
+}
+
 /** Reads the Gemini key from admin settings first, then env (GEMINI_API_KEY / GOOGLE_API_KEY). */
 export async function resolveGeminiKey(): Promise<{ key: string; source: "admin_settings" | "environment" } | null> {
   const { getConfig } = await import("../settings.server");
@@ -73,9 +113,14 @@ export async function resolveTextModel(opts?: { structuredOutputs?: boolean; fea
 
   if (!gemini) throw new Error("Gemini API key is missing. Add it in Admin → Settings → Integrations, then run the live test.");
   const { getConfig } = await import("../settings.server");
-  const modelId = normalizeGeminiTextModel(await getConfig("GEMINI_TEXT_MODEL"));
+  const feature = opts?.feature ?? "unknown";
+  const mode = (await getConfig("AI_MODE")) === "manual" ? "manual" : "automatic";
+  const budget = normalizeBudget(await getConfig("AI_BUDGET_MODE"));
+  const modelId = mode === "manual"
+    ? normalizeGeminiTextModel(await getConfig("GEMINI_TEXT_MODEL"))
+    : automaticTextModel(feature, budget);
   const info: AiProviderInfo = { provider: "gemini", modelId, keySource: gemini.source };
-  logAi("request", { feature: opts?.feature ?? "unknown", ...info });
+  logAi("request", { feature, mode, budget, ...info });
   const provider = createOpenAICompatible({
     name: "google",
     baseURL: GEMINI_OPENAI_URL,

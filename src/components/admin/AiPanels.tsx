@@ -15,7 +15,7 @@ import { scheduleGeneration, generatePinsForBlog } from "@/lib/ai/pin-studio.fun
 import { generateStudioImage, type ImagePreset } from "@/lib/ai/image-studio.functions";
 import { suggestTopics, listTopics } from "@/lib/ai/topics.functions";
 import { runAssistantCommand, ASSISTANT_COMMANDS, type AssistantCommand } from "@/lib/ai/assistant.functions";
-import { adminListSettings, adminSaveSetting, aiDiagnostics, listGeminiModels, type SettingRow } from "@/lib/settings.functions";
+import { adminListSettings, adminSaveSetting, aiDiagnostics, aiModelManager, listGeminiModels, type SettingRow } from "@/lib/settings.functions";
 import {
   pinterestStatus,
   pinterestAuthUrl,
@@ -444,6 +444,7 @@ export function IntegrationsPanel() {
   const [showKeys, setShowKeys] = useState<Record<string, boolean>>({});
   const [quickKey, setQuickKey] = useState("");
   const [models, setModels] = useState<Array<{ id: string; name: string; image: boolean }>>([]);
+  const [manager, setManager] = useState<any>(null);
 
   const runDiagnostics = async () => {
     setDiagBusy(true);
@@ -461,6 +462,7 @@ export function IntegrationsPanel() {
     adminListSettings().then(setSettings).catch(() => {});
     pinterestStatus().then(setStatus).catch(() => {});
     listGeminiModels().then(setModels).catch(() => setModels([]));
+    aiModelManager().then(setManager).catch(() => setManager(null));
   };
   useEffect(load, []);
 
@@ -548,6 +550,17 @@ export function IntegrationsPanel() {
           <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-forest" />
           <div><h3 className="text-sm font-semibold text-forest-deep">Gemini is now the only AI provider.</h3><p className="mt-1 text-xs leading-relaxed text-charcoal/60">No hidden fallback or built-in model is used. If Google rejects a request, the exact model, status and provider error are shown.</p></div>
         </div>
+      </section>
+
+      <section className={card}>
+        <div className="flex items-center gap-2"><Sparkles className="h-4 w-4 text-sage" /><h3 className="font-semibold text-forest-deep">Prime AI Model Manager</h3></div>
+        <p className="mt-1 text-xs text-charcoal/55">Automatic mode chooses the text model by workload and budget. Image generation uses a live image-capable model available to your Gemini key.</p>
+        <div className="mt-4 grid gap-3 sm:grid-cols-2">
+          <label className="space-y-1"><span className="text-xs font-semibold text-forest-deep">AI mode</span><select className={input} value={values.AI_MODE ?? manager?.mode ?? "automatic"} onChange={(e) => setValues((v) => ({ ...v, AI_MODE: e.target.value }))}><option value="automatic">Automatic</option><option value="manual">Manual</option></select><Button className="mt-2 rounded-xl" disabled={busy} onClick={() => save("AI_MODE")}><Save /> Save</Button></label>
+          <label className="space-y-1"><span className="text-xs font-semibold text-forest-deep">AI budget mode</span><select className={input} value={values.AI_BUDGET_MODE ?? manager?.budget ?? "automatic"} onChange={(e) => setValues((v) => ({ ...v, AI_BUDGET_MODE: e.target.value }))}><option value="automatic">⚡ Automatic</option><option value="economy">🟢 Economy</option><option value="balanced">🔵 Balanced</option><option value="quality">🟣 Quality</option></select><Button className="mt-2 rounded-xl" disabled={busy} onClick={() => save("AI_BUDGET_MODE")}><Save /> Save</Button></label>
+        </div>
+        {manager && <div className="mt-5 grid gap-3 sm:grid-cols-3">{manager.alternatives.map((item: any) => <div key={item.label} className="rounded-xl border border-forest/10 bg-cream/50 p-3"><p className="text-[10px] font-bold uppercase tracking-widest text-sage">{item.label}</p><p className="mt-1 text-sm font-semibold text-forest-deep">{item.model}</p><p className="mt-1 text-xs text-charcoal/55">{item.use}</p></div>)}</div>}
+        {manager && <div className="mt-4 rounded-xl bg-forest/5 p-4"><p className="text-xs font-bold uppercase tracking-widest text-sage">✨ Prime recommendation</p><p className="mt-1 text-sm font-semibold text-forest-deep">{manager.recommendations.blog}</p><p className="mt-1 text-xs text-charcoal/60">Selected for the current {manager.budget} budget. PrimeDownloads routes blogs, recipes, SEO, Pinterest copy and campaigns independently.</p></div>}
       </section>
 
       <section className={card}>

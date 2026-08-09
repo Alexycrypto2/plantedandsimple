@@ -8,6 +8,8 @@ export const SETTING_KEYS = [
   "GEMINI_API_KEY",
   "GEMINI_IMAGE_MODEL",
   "GEMINI_TEXT_MODEL",
+  "AI_MODE",
+  "AI_BUDGET_MODE",
 ] as const;
 export type SettingKey = (typeof SETTING_KEYS)[number];
 
