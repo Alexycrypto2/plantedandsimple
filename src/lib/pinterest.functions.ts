@@ -64,7 +64,7 @@ export const pinterestAuthUrl = createServerFn({ method: "POST" })
   .inputValidator((d: { origin: string }) => ({ origin: String(d.origin || "") }))
   .handler(async ({ data, context }) => {
     await requireBoss(context.supabase, context.userId);
-    const { pinterestCredentials, pinterestRedirectUri, persistOAuthState, PINTEREST_SCOPES, PINTEREST_STATE_COOKIE, pinLog } =
+    const { pinterestCredentials, pinterestRedirectUri, pinterestStateHash, persistOAuthState, PINTEREST_SCOPES, PINTEREST_STATE_COOKIE, pinLog } =
       await import("./pinterest.server");
     const { setCookie } = await import("@tanstack/react-start/server");
     const { clientId } = await pinterestCredentials();
@@ -76,7 +76,7 @@ export const pinterestAuthUrl = createServerFn({ method: "POST" })
 
     // Second factor: the same nonce in a first-party cookie, so a callback cannot be
     // replayed or opened directly without the session that started the flow.
-    setCookie(PINTEREST_STATE_COOKIE, nonce, {
+    setCookie(PINTEREST_STATE_COOKIE, pinterestStateHash(state), {
       httpOnly: true,
       secure: true,
       sameSite: "lax",

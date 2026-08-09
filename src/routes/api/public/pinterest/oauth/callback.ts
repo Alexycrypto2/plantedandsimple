@@ -23,6 +23,7 @@ export const Route = createFileRoute("/api/public/pinterest/oauth/callback")({
         const {
           exchangeCode,
           consumeOAuthState,
+          pinterestStateHash,
           pinterestRedirectUri,
           saveAccount,
           pinLog,
@@ -69,7 +70,7 @@ export const Route = createFileRoute("/api/public/pinterest/oauth/callback")({
             .map((c) => c.trim())
             .find((c) => c.startsWith(`${PINTEREST_STATE_COOKIE}=`))
             ?.split("=")[1] ?? null;
-        const cookieMatches = cookieNonce ? state.length > 0 : null;
+        const cookieMatches = cookieNonce ? cookieNonce === pinterestStateHash(state) : null;
         pinLog("callback:cookie-check", { cookiePresent: Boolean(cookieNonce), cookieMatches });
         pinLog("callback:state-verified", {
           uid: storedState.userId,
