@@ -17,6 +17,7 @@ type Row = {
   status: string;
   updated: string | null;
   href: string | null;
+  image: string | null;
 };
 
 const TYPE_META = {
@@ -44,19 +45,19 @@ function UnifiedLibrary({ onNavigate }: { onNavigate: (section: string) => void 
       const all: Row[] = [
         ...(recipes as any[]).map((r) => ({
           id: r.id, type: "recipe" as const, title: r.title, status: r.status ?? "draft",
-          updated: r.updated_at ?? r.created_at, href: `/recipes/${r.slug}`,
+          updated: r.updated_at ?? r.created_at, href: `/recipes/${r.slug}`, image: r.hero_image_url ?? null,
         })),
         ...(blogs as any[]).map((b) => ({
           id: b.id, type: "blog" as const, title: b.title, status: b.status ?? "draft",
-          updated: b.updated_at ?? b.created_at, href: `/blog/${b.slug}`,
+          updated: b.updated_at ?? b.created_at, href: `/blog/${b.slug}`, image: b.featured_image_url ?? null,
         })),
         ...(products as any[]).map((p) => ({
           id: p.id, type: "product" as const, title: p.title, status: p.status ?? "draft",
-          updated: p.updated_at ?? p.created_at, href: `/shop/${p.slug}`,
+          updated: p.updated_at ?? p.created_at, href: `/shop/${p.slug}`, image: p.cover_image_url ?? null,
         })),
         ...(collections as any[]).map((c) => ({
           id: c.id, type: "collection" as const, title: c.name, status: c.is_featured ? "featured" : "live",
-          updated: c.updated_at ?? c.created_at, href: `/collections/${c.slug}`,
+          updated: c.updated_at ?? c.created_at, href: `/collections/${c.slug}`, image: c.image_url ?? null,
         })),
       ];
       all.sort((a, b) => String(b.updated ?? "").localeCompare(String(a.updated ?? "")));
@@ -136,9 +137,7 @@ function UnifiedLibrary({ onNavigate }: { onNavigate: (section: string) => void 
                   key={`${r.type}-${r.id}`}
                   className="group flex items-center gap-3 rounded-xl border border-forest/8 bg-white px-3 py-3 transition-all duration-200 hover:-translate-y-0.5 hover:border-forest/20 hover:shadow-md"
                 >
-                  <span className={`grid size-8 shrink-0 place-items-center rounded-lg ${meta.tone}`}>
-                    <Icon className="size-4" />
-                  </span>
+                   {r.image ? <img src={r.image} alt="" className="size-12 shrink-0 rounded-lg object-cover" /> : <span className={`grid size-12 shrink-0 place-items-center rounded-lg ${meta.tone}`}><Icon className="size-4" /></span>}
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-semibold text-charcoal">{r.title}</p>
                     <p className="font-mono text-[9px] uppercase tracking-[0.18em] text-charcoal/40">
