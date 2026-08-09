@@ -1115,6 +1115,33 @@ export type Database = {
         }
         Relationships: []
       }
+      pinterest_oauth_states: {
+        Row: {
+          consumed_at: string | null
+          created_at: string
+          expires_at: string
+          redirect_uri: string
+          state_hash: string
+          user_id: string
+        }
+        Insert: {
+          consumed_at?: string | null
+          created_at?: string
+          expires_at: string
+          redirect_uri: string
+          state_hash: string
+          user_id: string
+        }
+        Update: {
+          consumed_at?: string | null
+          created_at?: string
+          expires_at?: string
+          redirect_uri?: string
+          state_hash?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       pinterest_pins: {
         Row: {
           alt_text: string | null
