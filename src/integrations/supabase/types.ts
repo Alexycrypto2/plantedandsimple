@@ -1079,36 +1079,51 @@ export type Database = {
       pinterest_accounts: {
         Row: {
           access_token_ciphertext: string
+          account_name: string | null
           connected_at: string
+          connection_status: string
           expires_at: string | null
           id: string
+          last_error: string | null
           pinterest_user_id: string | null
+          refresh_expires_at: string | null
           refresh_token_ciphertext: string | null
           scopes: string | null
+          token_type: string | null
           updated_at: string
           user_id: string
           username: string | null
         }
         Insert: {
           access_token_ciphertext: string
+          account_name?: string | null
           connected_at?: string
+          connection_status?: string
           expires_at?: string | null
           id?: string
+          last_error?: string | null
           pinterest_user_id?: string | null
+          refresh_expires_at?: string | null
           refresh_token_ciphertext?: string | null
           scopes?: string | null
+          token_type?: string | null
           updated_at?: string
           user_id: string
           username?: string | null
         }
         Update: {
           access_token_ciphertext?: string
+          account_name?: string | null
           connected_at?: string
+          connection_status?: string
           expires_at?: string | null
           id?: string
+          last_error?: string | null
           pinterest_user_id?: string | null
+          refresh_expires_at?: string | null
           refresh_token_ciphertext?: string | null
           scopes?: string | null
+          token_type?: string | null
           updated_at?: string
           user_id?: string
           username?: string | null
@@ -1119,25 +1134,34 @@ export type Database = {
         Row: {
           consumed_at: string | null
           created_at: string
+          diagnostics: Json
           expires_at: string
+          failure_code: string | null
           redirect_uri: string
           state_hash: string
+          status: string
           user_id: string
         }
         Insert: {
           consumed_at?: string | null
           created_at?: string
+          diagnostics?: Json
           expires_at: string
+          failure_code?: string | null
           redirect_uri: string
           state_hash: string
+          status?: string
           user_id: string
         }
         Update: {
           consumed_at?: string | null
           created_at?: string
+          diagnostics?: Json
           expires_at?: string
+          failure_code?: string | null
           redirect_uri?: string
           state_hash?: string
+          status?: string
           user_id?: string
         }
         Relationships: []

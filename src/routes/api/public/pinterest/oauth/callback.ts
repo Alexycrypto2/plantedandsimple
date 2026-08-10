@@ -39,16 +39,30 @@ export const Route = createFileRoute("/api/public/pinterest/oauth/callback")({
         });
 
         if (error) {
-          return html("Pinterest connection failed", "Pinterest rejected the authorization.", error);
+          if (state) {
+            const { recordOAuthStep } = await import("@/lib/pinterest.server");
+            await recordOAuthStep(state, {
+              status: "failed",
+              failure_code: "authorization_denied",
+              step: { step: "authorization_denied", ok: false, detail: "Pinterest authorization was denied or canceled." },
+            });
+          }
+          return html("Pinterest connection failed", "Pinterest authorization was denied or canceled. Please start again.", "step: authorization_denied");
         }
         if (!code && !state) {
           pinLog("callback:direct-access");
           return html(
-            "Nothing to connect here",
-            "This page only works at the end of a Pinterest sign-in. Start from Admin → Pinterest → Connect Pinterest.",
+            "Pinterest connection failed",
+            "Pinterest OAuth session is missing or expired. Please start the connection again from Admin.",
           );
         }
-        if (!state) return html("Pinterest connection failed", "Pinterest did not return the state value.", "step: missing_state");
+        if (!state) return html("Pinterest connection failed", "Pinterest did not return the security state. Please start again.", "step: missing_state");
+        const { recordOAuthStep } = await import("@/lib/pinterest.server");
+        await recordOAuthStep(state, {
+          status: code ? "callback_received" : "failed",
+          failure_code: code ? null : "missing_code",
+          step: { step: "callback_received", ok: Boolean(code), detail: code ? "Callback received code and state." : "Callback received state but no authorization code." },
+        });
         if (!code) return html("Pinterest connection failed", "Pinterest did not return an authorization code.", "step: missing_code");
 
         const storedState = await consumeOAuthState(state);
@@ -89,10 +103,10 @@ export const Route = createFileRoute("/api/public/pinterest/oauth/callback")({
               "step: redirect_uri_consistency",
             );
           }
-          const tokens = await exchangeCode(code, redirectUri);
+          const tokens = await exchangeCode(code, redirectUri, state);
           let username: string | null = null;
           try {
-            username = (await saveAccount(storedState.userId, tokens)).username;
+            username = (await saveAccount(storedState.userId, tokens, state)).username;
           } catch (dbErr: any) {
             pinLog("callback:db-save-failed", { error: String(dbErr?.message ?? dbErr).slice(0, 300) });
             return html(

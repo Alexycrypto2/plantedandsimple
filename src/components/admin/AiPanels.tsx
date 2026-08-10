@@ -597,7 +597,7 @@ export function IntegrationsPanel() {
               Copy
             </button>
           </div>
-           <p className="mt-1 text-xs text-charcoal/50">Add this exact URL to your Pinterest app. Keep the www domain, full callback path, and no trailing slash.</p>
+            <p className="mt-1 text-xs text-charcoal/50">Add this exact URL to your Pinterest app. Use the apex domain, full callback path, and no trailing slash.</p>
           <div className={`mt-4 rounded-xl border p-4 ${
             status?.redirect_audit?.exact_match === true
               ? "border-forest/20 bg-forest/5"
