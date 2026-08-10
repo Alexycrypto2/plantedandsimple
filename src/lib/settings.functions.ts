@@ -20,7 +20,7 @@ const FIELDS: { key: string; label: string; hint: string }[] = [
   {
     key: "PINTEREST_REDIRECT_URI",
     label: "Pinterest redirect URI",
-    hint: "Use exactly: https://www.primedownloads.store/api/public/pinterest/oauth/callback",
+    hint: "Use exactly: https://primedownloads.store/api/public/pinterest/oauth/callback",
   },
   {
     key: "PINTEREST_REGISTERED_REDIRECT_URI",

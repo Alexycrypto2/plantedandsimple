@@ -1,6 +1,5 @@
 import { createHash } from "node:crypto";
 import { decrypt, encrypt } from "./crypto.server";
-import { getConfig } from "./settings.server";
 
 export const PINTEREST_SCOPES = "boards:read,boards:write,pins:read,pins:write,user_accounts:read";
 export const PINTEREST_API = "https://api.pinterest.com/v5";
@@ -26,8 +25,8 @@ export function pinLog(step: string, fields: Record<string, unknown> = {}) {
 }
 
 export async function pinterestCredentials() {
-  const clientId = await getConfig("PINTEREST_CLIENT_ID");
-  const clientSecret = await getConfig("PINTEREST_CLIENT_SECRET");
+  const clientId = process.env["PINTEREST_CLIENT_ID"]?.trim();
+  const clientSecret = process.env["PINTEREST_CLIENT_SECRET"]?.trim();
   if (!clientId || !clientSecret) throw new Error("Pinterest app credentials are not configured");
   if (clientId !== "1595595") throw new Error("Pinterest App ID must be 1595595");
   return { clientId, clientSecret };

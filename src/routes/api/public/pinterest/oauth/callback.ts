@@ -39,7 +39,15 @@ export const Route = createFileRoute("/api/public/pinterest/oauth/callback")({
         });
 
         if (error) {
-          return html("Pinterest connection failed", "Pinterest rejected the authorization.", error);
+          if (state) {
+            const { recordOAuthStep } = await import("@/lib/pinterest.server");
+            await recordOAuthStep(state, {
+              status: "failed",
+              failure_code: "authorization_denied",
+              step: { step: "authorization_denied", ok: false, detail: "Pinterest authorization was denied or canceled." },
+            });
+          }
+          return html("Pinterest connection failed", "Pinterest authorization was denied or canceled. Please start again.", "step: authorization_denied");
         }
         if (!code && !state) {
           pinLog("callback:direct-access");
