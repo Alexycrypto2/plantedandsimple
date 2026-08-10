@@ -6,6 +6,9 @@ export type PinterestStatus = {
   username: string | null;
   expires_at: string | null;
   scopes: string | null;
+  account_name: string | null;
+  connection_status: string | null;
+  token_status: string;
   redirect_uri: string;
   credentials_configured: boolean;
   redirect_audit: {
@@ -13,6 +16,13 @@ export type PinterestStatus = {
     exact_match: boolean | null;
     issue: string | null;
   };
+  last_attempt: {
+    status: string;
+    failure_code: string | null;
+    created_at: string;
+    expires_at: string;
+    diagnostics: Array<{ step: string; ok: boolean; at: string; detail?: string; status?: number }>;
+  } | null;
 };
 
 async function requireBoss(supabase: any, userId: string) {
@@ -29,7 +39,7 @@ export const pinterestStatus = createServerFn({ method: "GET" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data } = await (supabaseAdmin as any)
       .from("pinterest_accounts")
-      .select("username, expires_at, scopes")
+      .select("username, account_name, expires_at, scopes, connection_status")
       .eq("user_id", context.userId)
       .maybeSingle();
     const id = await getConfig("PINTEREST_CLIENT_ID");
@@ -37,6 +47,13 @@ export const pinterestStatus = createServerFn({ method: "GET" })
     const redirectUri = await pinterestRedirectUri();
     const registeredUri = await getConfig("PINTEREST_REGISTERED_REDIRECT_URI");
     const exactMatch = registeredUri ? registeredUri === redirectUri : null;
+    const { data: attempt } = await (supabaseAdmin as any)
+      .from("pinterest_oauth_states")
+      .select("status, failure_code, created_at, expires_at, diagnostics")
+      .eq("user_id", context.userId)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
     let issue: string | null = null;
     if (!registeredUri) issue = "Paste the callback URL currently saved in your Pinterest app below to run the exact comparison.";
     else if (!exactMatch) {
@@ -53,9 +70,13 @@ export const pinterestStatus = createServerFn({ method: "GET" })
       username: data?.username ?? null,
       expires_at: data?.expires_at ?? null,
       scopes: data?.scopes ?? null,
+      account_name: data?.account_name ?? null,
+      connection_status: data?.connection_status ?? null,
+      token_status: !data ? "not_connected" : data.connection_status === "reconnect_required" ? "reconnect_required" : data.expires_at && new Date(data.expires_at).getTime() <= Date.now() ? "refresh_needed" : "valid",
       redirect_uri: redirectUri,
       credentials_configured: Boolean(id && secret),
       redirect_audit: { registered_uri: registeredUri, exact_match: exactMatch, issue },
+      last_attempt: attempt ?? null,
     };
   });
 
@@ -83,7 +104,7 @@ export const pinterestAuthUrl = createServerFn({ method: "POST" })
       path: "/",
       maxAge: 15 * 60,
     });
-    pinLog("authorize:cookie-set", { persisted: true, host: "www.primedownloads.store", maxAgeSeconds: 15 * 60 });
+    pinLog("authorize:cookie-set", { persisted: true, host: "primedownloads.store", maxAgeSeconds: 15 * 60 });
 
     const url = new URL("https://www.pinterest.com/oauth/");
     url.searchParams.set("client_id", clientId);

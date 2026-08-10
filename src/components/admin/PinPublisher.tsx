@@ -153,6 +153,33 @@ export function PinPublisher() {
         )}
       </section>
 
+      {status?.last_attempt && (
+        <section className={card}>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <p className="font-semibold text-forest-deep">Last OAuth attempt</p>
+              <p className="mt-1 text-xs text-charcoal/50">{new Date(status.last_attempt.created_at).toLocaleString()}</p>
+            </div>
+            <span className="rounded-full bg-forest/10 px-3 py-1 text-[10px] font-bold uppercase text-forest">
+              {status.last_attempt.status.replaceAll("_", " ")}
+            </span>
+          </div>
+          {status.last_attempt.failure_code && <p className="mt-3 text-sm font-semibold text-red-600">{status.last_attempt.failure_code.replaceAll("_", " ")}</p>}
+          <ol className="mt-4 space-y-3 border-l border-forest/15 pl-4">
+            {status.last_attempt.diagnostics.map((item: any, index: number) => (
+              <li key={`${item.step}-${item.at}-${index}`} className="relative">
+                <span className={`absolute -left-[21px] top-1.5 h-2.5 w-2.5 rounded-full ${item.ok ? "bg-forest" : "bg-red-500"}`} />
+                <div className="flex flex-wrap items-center gap-2">
+                  <p className="text-sm font-semibold text-forest-deep">{item.step.replaceAll("_", " ")}</p>
+                  {item.status && <span className="font-mono text-[10px] text-charcoal/50">HTTP {item.status}</span>}
+                </div>
+                {item.detail && <p className="mt-0.5 break-words text-xs text-charcoal/60">{item.detail}</p>}
+              </li>
+            ))}
+          </ol>
+        </section>
+      )}
+
       <section className={card}>
         <div className="flex items-center justify-between">
           <p className="font-semibold text-forest-deep">Approved pins</p>
