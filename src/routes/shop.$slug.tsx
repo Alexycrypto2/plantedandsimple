@@ -144,7 +144,7 @@ function ProductDetail() {
     product: PublicProduct;
     related: PublicProduct[];
   };
-  const { openCheckout, loading } = usePaddleCheckout();
+  const { openCheckout, loading, error: checkoutError } = usePaddleCheckout();
   const gallery = uniqueImages(p);
   const included = p.features.length ? p.features : INCLUDED;
   const benefits = p.benefits.length
@@ -242,6 +242,16 @@ function ProductDetail() {
             >
               {loading ? "Opening checkout…" : `Get instant access — $${p.price_display}`}
             </button>
+
+            {checkoutError && (
+              <div className="mt-4 rounded-2xl border border-red-200 bg-red-50 px-5 py-4">
+                <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-red-700">{checkoutError.title}</p>
+                <p className="mt-2 text-sm text-red-700/90">{checkoutError.message}</p>
+                <button onClick={onBuy} className="mt-3 text-xs font-bold uppercase tracking-[0.18em] text-red-800 underline">
+                  Try again
+                </button>
+              </div>
+            )}
 
             <ul className="mt-6 space-y-2 text-sm text-charcoal/70">
               <li>✅ Instant PDF download after checkout</li>

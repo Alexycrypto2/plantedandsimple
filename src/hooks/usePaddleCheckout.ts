@@ -1,9 +1,20 @@
-import { useCallback, useState } from "react";
-import { initializePaddle, getPaddlePriceId } from "@/lib/paddle";
+import { useCallback, useRef, useState } from "react";
+import { initializePaddle, getPaddlePriceId, getPaddleEnvironment } from "@/lib/paddle";
+
+export type CheckoutError = { title: string; message: string; code: string };
+
+const GENERIC: CheckoutError = {
+  title: "Payment couldn't start",
+  message:
+    "Something prevented the checkout from opening. Try again, and if the problem continues, contact support.",
+  code: "checkout_open_failed",
+};
 
 export function usePaddleCheckout() {
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<CheckoutError | null>(null);
+  // Guards against double-clicks opening two checkouts (and two transactions).
+  const inFlight = useRef(false);
 
   const openCheckout = useCallback(
     async (options: {
@@ -13,11 +24,35 @@ export function usePaddleCheckout() {
       customData?: Record<string, string>;
       successUrl?: string;
     }) => {
+      if (inFlight.current) return;
+      inFlight.current = true;
       setLoading(true);
       setError(null);
       try {
+        if (!options.priceId) {
+          setError({
+            title: "This product isn't ready for sale",
+            message:
+              "The product is missing its price configuration. Please contact support so we can finish setting it up.",
+            code: "missing_price",
+          });
+          return;
+        }
+
         await initializePaddle();
-        const paddlePriceId = await getPaddlePriceId(options.priceId);
+
+        let paddlePriceId: string;
+        try {
+          paddlePriceId = await getPaddlePriceId(options.priceId);
+        } catch {
+          setError({
+            title: "Payment couldn't start",
+            message:
+              `We couldn't load the ${getPaddleEnvironment() === "sandbox" ? "test" : "live"} price for this product. Please try again in a moment or contact support.`,
+            code: "price_lookup_failed",
+          });
+          return;
+        }
 
         window.Paddle.Checkout.open({
           items: [
@@ -26,7 +61,10 @@ export function usePaddleCheckout() {
           customer: options.customerEmail
             ? { email: options.customerEmail }
             : undefined,
-          customData: options.customData,
+          customData: {
+            ...(options.customData ?? {}),
+            environment: getPaddleEnvironment(),
+          },
           settings: {
             displayMode: "overlay",
             theme: "light",
@@ -38,14 +76,15 @@ export function usePaddleCheckout() {
             allowLogout: false,
           },
         });
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Checkout failed");
+      } catch {
+        setError(GENERIC);
       } finally {
+        inFlight.current = false;
         setLoading(false);
       }
     },
     [],
   );
 
-  return { openCheckout, loading, error };
+  return { openCheckout, loading, error, clearError: () => setError(null) };
 }

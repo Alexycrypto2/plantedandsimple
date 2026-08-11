@@ -102,11 +102,12 @@ function Section({ section, data }: { section: HomepageSection; data: LoaderData
     case "trust_row":
       return <TrustRow items={data.settings["trust_badges"]?.items ?? []} />;
     case "featured_collections":
-      return <CollectionsSection section={section} collections={data.collections} />;
+      // Collections shelf replaced by a photography-led recipe card grid.
+      return <RecipesSection section={section} recipes={data.recipes} variant="feature" />;
     case "featured_products":
       return <ProductsSection section={section} products={data.products} />;
     case "latest_recipes":
-      return <RecipesSection section={section} recipes={data.recipes} />;
+      return <RecipesSection section={section} recipes={data.recipes.slice(6)} />;
     case "latest_blogs":
       return <BlogsSection section={section} posts={data.posts} />;
     case "why_choose":
@@ -195,32 +196,6 @@ function TrustRow({ items }: { items: Array<{ icon: string; label: string }> }) 
   );
 }
 
-function CollectionsSection({ section, collections }: { section: HomepageSection; collections: Collection[] }) {
-  if (!collections.length) return null;
-  const limit = Number(section.config?.["limit"] ?? 6);
-  return (
-    <section className="mx-auto max-w-7xl px-6 py-24">
-      <Reveal>
-        <SectionHeader eyebrow="Collections" title={section.title ?? "Explore the Collections"} subtitle={section.subtitle} />
-      </Reveal>
-      <div className="grid grid-cols-2 gap-5 md:grid-cols-3">
-        {collections.slice(0, limit).map((c, i) => (
-          <Reveal key={c.id} delay={i * 70}>
-            <EditorialCard
-              to="/collections/$slug"
-              params={{ slug: c.slug }}
-              image={c.image_url}
-              alt={c.name}
-              title={c.name}
-              meta={c.description}
-            />
-          </Reveal>
-        ))}
-      </div>
-    </section>
-  );
-}
-
 function ProductsSection({ section, products }: { section: HomepageSection; products: PublicProduct[] }) {
   if (!products.length) return null;
   const limit = Number(section.config?.["limit"] ?? 3);
@@ -271,17 +246,26 @@ function ProductsSection({ section, products }: { section: HomepageSection; prod
   );
 }
 
-function RecipesSection({ section, recipes }: { section: HomepageSection; recipes: Recipe[] }) {
+function RecipesSection({
+  section,
+  recipes,
+  variant = "latest",
+}: {
+  section: HomepageSection;
+  recipes: Recipe[];
+  variant?: "latest" | "feature";
+}) {
   if (!recipes.length) return null;
-  const limit = Number(section.config?.["limit"] ?? 3);
+  const isFeature = variant === "feature";
+  const limit = isFeature ? 6 : Number(section.config?.["limit"] ?? 3);
   return (
     <section className="mx-auto max-w-7xl px-6 py-24">
       <Reveal>
         <SectionHeader
           eyebrow="Recipes"
-          title={section.title ?? "Fresh From The Kitchen"}
-          subtitle={section.subtitle}
-          align="left"
+          title={isFeature ? "Recipes To Cook This Week" : (section.title ?? "Fresh From The Kitchen")}
+          subtitle={isFeature ? (section.subtitle ?? "Plant-forward plates, photographed and tested in our kitchen.") : section.subtitle}
+          align={isFeature ? "center" : "left"}
           action={
             <Link to="/recipes" className="text-[11px] font-bold uppercase tracking-[0.2em] text-forest hover:underline">
               All recipes

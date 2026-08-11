@@ -264,7 +264,10 @@ function UnpaidView({ reason }: { reason: string }) {
           {loading ? "Opening checkout…" : "Try checkout again"}
         </button>
         {error && (
-          <p className="text-sm text-red-600">{error}</p>
+          <div className="mx-auto max-w-md rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-left">
+            <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-red-700">{error.title}</p>
+            <p className="mt-2 text-sm text-red-700/90">{error.message}</p>
+          </div>
         )}
         <a
           href="/"
