@@ -102,11 +102,12 @@ function Section({ section, data }: { section: HomepageSection; data: LoaderData
     case "trust_row":
       return <TrustRow items={data.settings["trust_badges"]?.items ?? []} />;
     case "featured_collections":
-      return <CollectionsSection section={section} collections={data.collections} />;
+      // Collections shelf replaced by a photography-led recipe card grid.
+      return <RecipesSection section={section} recipes={data.recipes} variant="feature" />;
     case "featured_products":
       return <ProductsSection section={section} products={data.products} />;
     case "latest_recipes":
-      return <RecipesSection section={section} recipes={data.recipes} />;
+      return <RecipesSection section={section} recipes={data.recipes.slice(6)} />;
     case "latest_blogs":
       return <BlogsSection section={section} posts={data.posts} />;
     case "why_choose":
