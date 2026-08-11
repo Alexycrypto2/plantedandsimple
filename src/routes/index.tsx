@@ -272,17 +272,26 @@ function ProductsSection({ section, products }: { section: HomepageSection; prod
   );
 }
 
-function RecipesSection({ section, recipes }: { section: HomepageSection; recipes: Recipe[] }) {
+function RecipesSection({
+  section,
+  recipes,
+  variant = "latest",
+}: {
+  section: HomepageSection;
+  recipes: Recipe[];
+  variant?: "latest" | "feature";
+}) {
   if (!recipes.length) return null;
-  const limit = Number(section.config?.["limit"] ?? 3);
+  const isFeature = variant === "feature";
+  const limit = isFeature ? 6 : Number(section.config?.["limit"] ?? 3);
   return (
     <section className="mx-auto max-w-7xl px-6 py-24">
       <Reveal>
         <SectionHeader
           eyebrow="Recipes"
-          title={section.title ?? "Fresh From The Kitchen"}
-          subtitle={section.subtitle}
-          align="left"
+          title={isFeature ? "Recipes To Cook This Week" : (section.title ?? "Fresh From The Kitchen")}
+          subtitle={isFeature ? (section.subtitle ?? "Plant-forward plates, photographed and tested in our kitchen.") : section.subtitle}
+          align={isFeature ? "center" : "left"}
           action={
             <Link to="/recipes" className="text-[11px] font-bold uppercase tracking-[0.2em] text-forest hover:underline">
               All recipes
