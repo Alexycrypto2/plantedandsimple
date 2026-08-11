@@ -196,32 +196,6 @@ function TrustRow({ items }: { items: Array<{ icon: string; label: string }> }) 
   );
 }
 
-function CollectionsSection({ section, collections }: { section: HomepageSection; collections: Collection[] }) {
-  if (!collections.length) return null;
-  const limit = Number(section.config?.["limit"] ?? 6);
-  return (
-    <section className="mx-auto max-w-7xl px-6 py-24">
-      <Reveal>
-        <SectionHeader eyebrow="Collections" title={section.title ?? "Explore the Collections"} subtitle={section.subtitle} />
-      </Reveal>
-      <div className="grid grid-cols-2 gap-5 md:grid-cols-3">
-        {collections.slice(0, limit).map((c, i) => (
-          <Reveal key={c.id} delay={i * 70}>
-            <EditorialCard
-              to="/collections/$slug"
-              params={{ slug: c.slug }}
-              image={c.image_url}
-              alt={c.name}
-              title={c.name}
-              meta={c.description}
-            />
-          </Reveal>
-        ))}
-      </div>
-    </section>
-  );
-}
-
 function ProductsSection({ section, products }: { section: HomepageSection; products: PublicProduct[] }) {
   if (!products.length) return null;
   const limit = Number(section.config?.["limit"] ?? 3);
