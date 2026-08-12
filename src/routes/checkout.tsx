@@ -93,7 +93,7 @@ function CheckoutPage() {
           },
         });
         setPhase("ready");
-        void trackEvent("checkout_page_open", { refSlug: slug ?? null, metadata: { price } });
+        void trackEvent("checkout_start", { refSlug: slug ?? null, metadata: { price, surface: "checkout_page" } });
       } catch {
         if (cancelled) return;
         setPhase("error");
