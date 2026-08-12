@@ -94,8 +94,9 @@ function CheckoutPage() {
         });
         setPhase("ready");
         void trackEvent("checkout_start", { refSlug: slug ?? null, metadata: { price, surface: "checkout_page" } });
-      } catch {
+      } catch (err) {
         if (cancelled) return;
+        console.error("[checkout] Paddle.Checkout.open failed", err);
         setPhase("error");
         setMessage("The payment window didn't open. Please try again.");
       }
