@@ -1,6 +1,5 @@
-import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { usePaddleCheckout } from "@/hooks/usePaddleCheckout";
 import { trackEvent } from "@/lib/analytics";
 import {
   getPublishedProductBySlug,
@@ -144,7 +143,8 @@ function ProductDetail() {
     product: PublicProduct;
     related: PublicProduct[];
   };
-  const { openCheckout, loading, error: checkoutError } = usePaddleCheckout();
+  const navigate = useNavigate();
+  const loading = false;
   const gallery = uniqueImages(p);
   const included = p.features.length ? p.features : INCLUDED;
   const benefits = p.benefits.length
@@ -170,13 +170,16 @@ function ProductDetail() {
     if (!p.paddle_price_external_id) return;
     const ref = getStoredAffiliateRef();
     void trackEvent("checkout_start", { refId: p.id, refSlug: p.slug, metadata: { cta: "product_page", price: p.price_cents } });
-    openCheckout({
-      priceId: p.paddle_price_external_id,
-      quantity: 1,
-      customData: ref ? { productSlug: p.slug, ref } : { productSlug: p.slug },
-      successUrl: `${window.location.origin}/thank-you`,
+    void navigate({
+      to: "/checkout",
+      search: {
+        price: p.paddle_price_external_id,
+        slug: p.slug,
+        ...(ref ? { ref } : {}),
+      },
     });
   };
+
 
   const save = p.compare_at_cents > p.price_cents
     ? ((p.compare_at_cents - p.price_cents) / 100).toFixed(2)
@@ -243,15 +246,6 @@ function ProductDetail() {
               {loading ? "Opening checkout…" : `Get instant access — $${p.price_display}`}
             </button>
 
-            {checkoutError && (
-              <div className="mt-4 rounded-2xl border border-red-200 bg-red-50 px-5 py-4">
-                <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-red-700">{checkoutError.title}</p>
-                <p className="mt-2 text-sm text-red-700/90">{checkoutError.message}</p>
-                <button onClick={onBuy} className="mt-3 text-xs font-bold uppercase tracking-[0.18em] text-red-800 underline">
-                  Try again
-                </button>
-              </div>
-            )}
 
             <ul className="mt-6 space-y-2 text-sm text-charcoal/70">
               <li>✅ Instant PDF download after checkout</li>

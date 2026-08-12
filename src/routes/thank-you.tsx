@@ -4,7 +4,6 @@ import cookbookMockup from "@/assets/cookbook-mockup.jpg";
 import { verifyCookbookPayment } from "@/lib/payments.functions";
 import { getPaddleEnvironment } from "@/lib/paddle";
 import { ReviewForm } from "@/components/ReviewForm";
-import { usePaddleCheckout } from "@/hooks/usePaddleCheckout";
 
 function downloadUrl(transactionId: string): string {
   const env = getPaddleEnvironment();
@@ -235,7 +234,6 @@ function PaidView({
 }
 
 function UnpaidView({ reason }: { reason: string }) {
-  const { openCheckout, loading, error } = usePaddleCheckout();
   return (
     <>
       <div className="mx-auto grid size-16 place-items-center rounded-full bg-red-100 text-red-700">
@@ -249,26 +247,12 @@ function UnpaidView({ reason }: { reason: string }) {
       </h1>
       <p className="mx-auto mt-4 max-w-md text-charcoal/70">{reason}</p>
       <div className="mt-8 flex flex-col items-center gap-3">
-        <button
-          type="button"
-          onClick={() =>
-            openCheckout({
-              priceId: "high_protein_cookbook_onetime",
-              quantity: 1,
-              successUrl: `${window.location.origin}/thank-you`,
-            })
-          }
-          disabled={loading}
-          className="inline-flex items-center justify-center gap-2 rounded-full bg-forest px-8 py-4 font-semibold text-cream shadow-lg transition hover:bg-forest-deep disabled:opacity-60"
+        <a
+          href="/checkout?price=high_protein_cookbook_onetime&slug=high-protein-cookbook"
+          className="inline-flex items-center justify-center gap-2 rounded-full bg-forest px-8 py-4 font-semibold text-cream shadow-lg transition hover:bg-forest-deep"
         >
-          {loading ? "Opening checkout…" : "Try checkout again"}
-        </button>
-        {error && (
-          <div className="mx-auto max-w-md rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-left">
-            <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-red-700">{error.title}</p>
-            <p className="mt-2 text-sm text-red-700/90">{error.message}</p>
-          </div>
-        )}
+          Try checkout again
+        </a>
         <a
           href="/"
           className="font-mono text-[11px] font-semibold uppercase tracking-widest text-charcoal/50 hover:text-forest"
