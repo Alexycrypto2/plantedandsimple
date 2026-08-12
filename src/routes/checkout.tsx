@@ -98,7 +98,7 @@ function CheckoutPage() {
         if (cancelled) return;
         console.error("[checkout] Paddle.Checkout.open failed", err);
         setPhase("error");
-        setMessage("The payment window didn't open. Please try again.");
+        setMessage(`The payment window didn't open. ${err instanceof Error ? err.message : String(err)}`);
       }
     }
 
