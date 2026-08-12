@@ -83,7 +83,7 @@ function CheckoutPage() {
           },
           settings: {
             displayMode: "inline",
-            frameTarget: "paddle-checkout-frame",
+            frameTarget: "paddle-checkout-frame",  // Paddle matches on class name
             frameInitialHeight: 480,
             frameStyle: "width:100%; min-width:312px; background-color:transparent; border:none;",
             theme: "light",
@@ -98,7 +98,7 @@ function CheckoutPage() {
         if (cancelled) return;
         console.error("[checkout] Paddle.Checkout.open failed", err);
         setPhase("error");
-        setMessage(`The payment window didn't open. ${err instanceof Error ? err.message : String(err)}`);
+        setMessage("The payment window didn't open. Please try again, or contact support if it keeps happening.");
       }
     }
 
@@ -152,7 +152,7 @@ function CheckoutPage() {
                 <p className="text-sm text-charcoal/60">Opening secure checkout…</p>
               </div>
             )}
-            <div id="paddle-checkout-frame" className={phase === "loading" ? "hidden" : ""} />
+            <div className="paddle-checkout-frame" />
           </div>
         )}
 
