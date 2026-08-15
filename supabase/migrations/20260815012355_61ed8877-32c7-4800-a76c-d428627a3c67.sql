@@ -1,0 +1,116 @@
+INSERT INTO public.media (id, storage_path, public_url, alt, title, width, height, mime_type, tags)
+VALUES
+('e417f6c1-9f1b-4b4d-9b31-38b7fca11301', 'recipes/smoky-peanut-tofu-noodles.jpg', '/recipes/smoky-peanut-tofu-noodles.jpg', 'Smoky peanut tofu noodles with broccoli, edamame and cucumber', 'Smoky peanut tofu noodles', 1200, 900, 'image/jpeg', ARRAY['recipe','tofu','noodles']),
+('e417f6c1-9f1b-4b4d-9b31-38b7fca11302', 'recipes/black-bean-tacos.jpg', '/recipes/black-bean-tacos.jpg', 'Black bean tacos with avocado, cabbage and fresh lime', 'Weeknight black bean tacos', 1200, 900, 'image/jpeg', ARRAY['recipe','tacos','black-beans']),
+('e417f6c1-9f1b-4b4d-9b31-38b7fca11303', 'recipes/red-lentil-dahl.jpg', '/recipes/red-lentil-dahl.jpg', 'Creamy red lentil dahl with herbs and warm flatbread', 'Creamy red lentil dahl', 1200, 900, 'image/jpeg', ARRAY['recipe','lentils','dahl']),
+('e417f6c1-9f1b-4b4d-9b31-38b7fca11304', 'recipes/harissa-chickpea-bowl.jpg', '/recipes/harissa-chickpea-bowl.jpg', 'Harissa chickpea bowl with roasted vegetables and lemon tahini', 'Harissa chickpea power bowl', 1200, 900, 'image/jpeg', ARRAY['recipe','chickpeas','grain-bowl']),
+('e417f6c1-9f1b-4b4d-9b31-38b7fca11305', 'recipes/tempeh-breakfast-scramble.jpg', '/recipes/tempeh-breakfast-scramble.jpg', 'Savory tempeh breakfast scramble with greens and roasted tomatoes', 'Tempeh breakfast scramble', 1200, 900, 'image/jpeg', ARRAY['recipe','tempeh','breakfast'])
+ON CONFLICT (id) DO UPDATE SET public_url = EXCLUDED.public_url, alt = EXCLUDED.alt, title = EXCLUDED.title, tags = EXCLUDED.tags, updated_at = now();
+
+INSERT INTO public.recipes (
+  slug, title, subtitle, description, hero_image_id, ingredients, instructions, nutrition, tips,
+  prep_minutes, cook_minutes, servings, difficulty, tags, pinterest_description, seo_title,
+  seo_description, status, is_featured, published_at
+)
+VALUES
+(
+  'smoky-peanut-tofu-noodles',
+  'Smoky Peanut Tofu Noodles',
+  'Silky noodles, crisp-edged tofu and a deeply savory peanut-lime sauce.',
+  'A fast, high-protein noodle bowl built for busy nights. Broccoli and edamame bring color and fiber while smoked paprika gives the creamy peanut sauce an irresistible depth.',
+  'e417f6c1-9f1b-4b4d-9b31-38b7fca11301',
+  '[{"group":"Tofu and noodles","items":["14 oz extra-firm tofu, pressed and cubed","8 oz whole-wheat noodles","2 cups small broccoli florets","1 cup shelled edamame","1 tsp smoked paprika","1 tbsp low-sodium soy sauce"]},{"group":"Peanut-lime sauce","items":["1/4 cup natural peanut butter","2 tbsp low-sodium soy sauce","Juice of 1 lime","1 tbsp maple syrup","1 tsp toasted sesame oil","1 small garlic clove, grated","1/3 cup warm water"]},{"group":"To finish","items":["1/2 cucumber, thinly sliced","2 scallions, sliced","2 tbsp chopped roasted peanuts","Lime wedges"]}]'::jsonb,
+  '[{"title":"Season the tofu","body":"Pat the tofu dry, then toss with smoked paprika and soy sauce."},{"title":"Cook until crisp","body":"Heat a large nonstick skillet over medium-high heat. Cook the tofu for 8–10 minutes, turning until golden on several sides."},{"title":"Boil the noodles","body":"Cook the noodles according to the package directions. Add broccoli and edamame for the final 3 minutes, then reserve 1/2 cup cooking water and drain."},{"title":"Whisk the sauce","body":"Whisk peanut butter, soy sauce, lime juice, maple syrup, sesame oil, garlic and warm water until smooth."},{"title":"Bring it together","body":"Return noodles and vegetables to the pan. Add sauce and tofu, tossing over low heat. Loosen with reserved cooking water as needed."},{"title":"Serve","body":"Divide into bowls and finish with cucumber, scallions, peanuts and lime."}]'::jsonb,
+  '[{"label":"Calories","value":"510 kcal"},{"label":"Protein","value":"28 g"},{"label":"Fiber","value":"11 g"},{"label":"Carbohydrates","value":"61 g"},{"label":"Fat","value":"20 g"}]'::jsonb,
+  '["Pressing the tofu helps it brown instead of steam.","For a nut-free version, use sunflower seed butter.","The sauce thickens as it stands; revive leftovers with a splash of warm water."]'::jsonb,
+  15, 15, '4 servings', 'easy', ARRAY['high-protein','weeknight','tofu','20-minute-meal'],
+  'Save these smoky peanut tofu noodles for your next busy weeknight: 28 grams of plant protein, crisp tofu, broccoli and a creamy lime sauce in 30 minutes.',
+  'Smoky Peanut Tofu Noodles | High-Protein Vegan Dinner',
+  'Make smoky peanut tofu noodles with broccoli and edamame in 30 minutes. A creamy, high-protein plant-based dinner with 28g protein.',
+  'published', true, now()
+),
+(
+  'weeknight-black-bean-tacos',
+  'Weeknight Black Bean Tacos',
+  'Smoky skillet beans, crunchy cabbage and creamy avocado in warm tortillas.',
+  'These quick black bean tacos layer inexpensive pantry staples with fresh, bright toppings. The seasoned beans are mashed just enough to hold together while keeping plenty of texture.',
+  'e417f6c1-9f1b-4b4d-9b31-38b7fca11302',
+  '[{"group":"Smoky beans","items":["2 cans black beans, rinsed and drained","1 tbsp olive oil","1/2 yellow onion, finely diced","2 garlic cloves, minced","1 tsp ground cumin","1 tsp smoked paprika","1/2 tsp dried oregano","1/3 cup vegetable broth","Juice of 1/2 lime"]},{"group":"Tacos","items":["8 small corn tortillas","2 cups finely shredded red cabbage","1 ripe avocado, sliced","1/2 cup fresh salsa","1/4 cup chopped cilantro","Lime wedges"]}]'::jsonb,
+  '[{"title":"Sauté the aromatics","body":"Warm olive oil in a skillet over medium heat. Cook onion for 4 minutes, then add garlic, cumin, paprika and oregano for 30 seconds."},{"title":"Simmer the beans","body":"Add black beans and broth. Simmer for 6–8 minutes, mashing about one-third of the beans until the mixture is thick but textured."},{"title":"Brighten","body":"Stir in lime juice and season to taste with salt and black pepper."},{"title":"Warm the tortillas","body":"Toast tortillas in a dry skillet for about 20 seconds per side, keeping them wrapped in a clean towel."},{"title":"Assemble","body":"Fill each tortilla with beans, cabbage, avocado and salsa. Finish with cilantro and lime."}]'::jsonb,
+  '[{"label":"Calories","value":"430 kcal"},{"label":"Protein","value":"18 g"},{"label":"Fiber","value":"17 g"},{"label":"Carbohydrates","value":"69 g"},{"label":"Fat","value":"11 g"}]'::jsonb,
+  '["Mash only part of the beans for the best taco filling texture.","Add pickled onions for extra brightness.","The bean filling keeps refrigerated for four days."]'::jsonb,
+  10, 15, '4 servings', 'easy', ARRAY['budget-friendly','tacos','black-beans','family-dinner'],
+  'Easy black bean tacos with smoky skillet beans, crisp cabbage and avocado. A fiber-rich, family-friendly plant-based dinner ready in 25 minutes.',
+  'Easy Black Bean Tacos | 25-Minute Vegan Recipe',
+  'These easy black bean tacos are smoky, fresh and ready in 25 minutes. A budget-friendly vegan dinner packed with protein and fiber.',
+  'published', true, now() - interval '1 minute'
+),
+(
+  'creamy-red-lentil-dahl',
+  'Creamy Red Lentil Dahl',
+  'A golden one-pot dahl with coconut, ginger and warming spices.',
+  'Red lentils melt into a naturally creamy base in this comforting pantry dinner. Ginger, turmeric and garam masala create layers of warmth without making the dish overly hot.',
+  'e417f6c1-9f1b-4b4d-9b31-38b7fca11303',
+  '[{"group":"Dahl","items":["1 1/2 cups red lentils, rinsed","1 tbsp coconut or olive oil","1 yellow onion, diced","3 garlic cloves, minced","1 tbsp fresh ginger, grated","2 tsp garam masala","1 tsp ground turmeric","1 tsp ground cumin","1 can diced tomatoes","1 can light coconut milk","3 cups vegetable broth"]},{"group":"To finish","items":["Juice of 1/2 lemon","3 cups baby spinach","1/3 cup chopped cilantro","Cooked brown rice or warm flatbread"]}]'::jsonb,
+  '[{"title":"Build the spice base","body":"Heat oil in a large saucepan over medium heat. Cook onion for 5 minutes. Add garlic, ginger, garam masala, turmeric and cumin; stir for 45 seconds."},{"title":"Simmer","body":"Add lentils, tomatoes, coconut milk and broth. Bring to a gentle boil, then reduce heat and simmer uncovered for 20–24 minutes, stirring occasionally."},{"title":"Adjust the texture","body":"When the lentils are tender, add a splash of water if the dahl is thicker than you like."},{"title":"Finish","body":"Fold in spinach until wilted. Add lemon juice and season with salt and black pepper."},{"title":"Serve","body":"Spoon into bowls with rice or flatbread and scatter with cilantro."}]'::jsonb,
+  '[{"label":"Calories","value":"390 kcal"},{"label":"Protein","value":"19 g"},{"label":"Fiber","value":"16 g"},{"label":"Carbohydrates","value":"57 g"},{"label":"Fat","value":"11 g"}]'::jsonb,
+  '["Rinse red lentils until the water runs mostly clear.","Dahl thickens dramatically after cooling; add water when reheating.","Freeze in individual portions for up to three months."]'::jsonb,
+  10, 25, '5 servings', 'easy', ARRAY['one-pot','lentils','meal-prep','gluten-free'],
+  'This creamy red lentil dahl is the cozy one-pot dinner to save: pantry staples, warming spices, 19g protein and freezer-friendly leftovers.',
+  'Creamy Red Lentil Dahl | Easy One-Pot Vegan Dinner',
+  'Cook creamy red lentil dahl with coconut milk, ginger and spinach. This easy one-pot vegan dinner is protein-rich and freezer friendly.',
+  'published', true, now() - interval '2 minutes'
+),
+(
+  'harissa-chickpea-power-bowl',
+  'Harissa Chickpea Power Bowl',
+  'Spiced chickpeas, roasted vegetables, herby grains and lemon tahini.',
+  'A colorful grain bowl with bold North African-inspired flavor and balanced texture. Roasted chickpeas turn crisp at the edges while lemon tahini ties the grains and vegetables together.',
+  'e417f6c1-9f1b-4b4d-9b31-38b7fca11304',
+  '[{"group":"Roasted chickpeas and vegetables","items":["2 cans chickpeas, rinsed and dried","1 large sweet potato, diced","1 red bell pepper, sliced","1 small red onion, cut into wedges","2 tbsp harissa paste","1 tbsp olive oil","1 tsp ground cumin"]},{"group":"Bowl","items":["2 cups cooked quinoa","2 cups baby arugula","1/2 cucumber, chopped","1/3 cup chopped parsley"]},{"group":"Lemon tahini","items":["1/4 cup tahini","Juice of 1 lemon","1 small garlic clove, grated","1 tsp maple syrup","3–5 tbsp cold water"]}]'::jsonb,
+  '[{"title":"Heat the oven","body":"Heat the oven to 425°F (220°C) and line a large sheet pan."},{"title":"Season","body":"Toss chickpeas, sweet potato, pepper and onion with harissa, olive oil, cumin and a pinch of salt."},{"title":"Roast","body":"Spread into an even layer and roast for 25–30 minutes, turning once, until the sweet potato is tender and chickpeas are browned."},{"title":"Make the sauce","body":"Whisk tahini, lemon, garlic and maple syrup. Add cold water a spoonful at a time until pourable."},{"title":"Assemble","body":"Divide quinoa and arugula among bowls. Add roasted vegetables, cucumber and parsley, then drizzle generously with lemon tahini."}]'::jsonb,
+  '[{"label":"Calories","value":"535 kcal"},{"label":"Protein","value":"21 g"},{"label":"Fiber","value":"16 g"},{"label":"Carbohydrates","value":"78 g"},{"label":"Fat","value":"17 g"}]'::jsonb,
+  '["Dry the chickpeas well so they roast instead of steam.","Harissa brands vary in heat; begin with less if yours is spicy.","Prepare every component ahead and assemble just before eating."]'::jsonb,
+  15, 30, '4 servings', 'easy', ARRAY['meal-prep','chickpeas','grain-bowl','high-fiber'],
+  'Meal-prep this colorful harissa chickpea power bowl with roasted vegetables, quinoa and creamy lemon tahini. Bold flavor and 21g plant protein.',
+  'Harissa Chickpea Power Bowl with Lemon Tahini',
+  'Build a harissa chickpea power bowl with roasted vegetables, quinoa and lemon tahini. A colorful vegan meal-prep recipe with 21g protein.',
+  'published', true, now() - interval '3 minutes'
+),
+(
+  'tempeh-breakfast-scramble',
+  'Tempeh Breakfast Scramble',
+  'Savory crumbled tempeh, tender greens and jammy roasted tomatoes.',
+  'This hearty egg-free scramble uses tempeh for satisfying texture and lasting protein. Nutritional yeast and turmeric create a savory golden coating, while tomatoes add juicy sweetness.',
+  'e417f6c1-9f1b-4b4d-9b31-38b7fca11305',
+  '[{"group":"Scramble","items":["12 oz tempeh, crumbled","1 tbsp olive oil","1/2 yellow onion, diced","1 red bell pepper, diced","2 garlic cloves, minced","1 tsp ground turmeric","1/2 tsp smoked paprika","3 tbsp nutritional yeast","2 tbsp low-sodium soy sauce","1/3 cup vegetable broth","3 cups baby spinach"]},{"group":"To serve","items":["2 cups cherry tomatoes, roasted or sautéed","4 slices seeded whole-grain toast","1 avocado, sliced","Fresh chives or parsley"]}]'::jsonb,
+  '[{"title":"Soften the vegetables","body":"Heat olive oil in a wide skillet over medium heat. Cook onion and bell pepper for 5–6 minutes."},{"title":"Toast the tempeh","body":"Add crumbled tempeh and cook for 5 minutes, stirring only occasionally so the edges brown."},{"title":"Season","body":"Stir in garlic, turmeric, smoked paprika and nutritional yeast. Add soy sauce and broth, then cook until the liquid is absorbed."},{"title":"Add greens","body":"Fold in spinach and cook for 1–2 minutes until just wilted. Taste and add black pepper or a squeeze of lemon."},{"title":"Plate","body":"Serve with roasted tomatoes, toast, avocado and fresh herbs."}]'::jsonb,
+  '[{"label":"Calories","value":"455 kcal"},{"label":"Protein","value":"30 g"},{"label":"Fiber","value":"12 g"},{"label":"Carbohydrates","value":"42 g"},{"label":"Fat","value":"21 g"}]'::jsonb,
+  '["Steam the tempeh for 8 minutes first if you prefer a milder flavor.","Let the tempeh sit against the hot pan to develop crisp edges.","Use leftovers in breakfast burritos or grain bowls."]'::jsonb,
+  10, 18, '4 servings', 'easy', ARRAY['breakfast','high-protein','tempeh','meal-prep'],
+  'Try this savory tempeh breakfast scramble for 30g of plant protein with greens, roasted tomatoes and avocado. A satisfying egg-free breakfast.',
+  'High-Protein Tempeh Breakfast Scramble | Vegan',
+  'Make a high-protein tempeh breakfast scramble with vegetables and greens. This savory egg-free breakfast delivers 30g plant protein.',
+  'published', true, now() - interval '4 minutes'
+)
+ON CONFLICT (slug) DO UPDATE SET
+  title = EXCLUDED.title,
+  subtitle = EXCLUDED.subtitle,
+  description = EXCLUDED.description,
+  hero_image_id = EXCLUDED.hero_image_id,
+  ingredients = EXCLUDED.ingredients,
+  instructions = EXCLUDED.instructions,
+  nutrition = EXCLUDED.nutrition,
+  tips = EXCLUDED.tips,
+  prep_minutes = EXCLUDED.prep_minutes,
+  cook_minutes = EXCLUDED.cook_minutes,
+  servings = EXCLUDED.servings,
+  difficulty = EXCLUDED.difficulty,
+  tags = EXCLUDED.tags,
+  pinterest_description = EXCLUDED.pinterest_description,
+  seo_title = EXCLUDED.seo_title,
+  seo_description = EXCLUDED.seo_description,
+  status = 'published',
+  is_featured = true,
+  published_at = COALESCE(public.recipes.published_at, EXCLUDED.published_at),
+  updated_at = now();
