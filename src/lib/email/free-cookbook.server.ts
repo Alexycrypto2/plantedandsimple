@@ -63,7 +63,9 @@ export async function enqueueFreeCookbookEmail(email: string) {
   const html = await render(element);
   const text = await render(element, { plainText: true });
   const messageId = crypto.randomUUID();
-  const subject = typeof template.subject === "function" ? template.subject({ downloadUrl }) : template.subject;
+  // This template uses a fixed subject. Keeping it as a string also avoids
+  // narrowing a `satisfies TemplateEntry` literal through an impossible branch.
+  const subject: string = template.subject;
 
   const { error: logError } = await supabaseAdmin.from("email_send_log").insert({
     message_id: messageId,
