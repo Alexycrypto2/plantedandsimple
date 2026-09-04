@@ -440,7 +440,14 @@ Create exactly ${data.count} pin variants. Use these selected overlay layouts: $
 
     const pins = [];
     for (const pin of output.pins.slice(0, data.count)) {
-      const img = await renderImage(pin.image_prompt, "pinterest/previews", FRAMING.pin);
+      const img = await renderImageSafe(pin.image_prompt, "pinterest/previews", FRAMING.pin, {
+        feature: "pin-studio-source",
+        requestedBy: context.userId,
+      });
+      if (!img) {
+        pins.push({ ...pin, image_url: null, storage_path: null });
+        continue;
+      }
       pins.push({ ...pin, image_url: img.url, storage_path: img.path });
     }
 

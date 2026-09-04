@@ -18,10 +18,23 @@ function toDisplay(cents: number): string {
 }
 
 async function readPricingRow() {
+  const url = process.env["SUPABASE_URL"];
+  const key = process.env["SUPABASE_PUBLISHABLE_KEY"];
+  if (!url || !key) throw new Error("Public database configuration is missing");
   const supabase = createClient(
-    process.env.SUPABASE_URL!,
-    process.env.SUPABASE_PUBLISHABLE_KEY!,
+    url,
+    key,
     {
+      global: {
+        fetch: (input, init) => {
+          const headers = new Headers(init?.headers);
+          if (key.startsWith("sb_") && headers.get("Authorization") === `Bearer ${key}`) {
+            headers.delete("Authorization");
+          }
+          headers.set("apikey", key);
+          return fetch(input, { ...init, headers });
+        },
+      },
       auth: {
         storage: undefined,
         persistSession: false,
