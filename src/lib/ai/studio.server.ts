@@ -21,9 +21,10 @@ export async function renderImage(
   prompt: string,
   folder: string,
   framing = "3:2 landscape composition, subject centered",
+  options?: { feature?: string; requestedModel?: string; requestedBy?: string },
 ): Promise<RenderedImage> {
   const full = `${prompt}. ${framing}. ${PHOTO_STYLE}`;
-  const { base64, mime } = await generateImageBase64(full);
+  const { base64, mime, provider, modelId, fallback } = await generateImageBase64(full, options);
   const ext = mime === "image/jpeg" ? "jpg" : mime === "image/webp" ? "webp" : "png";
   const path = `${folder}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -32,7 +33,7 @@ export async function renderImage(
     .upload(path, Buffer.from(base64, "base64"), { contentType: mime, upsert: false });
   if (error) throw new Error(error.message);
   // Permanent, never-expiring URL served by our own image proxy route.
-  return { url: `/api/public/img/ai-images/${path}`, path, prompt: full };
+  return { url: `/api/public/img/ai-images/${path}`, path, prompt: `${full} [${provider}/${modelId}${fallback ? ", fallback" : ""}]` };
 }
 
 /** Never let one failed render kill a whole generation run. */
@@ -40,9 +41,10 @@ export async function renderImageSafe(
   prompt: string,
   folder: string,
   framing?: string,
+  options?: { feature?: string; requestedModel?: string; requestedBy?: string },
 ): Promise<RenderedImage | null> {
   try {
-    return await renderImage(prompt, folder, framing);
+    return await renderImage(prompt, folder, framing, options);
   } catch (err) {
     console.error(`[ai] image render failed (${folder}): ${String((err as Error)?.message ?? err).slice(0, 400)}`);
     return null;
