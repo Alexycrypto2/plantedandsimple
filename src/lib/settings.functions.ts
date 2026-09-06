@@ -142,9 +142,9 @@ export const aiModelManager = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     await requireBoss(context.supabase, context.userId);
     const { getConfig } = await import("./settings.server");
-    const { aiRecommendationSummary } = await import("./ai/gateway.server");
+    const { aiRecommendationSummary, aiRegistrySnapshot } = await import("./ai/gateway.server");
     return aiRecommendationSummary({
       mode: await getConfig("AI_MODE"),
       budget: await getConfig("AI_BUDGET_MODE"),
-    });
+    }).then((summary) => ({ ...summary, registry: aiRegistrySnapshot() }));
   });

@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { generateImageBase64, DEFAULT_IMAGE_MODEL } from "./gateway.server";
+import { generateImageBase64 } from "./gateway.server";
 
 async function requireBoss(supabase: any, userId: string) {
   const { data } = await supabase.from("user_roles").select("role").eq("user_id", userId);
@@ -39,7 +39,7 @@ export const generateStudioImage = createServerFn({ method: "POST" })
     const memory = await getMemoryContext("image");
     const prompt = `${data.subject}. ${preset.framing}. ${BRAND}. No text overlay, no watermark.\n\n${memory}`;
 
-    const { base64, mime } = await generateImageBase64(prompt);
+    const { base64, mime, provider, modelId, fallback } = await generateImageBase64(prompt, { feature: "image-studio", requestedBy: context.userId });
     const ext = mime === "image/jpeg" ? "jpg" : mime === "image/webp" ? "webp" : "png";
     const path = `${data.preset}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
 
@@ -57,7 +57,7 @@ export const generateStudioImage = createServerFn({ method: "POST" })
       topic: data.subject,
       payload: { preset: data.preset, prompt, storage_path: path, mime },
       preview_url,
-      model: DEFAULT_IMAGE_MODEL,
+      model: `${provider}/${modelId}${fallback ? " · fallback" : ""}`,
       created_by: context.userId,
       status: "pending",
     }).select("id").single();
