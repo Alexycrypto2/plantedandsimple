@@ -331,13 +331,14 @@ const SOURCE_PLAYBOOK: Record<PinSourceType, string> = {
  */
 export const generatePinsFromSource = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { type: PinSourceType; id?: string; subject?: string; count?: number; angle?: string; layouts?: PinLayout[] }) => ({
+  .inputValidator((d: { type: PinSourceType; id?: string; subject?: string; count?: number; angle?: string; layouts?: PinLayout[]; imageModel?: string }) => ({
     type: (["recipe", "blog", "product", "custom"].includes(d.type) ? d.type : "custom") as PinSourceType,
     id: d.id ? String(d.id) : undefined,
     subject: String(d.subject ?? "").slice(0, 400),
     count: Math.min(Math.max(Number(d.count ?? 5), 1), 5),
     angle: d.angle ? String(d.angle).slice(0, 200) : undefined,
     layouts: (d.layouts ?? []).filter((layout): layout is PinLayout => ["top-banner", "center-card", "middle-band", "bottom-card", "minimal-label", "split-collage"].includes(layout)).slice(0, 5),
+    imageModel: d.imageModel ? String(d.imageModel).slice(0, 100) : undefined,
   }))
   .handler(async ({ data, context }) => {
     await requireBoss(context.supabase, context.userId);
@@ -442,6 +443,7 @@ Create exactly ${data.count} pin variants. Use these selected overlay layouts: $
     for (const pin of output.pins.slice(0, data.count)) {
       const img = await renderImageSafe(pin.image_prompt, "pinterest/previews", FRAMING.pin, {
         feature: "pin-studio-source",
+        requestedModel: data.imageModel,
         requestedBy: context.userId,
       });
       if (!img) {

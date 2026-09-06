@@ -25,13 +25,16 @@ type LoaderData = {
 export const Route = createFileRoute("/")({
   component: HomePage,
   loader: async (): Promise<LoaderData> => {
-    const [home, products, collections, recipes, posts] = await Promise.all([
-      getHomepage(),
-      listPublishedProducts({ data: {} }),
-      listCollections({ data: { featuredOnly: true } }),
-      listPublishedRecipes({ data: { limit: 6 } }),
-      listPublishedPosts(),
-    ]);
+    const [home, products, collections, recipes, posts] = await Promise.allSettled([
+      getHomepage(), listPublishedProducts({ data: {} }), listCollections({ data: { featuredOnly: true } }),
+      listPublishedRecipes({ data: { limit: 6 } }), listPublishedPosts(),
+    ]).then((results) => [
+      results[0].status === "fulfilled" ? results[0].value : { sections: [], settings: {} },
+      results[1].status === "fulfilled" ? results[1].value : [],
+      results[2].status === "fulfilled" ? results[2].value : [],
+      results[3].status === "fulfilled" ? results[3].value : [],
+      results[4].status === "fulfilled" ? results[4].value : [],
+    ] as const);
     return { ...home, products, collections, recipes, posts };
   },
   head: () => ({
@@ -87,7 +90,7 @@ function HomePage() {
   return (
     <SiteLayout>
       <main>
-        {data.sections.map((section) => (
+        {(data.sections.length ? data.sections : [{ id: "fallback-hero", kind: "hero", subtitle: "Simple plant-based meals. Powerful nutrition.", config: {} } as HomepageSection]).map((section) => (
           <Section key={section.id} section={section} data={data} />
         ))}
       </main>

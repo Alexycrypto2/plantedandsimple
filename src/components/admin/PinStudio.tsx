@@ -67,6 +67,7 @@ export function PinterestStudioPanel() {
   const [link, setLink] = useState<string | null>(null);
   const [heading, setHeading] = useState("");
   const [reviewIndex, setReviewIndex] = useState<number | null>(null);
+  const [imageModel, setImageModel] = useState("");
   const reviewRef = useRef<HTMLElement | null>(null);
 
   const loadSources = () => {
@@ -94,8 +95,8 @@ export function PinterestStudioPanel() {
     setPack(null);
     setPicked([]);
     try {
-      const res: any = await generatePinsFromSource({
-        data: { type, id: pickedId ?? undefined, subject, count, angle: angle || undefined, layouts: layouts.slice(0, count) },
+         const res: any = await generatePinsFromSource({
+         data: { type, id: pickedId ?? undefined, subject, count, angle: angle || undefined, layouts: layouts.slice(0, count), imageModel: imageModel || undefined },
       });
       setPack(res.pins ?? []);
       setPicked((res.pins ?? []).map((_: any, i: number) => i));
@@ -240,7 +241,7 @@ export function PinterestStudioPanel() {
           </div>
         )}
 
-        <div className="mt-6 grid gap-5 sm:grid-cols-2">
+         <div className="mt-6 grid gap-5 sm:grid-cols-3">
           <div className="space-y-1.5">
             <p className={label}>Optional angle</p>
             <input
@@ -249,6 +250,15 @@ export function PinterestStudioPanel() {
               onChange={(e) => setAngle(e.target.value)}
               placeholder="Lean into 20-minute weeknight dinners"
             />
+          </div>
+          <div className="space-y-1.5">
+            <p className={label}>Image provider / model</p>
+            <select className={input} value={imageModel} onChange={(e) => setImageModel(e.target.value)}>
+              <option value="">Use configured model and fallback chain</option>
+              <option value="gemini-2.5-flash-image">Google Gemini 2.5 Flash Image</option>
+              <option value="gemini-3.1-flash-image">Google Gemini 3.1 Flash Image</option>
+              <option value="gemini-3-pro-image">Google Gemini 3 Pro Image</option>
+            </select>
           </div>
           <div>
             <div className="flex justify-between text-xs font-semibold text-charcoal/70">
