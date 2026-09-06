@@ -511,9 +511,9 @@ export function IntegrationsPanel() {
         <div className="mt-5 flex items-center justify-between rounded-xl border border-forest/10 bg-cream/50 p-4">
           <div className="flex items-center gap-3">
             <span className="grid h-9 w-9 place-items-center rounded-full bg-forest/10 text-forest"><Sparkles className="h-4 w-4" /></span>
-            <div><p className="text-[10px] uppercase tracking-widest text-charcoal/45">Only configured provider</p><p className="text-sm font-semibold text-forest-deep">Google Gemini</p></div>
-          </div>
-          <span className="rounded-full bg-forest/10 px-3 py-1 text-[10px] font-bold uppercase text-forest">Direct connection</span>
+             <div><p className="text-[10px] uppercase tracking-widest text-charcoal/45">Primary provider</p><p className="text-sm font-semibold text-forest-deep">Google Gemini</p></div>
+           </div>
+           <span className="rounded-full bg-forest/10 px-3 py-1 text-[10px] font-bold uppercase text-forest">Fallback chain ready</span>
         </div>
         {diag && (
           <dl className="mt-4 grid gap-3 sm:grid-cols-2">
@@ -548,7 +548,7 @@ export function IntegrationsPanel() {
       <section className="rounded-2xl border border-forest/20 bg-forest/5 p-5">
         <div className="flex gap-3">
           <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-forest" />
-          <div><h3 className="text-sm font-semibold text-forest-deep">Gemini is now the only AI provider.</h3><p className="mt-1 text-xs leading-relaxed text-charcoal/60">No hidden fallback or built-in model is used. If Google rejects a request, the exact model, status and provider error are shown.</p></div>
+           <div><h3 className="text-sm font-semibold text-forest-deep">Gemini is the primary AI provider.</h3><p className="mt-1 text-xs leading-relaxed text-charcoal/60">Image requests try your selected Gemini model first, then the configured fallback chain. The exact provider, model, status and error are recorded.</p></div>
         </div>
       </section>
 
