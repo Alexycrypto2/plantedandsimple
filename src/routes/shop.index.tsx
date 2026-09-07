@@ -11,11 +11,13 @@ import {
 export const Route = createFileRoute("/shop/")({
   component: ShopPage,
   loader: async (): Promise<{ products: PublicProduct[]; categories: Category[] }> => {
-    const [products, categories] = await Promise.all([
-      listPublishedProducts({ data: {} }),
-      listCategories(),
-    ]);
-    return { products, categories };
+    const [products, categories] = await Promise.allSettled([
+      listPublishedProducts({ data: {} }), listCategories(),
+    ]).then(([productResult, categoryResult]) => [
+      productResult.status === "fulfilled" ? productResult.value : [],
+      categoryResult.status === "fulfilled" ? categoryResult.value : [],
+    ] as const);
+    return { products: products.length ? products : FALLBACK_PRODUCTS, categories };
   },
   head: () => ({
     meta: [
@@ -36,6 +38,10 @@ export const Route = createFileRoute("/shop/")({
     links: [{ rel: "canonical", href: "https://www.primedownloads.store/shop" }],
   }),
 });
+
+const FALLBACK_PRODUCTS: PublicProduct[] = [
+  { id: "fallback-cookbook", slug: "plant-based-cookbook", title: "The Plant-Based Cookbook", subtitle: "30 simple, nourishing recipes", description: "A considered collection of everyday plant-based meals.", category_id: null, category_slug: null, category_name: "Cookbooks", cover_image_url: "/recipes/harissa-chickpea-bowl.jpg", gallery_urls: [], price_cents: 1499, compare_at_cents: 2999, currency: "USD", price_display: "14.99", compare_at_display: "29.99", paddle_price_external_id: null, is_featured: true, is_bestseller: true, seo_title: null, seo_description: null, tags: [], benefits: [], features: [] },
+];
 
 function ShopPage() {
   const loaded = Route.useLoaderData() as { products: PublicProduct[]; categories: Category[] };

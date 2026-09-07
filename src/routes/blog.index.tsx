@@ -5,8 +5,9 @@ import { listPublishedPosts, type PublicPost } from "@/lib/blog.functions";
 export const Route = createFileRoute("/blog/")({
   component: BlogPage,
   loader: async (): Promise<{ posts: PublicPost[] }> => {
-    const posts = await listPublishedPosts();
-    return { posts };
+    let posts: PublicPost[] = [];
+    try { posts = await listPublishedPosts(); } catch { /* show the editorial fallback while Cloud recovers */ }
+    return { posts: posts.length ? posts : FALLBACK_POSTS };
   },
   head: () => ({
     meta: [
@@ -19,6 +20,11 @@ export const Route = createFileRoute("/blog/")({
     ],
   }),
 });
+
+const FALLBACK_POSTS: PublicPost[] = [
+  { id: "fallback-blog-1", slug: "how-to-build-a-better-plant-based-bowl", title: "How to Build a Better Plant-Based Bowl", excerpt: "A simple framework for balanced, satisfying meals.", content: "", featured_image_url: "/recipes/tempeh-breakfast-scramble.jpg", category: "Kitchen Notes", tags: ["cooking"], seo_title: null, seo_description: null, published_at: null },
+  { id: "fallback-blog-2", slug: "the-gentle-art-of-meal-prep", title: "The Gentle Art of Meal Prep", excerpt: "Make weekday cooking feel lighter without cooking everything in advance.", content: "", featured_image_url: "/recipes/harissa-chickpea-bowl.jpg", category: "Rituals", tags: ["meal prep"], seo_title: null, seo_description: null, published_at: null },
+];
 
 function BlogPage() {
   const { posts } = Route.useLoaderData() as { posts: PublicPost[] };
