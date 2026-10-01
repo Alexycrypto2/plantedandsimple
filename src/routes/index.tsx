@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { FALLBACK_RECIPES, FALLBACK_PRODUCTS, FALLBACK_POSTS } from "@/lib/fallback-content";
 import { useEffect, useState } from "react";
 import { SiteLayout } from "@/components/SiteLayout";
 import { Reveal, SectionHeader, MediaImage, EditorialCard } from "@/components/site/primitives";
@@ -30,20 +31,8 @@ const FALLBACK_SECTIONS: HomepageSection[] = [
   { id: "fallback-newsletter", kind: "newsletter", title: "Join the table", subtitle: "Get the free recipe guide and a little more ease in your inbox.", config: {}, sort_order: 4, enabled: true },
 ];
 
-const FALLBACK_RECIPES: Recipe[] = [
-  { id: "fallback-lentil-dahl", slug: "red-lentil-dahl", title: "Red Lentil Dahl", subtitle: "A warm, fragrant weeknight bowl", description: "Creamy red lentils with tomato, ginger and warming spices.", hero_image_id: null, hero_image_url: "/recipes/red-lentil-dahl.jpg", gallery_ids: [], gallery_urls: [], ingredients: [], instructions: [], nutrition: [], tips: [], prep_minutes: 10, cook_minutes: 25, servings: "4", difficulty: "easy", tags: ["dinner", "high-protein"], pinterest_description: null, seo_title: null, seo_description: null, status: "published", is_featured: true, published_at: null },
-  { id: "fallback-tacos", slug: "black-bean-tacos", title: "Black Bean Tacos", subtitle: "Smoky, bright and ready in 20 minutes", description: "Crisp tortillas layered with smoky black beans and fresh toppings.", hero_image_id: null, hero_image_url: "/recipes/black-bean-tacos.jpg", gallery_ids: [], gallery_urls: [], ingredients: [], instructions: [], nutrition: [], tips: [], prep_minutes: 10, cook_minutes: 10, servings: "4", difficulty: "easy", tags: ["quick", "dinner"], pinterest_description: null, seo_title: null, seo_description: null, status: "published", is_featured: true, published_at: null },
-  { id: "fallback-noodles", slug: "smoky-peanut-tofu-noodles", title: "Smoky Peanut Tofu Noodles", subtitle: "Silky noodles with crisp-edged tofu", description: "A satisfying bowl with roasted peanuts, greens and a smoky sauce.", hero_image_id: null, hero_image_url: "/recipes/smoky-peanut-tofu-noodles.jpg", gallery_ids: [], gallery_urls: [], ingredients: [], instructions: [], nutrition: [], tips: [], prep_minutes: 15, cook_minutes: 20, servings: "3", difficulty: "easy", tags: ["noodles", "meal prep"], pinterest_description: null, seo_title: null, seo_description: null, status: "published", is_featured: false, published_at: null },
-];
 
-const FALLBACK_PRODUCTS: PublicProduct[] = [
-  { id: "fallback-cookbook", slug: "plant-based-cookbook", title: "The Plant-Based Cookbook", subtitle: "30 simple, nourishing recipes", description: "A considered collection of everyday plant-based meals.", category_id: null, category_slug: null, category_name: "Cookbooks", cover_image_url: "/recipes/harissa-chickpea-bowl.jpg", gallery_urls: [], price_cents: 1499, compare_at_cents: 2999, currency: "USD", price_display: "14.99", compare_at_display: "29.99", paddle_price_external_id: null, is_featured: true, is_bestseller: true, seo_title: null, seo_description: null, tags: [], benefits: [], features: [] },
-];
 
-const FALLBACK_POSTS: PublicPost[] = [
-  { id: "fallback-blog-1", slug: "how-to-build-a-better-plant-based-bowl", title: "How to Build a Better Plant-Based Bowl", excerpt: "A simple framework for balanced, satisfying meals.", content: "", featured_image_url: "/recipes/tempeh-breakfast-scramble.jpg", category: "Kitchen Notes", tags: ["cooking"], seo_title: null, seo_description: null, published_at: null },
-  { id: "fallback-blog-2", slug: "the-gentle-art-of-meal-prep", title: "The Gentle Art of Meal Prep", excerpt: "Make weekday cooking feel lighter without cooking everything in advance.", content: "", featured_image_url: "/recipes/harissa-chickpea-bowl.jpg", category: "Rituals", tags: ["meal prep"], seo_title: null, seo_description: null, published_at: null },
-];
 
 export const Route = createFileRoute("/")({
   component: HomePage,

@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { FALLBACK_POSTS } from "@/lib/fallback-content";
 import { SiteLayout } from "@/components/SiteLayout";
 import { listPublishedPosts, type PublicPost } from "@/lib/blog.functions";
 
@@ -21,10 +22,6 @@ export const Route = createFileRoute("/blog/")({
   }),
 });
 
-const FALLBACK_POSTS: PublicPost[] = [
-  { id: "fallback-blog-1", slug: "how-to-build-a-better-plant-based-bowl", title: "How to Build a Better Plant-Based Bowl", excerpt: "A simple framework for balanced, satisfying meals.", content: "", featured_image_url: "/recipes/tempeh-breakfast-scramble.jpg", category: "Kitchen Notes", tags: ["cooking"], seo_title: null, seo_description: null, published_at: null },
-  { id: "fallback-blog-2", slug: "the-gentle-art-of-meal-prep", title: "The Gentle Art of Meal Prep", excerpt: "Make weekday cooking feel lighter without cooking everything in advance.", content: "", featured_image_url: "/recipes/harissa-chickpea-bowl.jpg", category: "Rituals", tags: ["meal prep"], seo_title: null, seo_description: null, published_at: null },
-];
 
 function BlogPage() {
   const { posts } = Route.useLoaderData() as { posts: PublicPost[] };

@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { FALLBACK_PRODUCTS } from "@/lib/fallback-content";
 import { useState } from "react";
 import { SiteLayout } from "@/components/SiteLayout";
 import {
@@ -39,9 +40,6 @@ export const Route = createFileRoute("/shop/")({
   }),
 });
 
-const FALLBACK_PRODUCTS: PublicProduct[] = [
-  { id: "fallback-cookbook", slug: "plant-based-cookbook", title: "The Plant-Based Cookbook", subtitle: "30 simple, nourishing recipes", description: "A considered collection of everyday plant-based meals.", category_id: null, category_slug: null, category_name: "Cookbooks", cover_image_url: "/recipes/harissa-chickpea-bowl.jpg", gallery_urls: [], price_cents: 1499, compare_at_cents: 2999, currency: "USD", price_display: "14.99", compare_at_display: "29.99", paddle_price_external_id: null, is_featured: true, is_bestseller: true, seo_title: null, seo_description: null, tags: [], benefits: [], features: [] },
-];
 
 function ShopPage() {
   const loaded = Route.useLoaderData() as { products: PublicProduct[]; categories: Category[] };
