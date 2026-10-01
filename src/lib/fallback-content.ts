@@ -24,7 +24,7 @@ export const FALLBACK_RECIPES: Recipe[] = [
   {
     ...base,
     id: "fallback-lentil-dahl",
-    slug: "red-lentil-dahl",
+    slug: "creamy-red-lentil-dahl",
     title: "Red Lentil Dahl",
     subtitle: "A warm, fragrant weeknight bowl",
     description: "Creamy red lentils simmered with tomato, ginger and warming spices, finished with lime and fresh coriander.",
@@ -49,7 +49,7 @@ export const FALLBACK_RECIPES: Recipe[] = [
   {
     ...base,
     id: "fallback-tacos",
-    slug: "black-bean-tacos",
+    slug: "weeknight-black-bean-tacos",
     title: "Black Bean Tacos",
     subtitle: "Smoky, bright and ready in 20 minutes",
     description: "Warm tortillas layered with smoky spiced black beans, crunchy slaw and a creamy lime sauce.",
@@ -99,7 +99,7 @@ export const FALLBACK_RECIPES: Recipe[] = [
   {
     ...base,
     id: "fallback-harissa",
-    slug: "harissa-chickpea-bowl",
+    slug: "harissa-chickpea-power-bowl",
     title: "Harissa Chickpea Bowl",
     subtitle: "Roasted, spiced and meal-prep friendly",
     description: "Crispy harissa chickpeas over fluffy grains with roasted vegetables and a cooling tahini drizzle.",
@@ -151,7 +151,7 @@ export const FALLBACK_RECIPES: Recipe[] = [
 export const FALLBACK_PRODUCTS: PublicProduct[] = [
   {
     id: "fallback-cookbook",
-    slug: "plant-based-cookbook",
+    slug: "high-protein-cookbook",
     title: "The Plant-Based Cookbook",
     subtitle: "30 simple, high-protein plant-based recipes",
     description:
