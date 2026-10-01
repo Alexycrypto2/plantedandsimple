@@ -1,11 +1,14 @@
 import { createFileRoute, Link, notFound, useRouter } from "@tanstack/react-router";
 import { SiteLayout } from "@/components/SiteLayout";
+import { fallbackPost } from "@/lib/fallback-content";
 import { getPublishedPostBySlug, type PublicPost } from "@/lib/blog.functions";
 
 export const Route = createFileRoute("/blog/$slug")({
   component: PostPage,
   loader: async ({ params }): Promise<{ post: PublicPost }> => {
-    const post = await getPublishedPostBySlug({ data: { slug: params.slug } });
+    let post: PublicPost | null = null;
+    try { post = await getPublishedPostBySlug({ data: { slug: params.slug } }); } catch { post = null; }
+    if (!post) post = fallbackPost(params.slug);
     if (!post) throw notFound();
     return { post };
   },

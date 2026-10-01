@@ -1,6 +1,7 @@
 import { createFileRoute, Link, notFound, useRouter } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { SiteLayout } from "@/components/SiteLayout";
+import { fallbackRecipe } from "@/lib/fallback-content";
 import { MediaImage, Pill } from "@/components/site/primitives";
 import { getRecipeBySlug } from "@/lib/library/library.functions";
 import { trackEvent } from "@/lib/analytics";
@@ -11,9 +12,11 @@ type Data = { recipe: Recipe; related: { recipes: any[]; blogs: any[]; products:
 export const Route = createFileRoute("/recipes/$slug")({
   component: RecipeDetail,
   loader: async ({ params }): Promise<Data> => {
-    const res = await getRecipeBySlug({ data: { slug: params.slug } });
+    let res: Data | null = null;
+    try { res = (await getRecipeBySlug({ data: { slug: params.slug } })) as Data | null; } catch { res = null; }
+    if (!res) res = fallbackRecipe(params.slug) as Data | null;
     if (!res) throw notFound();
-    return res as Data;
+    return res;
   },
   head: ({ loaderData }) => {
     if (!loaderData) {

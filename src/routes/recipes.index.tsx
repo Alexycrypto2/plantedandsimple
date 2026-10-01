@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { FALLBACK_RECIPES } from "@/lib/fallback-content";
 import { useMemo, useState } from "react";
 import { SiteLayout } from "@/components/SiteLayout";
 import { Reveal, EditorialCard } from "@/components/site/primitives";
@@ -33,11 +34,6 @@ export const Route = createFileRoute("/recipes/")({
   }),
 });
 
-const FALLBACK_RECIPES: Recipe[] = [
-  { id: "fallback-lentil-dahl", slug: "red-lentil-dahl", title: "Red Lentil Dahl", subtitle: "A warm, fragrant weeknight bowl", description: "Creamy red lentils with tomato, ginger and warming spices.", hero_image_id: null, hero_image_url: "/recipes/red-lentil-dahl.jpg", gallery_ids: [], gallery_urls: [], ingredients: [], instructions: [], nutrition: [], tips: [], prep_minutes: 10, cook_minutes: 25, servings: "4", difficulty: "easy", tags: ["dinner", "high-protein"], pinterest_description: null, seo_title: null, seo_description: null, status: "published", is_featured: true, published_at: null },
-  { id: "fallback-tacos", slug: "black-bean-tacos", title: "Black Bean Tacos", subtitle: "Smoky, bright and ready in 20 minutes", description: "Crisp tortillas layered with smoky black beans and fresh toppings.", hero_image_id: null, hero_image_url: "/recipes/black-bean-tacos.jpg", gallery_ids: [], gallery_urls: [], ingredients: [], instructions: [], nutrition: [], tips: [], prep_minutes: 10, cook_minutes: 10, servings: "4", difficulty: "easy", tags: ["quick", "dinner"], pinterest_description: null, seo_title: null, seo_description: null, status: "published", is_featured: true, published_at: null },
-  { id: "fallback-noodles", slug: "smoky-peanut-tofu-noodles", title: "Smoky Peanut Tofu Noodles", subtitle: "Silky noodles with crisp-edged tofu", description: "A satisfying bowl with roasted peanuts, greens and a smoky sauce.", hero_image_id: null, hero_image_url: "/recipes/smoky-peanut-tofu-noodles.jpg", gallery_ids: [], gallery_urls: [], ingredients: [], instructions: [], nutrition: [], tips: [], prep_minutes: 15, cook_minutes: 20, servings: "3", difficulty: "easy", tags: ["noodles", "meal prep"], pinterest_description: null, seo_title: null, seo_description: null, status: "published", is_featured: false, published_at: null },
-];
 
 function RecipesIndex() {
   const { recipes, categories } = Route.useLoaderData() as { recipes: Recipe[]; categories: Category[] };

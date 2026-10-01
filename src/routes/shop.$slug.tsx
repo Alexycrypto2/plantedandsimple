@@ -7,6 +7,7 @@ import {
   type PublicProduct,
 } from "@/lib/products.functions";
 import { SiteLayout } from "@/components/SiteLayout";
+import { fallbackProduct } from "@/lib/fallback-content";
 import peekCover from "@/assets/peek-cover.jpg.asset.json";
 import peekRecipe from "@/assets/peek-recipe.jpg.asset.json";
 import peekMealPlan from "@/assets/peek-meal-plan.jpg.asset.json";
@@ -41,10 +42,14 @@ function uniqueImages(product: PublicProduct): Array<{ url: string; label: strin
 
 export const Route = createFileRoute("/shop/$slug")({
   loader: async ({ params }): Promise<{ product: PublicProduct; related: PublicProduct[] }> => {
-    const product = await getPublishedProductBySlug({ data: { slug: params.slug } });
+    let product: PublicProduct | null = null;
+    try { product = await getPublishedProductBySlug({ data: { slug: params.slug } }); } catch { product = null; }
+    if (!product) product = fallbackProduct(params.slug);
     if (!product) throw notFound();
-    const all = await listPublishedProducts({ data: { limit: 6 } });
-    const related = all.filter((p) => p.id !== product.id).slice(0, 3);
+    let all: PublicProduct[] = [];
+    try { all = await listPublishedProducts({ data: { limit: 6 } }); } catch { all = []; }
+    const current = product;
+    const related = all.filter((p) => p.id !== current.id).slice(0, 3);
     return { product, related };
   },
   component: ProductDetail,
