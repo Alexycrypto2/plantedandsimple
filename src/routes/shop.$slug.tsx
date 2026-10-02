@@ -9,11 +9,10 @@ import {
 import { SiteLayout } from "@/components/SiteLayout";
 import { fallbackProduct } from "@/lib/fallback-content";
 import peekCover from "@/assets/peek-cover.jpg.asset.json";
-import peekRecipe from "@/assets/peek-recipe.jpg.asset.json";
-import peekMealPlan from "@/assets/peek-meal-plan.jpg.asset.json";
-import peekMealPrep from "@/assets/peek-meal-prep.jpg.asset.json";
-import peekGrocery from "@/assets/peek-grocery.jpg.asset.json";
-import peekSmoothies from "@/assets/peek-smoothies.jpg.asset.json";
+import actionKitchen from "@/assets/product-action-kitchen.jpg";
+import actionMealPrep from "@/assets/product-action-meal-prep.jpg";
+import actionBowl from "@/assets/product-action-bowl.jpg";
+import actionGrocery from "@/assets/product-action-grocery.jpg";
 
 function getStoredAffiliateRef(): string | null {
   if (typeof window === "undefined") return null;
@@ -26,16 +25,15 @@ function getStoredAffiliateRef(): string | null {
   return window.localStorage.getItem("pas_affiliate_ref");
 }
 
-function uniqueImages(product: PublicProduct): Array<{ url: string; label: string }> {
+function uniqueImages(product: PublicProduct): Array<{ url: string; label: string; number: string }> {
   const seen = new Set<string>();
-  const images: Array<{ url: string; label: string }> = [];
+  const images: Array<{ url: string; label: string; number: string }> = [];
   const add = (url: string | null | undefined, label: string) => {
     if (!url || seen.has(url)) return;
     seen.add(url);
-    images.push({ url, label });
+    images.push({ url, label, number: String(images.length + 1).padStart(2, "0") });
   };
   add(product.cover_image_url, "Cookbook cover");
-  product.gallery_urls.forEach((url, index) => add(url, `Preview ${index + 1}`));
   PREVIEWS.forEach((preview) => add(preview.url, preview.label));
   return images;
 }
@@ -111,12 +109,10 @@ export const Route = createFileRoute("/shop/$slug")({
 });
 
 const PREVIEWS = [
-  { url: peekCover.url, label: "Cover" },
-  { url: peekRecipe.url, label: "Recipe page" },
-  { url: peekMealPlan.url, label: "Meal plan" },
-  { url: peekMealPrep.url, label: "Meal prep" },
-  { url: peekGrocery.url, label: "Grocery list" },
-  { url: peekSmoothies.url, label: "Smoothies" },
+  { url: actionKitchen.src, label: "Cook with the guide beside you" },
+  { url: actionMealPrep.src, label: "Prep a week in one calm session" },
+  { url: actionBowl.src, label: "Make meals that keep you full" },
+  { url: actionGrocery.src, label: "Shop with a plan, not guesswork" },
 ];
 
 const INCLUDED = [
@@ -210,15 +206,17 @@ function ProductDetail() {
                 <div className="grid aspect-[4/5] place-items-center text-7xl">📗</div>
               )}
             </div>
-            <div className="grid grid-cols-4 gap-3">
-              {gallery.slice(0, 4).map((item, i) => (
+             <div className="grid grid-cols-5 gap-2 sm:gap-3">
+               {gallery.slice(0, 5).map((item, i) => (
                 <button
                   key={item.url + i}
                   type="button"
                   onClick={() => setActiveImg(item.url)}
-                  className={`aspect-square overflow-hidden rounded-xl border transition ${activeImg === item.url ? "border-forest ring-2 ring-forest/30" : "border-forest/10 hover:border-forest/40"}`}
+                   aria-label={`View image ${item.number}: ${item.label}`}
+                   className={`relative aspect-square overflow-hidden rounded-xl border transition ${activeImg === item.url ? "border-forest ring-2 ring-forest/30" : "border-forest/10 hover:border-forest/40"}`}
                 >
                   <img src={item.url} alt={item.label} loading="lazy" className="h-full w-full object-cover" />
+                   <span className="absolute left-1.5 top-1.5 rounded bg-cream/90 px-1.5 py-0.5 font-mono text-[9px] font-bold text-forest-deep">{item.number}</span>
                 </button>
               ))}
             </div>
@@ -289,10 +287,13 @@ function ProductDetail() {
           <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.25em] text-sage">Recipe highlights</p>
           <h2 className="mt-3 font-display text-4xl italic text-forest-deep md:text-5xl">Take a peek inside</h2>
           <div className="mt-10 grid grid-cols-2 gap-4 md:grid-cols-3">
-            {gallery.map((v) => (
+             {gallery.map((v) => (
               <figure key={v.url} className="overflow-hidden rounded-2xl bg-cream-warm">
-                <img src={v.url} alt={v.label} loading="lazy" className="aspect-[4/5] w-full object-cover" />
-                <figcaption className="px-4 py-3 text-xs font-semibold uppercase tracking-[0.2em] text-charcoal/60">{v.label}</figcaption>
+                 <div className="relative">
+                   <img src={v.url} alt={v.label} loading="lazy" className="aspect-[4/5] w-full object-cover" />
+                   <span className="absolute left-3 top-3 rounded bg-cream/90 px-2 py-1 font-mono text-[10px] font-bold text-forest-deep">{v.number}</span>
+                 </div>
+                 <figcaption className="px-4 py-3 text-xs font-semibold uppercase tracking-[0.14em] text-charcoal/60">{v.label}</figcaption>
               </figure>
             ))}
           </div>
