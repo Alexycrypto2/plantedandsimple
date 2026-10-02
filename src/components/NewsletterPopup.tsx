@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { BookOpen, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { subscribeFreeGuide } from "@/lib/free-guide.functions";
@@ -9,6 +9,7 @@ const STORAGE_KEY = "planted-newsletter-closed";
 const EXCLUDED = ["/checkout", "/thank-you", "/auth", "/admin", "/free", "/free-cookbook"];
 
 export function NewsletterPopup() {
+  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [email, setEmail] = useState("");
   const [busy, setBusy] = useState(false);
@@ -34,7 +35,7 @@ export function NewsletterPopup() {
     try {
       await subscribeFreeGuide({ data: { email, source: "newsletter_popup" } });
       window.localStorage.setItem(STORAGE_KEY, "subscribed");
-      setComplete(true);
+      await navigate({ to: "/free-cookbook" });
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "We couldn't send the guide. Please try again.");
     } finally {

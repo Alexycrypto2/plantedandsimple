@@ -1,6 +1,7 @@
 import * as React from "react";
 import { render } from "react-email";
 import { template } from "@/lib/email-templates/free-cookbook";
+import freeCookbookAsset from "@/assets/free-cookbook.pdf.asset.json";
 
 const SITE_NAME = "PlantedAndSimple";
 const SENDER_DOMAIN = "notify.primedownloads.store";
@@ -58,7 +59,7 @@ export async function enqueueFreeCookbookEmail(email: string) {
     unsubscribeToken = storedToken?.token ?? unsubscribeToken;
   }
 
-  const downloadUrl = "https://primedownloads.store/free-cookbook";
+  const downloadUrl = `https://plantedandsimple.store${freeCookbookAsset.url}`;
   const element = React.createElement(template.component, { downloadUrl });
   const html = await render(element);
   const text = await render(element, { plainText: true });

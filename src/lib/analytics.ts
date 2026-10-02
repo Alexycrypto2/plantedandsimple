@@ -16,7 +16,11 @@ export type TrackKind =
   | "homepage_click"
   | "checkout_start"
   | "pinterest_click"
-  | "download";
+  | "download"
+  | "free_cookbook_view"
+  | "free_cookbook_download"
+  | "free_cookbook_signup"
+  | "upsell_click";
 
 const SESSION_KEY = "ps_session_id";
 const CHANNEL_KEY = "ps_channel";
