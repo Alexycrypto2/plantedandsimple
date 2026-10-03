@@ -22,7 +22,7 @@ export const Route = createFileRoute("/recipes/$slug")({
     if (!loaderData) {
       return { meta: [{ title: "Recipe not found — PlantedAndSimple" }, { name: "robots", content: "noindex" }] };
     }
-    const r = loaderData.recipe;
+    const r = (loaderData as Data).recipe;
     const title = r.seo_title ?? `${r.title} — PlantedAndSimple`;
     const description = r.seo_description ?? r.description.slice(0, 155);
     return {
@@ -52,8 +52,8 @@ export const Route = createFileRoute("/recipes/$slug")({
             recipeYield: r.servings ?? undefined,
             prepTime: r.prep_minutes ? `PT${r.prep_minutes}M` : undefined,
             cookTime: r.cook_minutes ? `PT${r.cook_minutes}M` : undefined,
-            recipeIngredient: (r.ingredients ?? []).flatMap((g) => g.items ?? []),
-            recipeInstructions: (r.instructions ?? []).map((s) => ({ "@type": "HowToStep", text: s.body })),
+             recipeIngredient: (r.ingredients ?? []).flatMap((g: { items?: string[] }) => g.items ?? []),
+             recipeInstructions: (r.instructions ?? []).map((s: { body: string }) => ({ "@type": "HowToStep", text: s.body })),
           }),
         },
       ],
@@ -63,7 +63,7 @@ export const Route = createFileRoute("/recipes/$slug")({
   errorComponent: RecipeError,
 });
 
-function RecipeError({ error, reset }: { error: Error; reset: () => void }) {
+function RecipeError({ error, reset }: { error: unknown; reset: () => void }) {
   const router = useRouter();
   return (
     <SiteLayout>
@@ -74,7 +74,7 @@ function RecipeError({ error, reset }: { error: Error; reset: () => void }) {
           <button onClick={() => { void router.invalidate(); reset(); }} className="rounded-full bg-forest px-8 py-3 text-[11px] font-bold uppercase tracking-[0.2em] text-cream">Try again</button>
           <Link to="/recipes" className="rounded-full border border-forest/20 px-8 py-3 text-[11px] font-bold uppercase tracking-[0.2em] text-forest">Recipe library</Link>
         </div>
-        <p className="sr-only">{error.message}</p>
+        <p className="sr-only">{error instanceof Error ? error.message : String(error)}</p>
       </section>
     </SiteLayout>
   );
