@@ -8,7 +8,6 @@ import {
 } from "@/lib/products.functions";
 import { SiteLayout } from "@/components/SiteLayout";
 import { fallbackProduct } from "@/lib/fallback-content";
-import peekCover from "@/assets/peek-cover.jpg.asset.json";
 import actionKitchen from "@/assets/product-action-kitchen.jpg";
 import actionMealPrep from "@/assets/product-action-meal-prep.jpg";
 import actionBowl from "@/assets/product-action-bowl.jpg";
@@ -109,10 +108,10 @@ export const Route = createFileRoute("/shop/$slug")({
 });
 
 const PREVIEWS = [
-  { url: actionKitchen.src, label: "Cook with the guide beside you" },
-  { url: actionMealPrep.src, label: "Prep a week in one calm session" },
-  { url: actionBowl.src, label: "Make meals that keep you full" },
-  { url: actionGrocery.src, label: "Shop with a plan, not guesswork" },
+  { url: actionKitchen, label: "Cook with the guide beside you" },
+  { url: actionMealPrep, label: "Prep a week in one calm session" },
+  { url: actionBowl, label: "Make meals that keep you full" },
+  { url: actionGrocery, label: "Shop with a plan, not guesswork" },
 ];
 
 const INCLUDED = [

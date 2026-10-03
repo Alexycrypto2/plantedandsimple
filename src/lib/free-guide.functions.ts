@@ -1,7 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import freeCookbookAsset from "@/assets/free-cookbook.pdf.asset.json";
-import { enqueueFreeCookbookEmail } from "@/lib/email/free-cookbook.server";
 
 const schema = z.object({
   email: z.string().trim().toLowerCase().email().max(255),
@@ -31,6 +30,7 @@ export const subscribeFreeGuide = createServerFn({ method: "POST" })
 
     let email_queued = false;
     try {
+      const { enqueueFreeCookbookEmail } = await import("@/lib/email/free-cookbook.server");
       const emailResult = await enqueueFreeCookbookEmail(data.email);
       email_queued = emailResult.queued;
     } catch {
