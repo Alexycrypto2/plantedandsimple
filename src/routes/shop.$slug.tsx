@@ -50,13 +50,13 @@ export const Route = createFileRoute("/shop/$slug")({
     return { product, related };
   },
   component: ProductDetail,
-  errorComponent: ({ error }) => (
+  errorComponent: ({ error }: { error: unknown }) => (
     <SiteLayout>
       <div className="grid min-h-[60vh] place-items-center px-6 text-center">
         <div>
           <p className="font-mono text-xs uppercase tracking-widest text-sage">Product error</p>
           <h1 className="mt-2 font-display text-3xl italic text-forest-deep">We couldn't load this product</h1>
-          <p className="mx-auto mt-3 max-w-md text-sm text-charcoal/60">{error.message}</p>
+          <p className="mx-auto mt-3 max-w-md text-sm text-charcoal/60">{error instanceof Error ? error.message : String(error)}</p>
           <Link to="/shop" className="mt-6 inline-block rounded-full bg-forest px-6 py-3 text-sm font-semibold text-cream">Back to shop</Link>
         </div>
       </div>

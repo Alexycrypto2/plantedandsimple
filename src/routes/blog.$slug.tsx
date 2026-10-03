@@ -24,7 +24,7 @@ export const Route = createFileRoute("/blog/$slug")({
     </SiteLayout>
   ),
   head: ({ loaderData }) => {
-    const post = loaderData?.post;
+    const post = (loaderData as { post: PublicPost } | undefined)?.post;
     const title = post ? `${post.seo_title ?? post.title} — PlantedAndSimple` : "Article — PlantedAndSimple";
     const desc = post?.seo_description ?? post?.excerpt ?? "A plant-based blog article.";
     const img = post?.featured_image_url;
@@ -47,7 +47,7 @@ export const Route = createFileRoute("/blog/$slug")({
   },
 });
 
-function BlogError({ error, reset }: { error: Error; reset: () => void }) {
+function BlogError({ error, reset }: { error: unknown; reset: () => void }) {
   const router = useRouter();
   return (
     <SiteLayout>
@@ -58,7 +58,7 @@ function BlogError({ error, reset }: { error: Error; reset: () => void }) {
           <button onClick={() => { void router.invalidate(); reset(); }} className="rounded-full bg-forest px-8 py-3 text-[11px] font-bold uppercase tracking-[0.2em] text-cream">Try again</button>
           <Link to="/blog" className="rounded-full border border-forest/20 px-8 py-3 text-[11px] font-bold uppercase tracking-[0.2em] text-forest">Back to Blog</Link>
         </div>
-        <p className="sr-only">{error.message}</p>
+        <p className="sr-only">{error instanceof Error ? error.message : String(error)}</p>
       </section>
     </SiteLayout>
   );
