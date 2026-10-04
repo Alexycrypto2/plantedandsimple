@@ -61,17 +61,6 @@ function FreeCookbookPage() {
           <p className="mt-5 max-w-xl text-lg leading-relaxed text-charcoal/70">
             Download your free copy of <strong className="text-charcoal">20-Minute Plant Protein Kitchen</strong> and start cooking satisfying recipes for real weeknights.
           </p>
-          <Button asChild size="lg" className="mt-8">
-            <a href={freeCookbookAsset.url} download onClick={download}>
-              Download my free cookbook
-            </a>
-          </Button>
-          <p className="mt-4 text-sm text-charcoal/55">
-            Keep this page bookmarked so your recipes are always close by.
-          </p>
-          <Link to="/shop" className="mt-8 inline-flex text-sm font-semibold text-forest underline-offset-4 hover:underline">
-            Explore the full cookbook collection
-          </Link>
         </div>
         </section>
 
@@ -93,6 +82,34 @@ function FreeCookbookPage() {
               ))}
             </div>
           </div>
+        </section>
+
+        <section className="border-y border-forest/10 bg-cream-warm/40 px-6 py-14 text-center">
+          <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.25em] text-sage">
+            Ready when you are
+          </p>
+          <h2 className="mx-auto mt-3 max-w-2xl font-display text-3xl italic text-forest-deep md:text-4xl">
+            Take the recipes into your kitchen.
+          </h2>
+          <p className="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-charcoal/65">
+            Your free cookbook is here whenever you’re ready to read, save, or cook from it.
+          </p>
+          <Button asChild size="lg" className="mt-7">
+            <a
+              href={freeCookbookAsset.url}
+              target="_blank"
+              rel="noreferrer"
+              onClick={download}
+            >
+              Read &amp; download the free cookbook
+            </a>
+          </Button>
+          <p className="mt-4 text-sm text-charcoal/55">
+            This page will stay open while your cookbook opens in a new tab.
+          </p>
+          <Link to="/shop" className="mt-5 inline-flex text-sm font-semibold text-forest underline-offset-4 hover:underline">
+            Explore the full cookbook collection
+          </Link>
         </section>
 
         <section className="mx-auto grid max-w-5xl gap-10 px-6 py-20 lg:grid-cols-[1fr_0.82fr] lg:items-center">
