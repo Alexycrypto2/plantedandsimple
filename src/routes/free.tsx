@@ -1,8 +1,9 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { SiteLayout } from "@/components/SiteLayout";
 import ritualImg from "@/assets/home-ritual.jpg";
 import { subscribeFreeGuide } from "@/lib/free-guide.functions";
+import { trackEvent } from "@/lib/analytics";
 
 export const Route = createFileRoute("/free")({
   component: FreePage,
@@ -19,18 +20,19 @@ export const Route = createFileRoute("/free")({
 });
 
 function FreePage() {
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
-  const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setBusy(true);
     setErr(null);
     try {
-      const res = await subscribeFreeGuide({ data: { email } });
-      setDownloadUrl(res.download_url);
+      await subscribeFreeGuide({ data: { email, source: "free_page" } });
+      void trackEvent("free_cookbook_signup", { metadata: { source: "free_page" } });
+      await navigate({ to: "/free-cookbook" });
     } catch (ex) {
       setErr(ex instanceof Error ? ex.message : "Something went wrong. Try again.");
     } finally {
@@ -55,23 +57,7 @@ function FreePage() {
               <li>✅ Pantry essentials PDF</li>
               <li>✅ Weekly meal-prep template</li>
             </ul>
-            {downloadUrl ? (
-              <div className="mt-8 rounded-2xl border border-forest/20 bg-cream-warm p-6">
-                <p className="font-display text-2xl italic text-forest-deep">Your guide is ready ✨</p>
-                <p className="mt-2 text-sm text-charcoal/70">
-                  We saved your email for future recipe drops.
-                </p>
-                <a
-                  href={downloadUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="mt-4 inline-flex rounded-full bg-forest px-6 py-3 text-xs font-bold uppercase tracking-[0.2em] text-cream hover:bg-forest-deep"
-                >
-                  Download PDF
-                </a>
-              </div>
-            ) : (
-              <form onSubmit={submit} className="mt-8 flex max-w-md flex-col gap-2 sm:flex-row">
+            <form onSubmit={submit} className="mt-8 flex max-w-md flex-col gap-2 sm:flex-row">
                 <input
                   type="email"
                   required
@@ -80,14 +66,10 @@ function FreePage() {
                   placeholder="Your email"
                   className="flex-1 rounded-full border border-forest/15 bg-white px-6 py-4 text-sm focus:border-forest focus:outline-none"
                 />
-                <button
-                  disabled={busy}
-                  className="rounded-full bg-forest px-8 py-4 text-xs font-bold uppercase tracking-[0.2em] text-cream hover:bg-forest-deep disabled:opacity-60"
-                >
+                <button disabled={busy} className="rounded-full bg-forest px-8 py-4 text-xs font-bold uppercase tracking-[0.2em] text-cream hover:bg-forest-deep disabled:opacity-60">
                   {busy ? "Sending…" : "Send free guide"}
                 </button>
-              </form>
-            )}
+            </form>
             {err && <p className="mt-3 text-sm text-red-600">{err}</p>}
             <p className="mt-3 text-xs text-charcoal/50">No spam. Unsubscribe anytime.</p>
           </div>
