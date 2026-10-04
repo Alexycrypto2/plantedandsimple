@@ -18,10 +18,10 @@ const FreeCookbookEmail = ({ downloadUrl = "https://primedownloads.store/free-co
           Welcome to <strong>20-Minute Plant Protein Kitchen</strong>—a practical collection of quick,
           nourishing meals designed for real weeknights.
         </Text>
-        <Button style={button} href={downloadUrl}>Download the cookbook</Button>
+        <Button style={button} href={downloadUrl}>Open your free cookbook page</Button>
         <Text style={text}>
-          Keep this email so the recipes are always easy to find. The download page opens instantly on
-          your phone, tablet, or computer.
+          The page lets you read about what’s inside before you choose to open and download the PDF.
+          Keep this email so the recipes are always easy to find.
         </Text>
         <Hr style={rule} />
         <Text style={footer}>Simple plant-based meals. Powerful nutrition.</Text>

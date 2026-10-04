@@ -59,8 +59,8 @@ export async function enqueueFreeCookbookEmail(email: string) {
     unsubscribeToken = storedToken?.token ?? unsubscribeToken;
   }
 
-  const downloadUrl = `https://plantedandsimple.store${freeCookbookAsset.url}`;
-  const element = React.createElement(template.component, { downloadUrl });
+  const cookbookPageUrl = "https://plantedandsimple.lovable.app/free-cookbook";
+  const element = React.createElement(template.component, { downloadUrl: cookbookPageUrl });
   const html = await render(element);
   const text = await render(element, { plainText: true });
   const messageId = crypto.randomUUID();
