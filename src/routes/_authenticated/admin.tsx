@@ -114,9 +114,7 @@ function AdminPage() {
     adminMe()
       .then((res) => setMe(res as Me))
       .catch(() =>
-        setErr(
-          "You don't have access to the admin panel. Ask the boss to grant you access.",
-        ),
+        setErr("We couldn't verify your sign-in. Please sign in again to reopen the admin panel."),
       );
   }, []);
 
@@ -130,14 +128,14 @@ function AdminPage() {
       <div className="grid min-h-screen place-items-center bg-cream px-6 text-center">
         <div className="max-w-md">
           <h1 className="font-display text-2xl italic text-forest-deep">
-            Access denied
+            Sign-in needs refreshing
           </h1>
           <p className="mt-2 text-sm text-charcoal/70">{err}</p>
           <button
             onClick={logout}
             className="mt-6 rounded-full bg-forest px-6 py-3 text-sm font-semibold text-cream hover:bg-forest-deep"
           >
-            Sign out
+            Sign in again
           </button>
         </div>
       </div>
