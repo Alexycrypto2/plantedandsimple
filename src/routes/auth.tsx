@@ -31,7 +31,7 @@ function safeNext(next: string | undefined): string {
 function AuthPage() {
   const { next } = Route.useSearch();
   const navigate = useNavigate();
-  const [mode, setMode] = useState<"signin" | "signup">("signin");
+  const [mode, setMode] = useState<"signin" | "signup" | "reset">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
@@ -51,7 +51,13 @@ function AuthPage() {
     setInfo(null);
     setBusy(true);
     try {
-      if (mode === "signup") {
+      if (mode === "reset") {
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: `${window.location.origin}/reset-password`,
+        });
+        if (error) throw error;
+        setInfo("If an account exists for that email, a password-reset link is on its way.");
+      } else if (mode === "signup") {
         const { error } = await supabase.auth.signUp({
           email,
           password,
@@ -157,17 +163,19 @@ function AuthPage() {
               className="w-full rounded-lg border border-forest/20 bg-white px-3 py-2 outline-none focus:border-forest"
             />
           </label>
-          <label className="block text-sm">
-            <span className="mb-1 block text-charcoal/70">Password</span>
-            <input
-              type="password"
-              required
-              minLength={8}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full rounded-lg border border-forest/20 bg-white px-3 py-2 outline-none focus:border-forest"
-            />
-          </label>
+          {mode !== "reset" ? (
+            <label className="block text-sm">
+              <span className="mb-1 block text-charcoal/70">Password</span>
+              <input
+                type="password"
+                required
+                minLength={8}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full rounded-lg border border-forest/20 bg-white px-3 py-2 outline-none focus:border-forest"
+              />
+            </label>
+          ) : null}
           {err && <p className="text-sm text-red-600">{err}</p>}
           {info && <p className="text-sm text-forest">{info}</p>}
           <button
@@ -179,20 +187,36 @@ function AuthPage() {
               ? "Please wait…"
               : mode === "signin"
                 ? "Sign in"
-                : "Create account"}
+                : mode === "signup"
+                  ? "Create account"
+                  : "Send reset link"}
           </button>
         </form>
+
+        {mode === "signin" ? (
+          <button
+            type="button"
+            onClick={() => {
+              setErr(null);
+              setInfo(null);
+              setMode("reset");
+            }}
+            className="mt-4 w-full text-center text-xs font-semibold text-forest hover:underline"
+          >
+            Forgot password?
+          </button>
+        ) : null}
 
         <button
           type="button"
           onClick={() => {
             setErr(null);
             setInfo(null);
-            setMode(mode === "signin" ? "signup" : "signin");
+            setMode(mode === "signin" || mode === "reset" ? "signup" : "signin");
           }}
           className="mt-4 w-full text-center text-xs font-semibold text-charcoal/60 hover:text-forest"
         >
-          {mode === "signin"
+          {mode === "signin" || mode === "reset"
             ? "New here? Create an account"
             : "Already have an account? Sign in"}
         </button>
