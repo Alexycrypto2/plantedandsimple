@@ -1,4 +1,4 @@
-import { pageHead, pageUrl, plainDescription, jsonLd, breadcrumbs, productSchema } from "@/lib/seo";
+import { pageHead } from "@/lib/seo";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { FALLBACK_RECIPES } from "@/lib/fallback-content";
 import { useMemo, useState } from "react";

@@ -12,4 +12,4 @@
 - [ ] Real photos for the 30 Meal Prep recipes (blocked: original photos live in the other Lovable account)
 - [x] Prep Cookbooks admin: multiple cookbooks + Gemini recipe importer feeding /prep-app
 
-- [ ] Refresh whole-site search/social metadata, public content sitemap and recipe/blog/product structured data; verify rendered results.
+- [x] Refresh whole-site search/social metadata, public content sitemap and recipe/blog/product structured data; verify rendered results.
