@@ -16,3 +16,6 @@
 - Meal Prep System sales are routed by the webhook's `productSlug` into `prep_purchases` (not `cookbook_downloads`); access to the interactive tools is granted only after server-verified payment against that table — never open registration.
 - The interactive Meal Prep System lives under `/prep-app/*` (code in `src/prep-kit/`, tables prefixed `prep_`); its layout gate calls a server function that allows admins, admin-gifted `prep_members`, or emails with a `prep_purchases` row, and blocks revoked members — so paid access is decided server-side, never by signup.
 - Meal Prep recipes come from a runtime library: the built-in cookbook in code plus admin-managed `prep_cookbooks`/`prep_recipes` (service-role only, read via server functions); the prep-app gate loads it once and mutates RECIPES/RECIPE_BY_ID so every tool shares one list — keeps old saved plans resolvable.
+
+- Public leaf routes use the shared SEO helper for self-referencing metadata and JSON-LD; the root keeps only site-wide defaults to prevent outdated previews from overriding content.
+- The sitemap enumerates public content with paginated publishable-key reads and returns an error on failed queries rather than incomplete XML; private downloads and member tools are never listed.

@@ -1,3 +1,4 @@
+import { pageHead, pageUrl, plainDescription, jsonLd, breadcrumbs } from "@/lib/seo";
 import { createFileRoute, Link, notFound, useRouter } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { SiteLayout } from "@/components/SiteLayout";
@@ -18,45 +19,32 @@ export const Route = createFileRoute("/recipes/$slug")({
     if (!res) throw notFound();
     return res;
   },
-  head: ({ loaderData }) => {
-    if (!loaderData) {
-      return { meta: [{ title: "Recipe not found — PlantedAndSimple" }, { name: "robots", content: "noindex" }] };
-    }
-    const r = (loaderData as Data).recipe;
-    const title = r.seo_title ?? `${r.title} — PlantedAndSimple`;
-    const description = r.seo_description ?? r.description.slice(0, 155);
+  head: ({ loaderData, params }) => {
+    const recipe = loaderData?.recipe;
+    const path = `/recipes/${encodeURIComponent(params.slug)}`;
+    const title = recipe?.seo_title?.trim() || `${recipe?.title ?? "Recipe not found"} — PlantedAndSimple`;
+    const description = plainDescription(recipe?.seo_description?.trim() || recipe?.description || "Explore plant-based recipes from PlantedAndSimple.");
+    const head = pageHead(path, title, description, "article");
+    if (!recipe) return { ...head, meta: [...head.meta, { name: "robots", content: "noindex" }] };
+    const image = recipe.hero_image_url?.startsWith("https://") ? recipe.hero_image_url : undefined;
+    const total = (recipe.prep_minutes ?? 0) + (recipe.cook_minutes ?? 0);
     return {
-      meta: [
-        { title },
-        { name: "description", content: description },
-        { property: "og:title", content: title },
-        { property: "og:description", content: description },
-        { property: "og:type", content: "article" },
-        { name: "twitter:card", content: "summary_large_image" },
-        ...(r.hero_image_url?.startsWith("https://")
-          ? [
-              { property: "og:image", content: r.hero_image_url },
-              { name: "twitter:image", content: r.hero_image_url },
-            ]
-          : []),
-      ],
-      scripts: [
-        {
-          type: "application/ld+json",
-          children: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "Recipe",
-            name: r.title,
-            description: r.description,
-            image: r.hero_image_url ? [r.hero_image_url] : undefined,
-            recipeYield: r.servings ?? undefined,
-            prepTime: r.prep_minutes ? `PT${r.prep_minutes}M` : undefined,
-            cookTime: r.cook_minutes ? `PT${r.cook_minutes}M` : undefined,
-             recipeIngredient: (r.ingredients ?? []).flatMap((g: { items?: string[] }) => g.items ?? []),
-             recipeInstructions: (r.instructions ?? []).map((s: { body: string }) => ({ "@type": "HowToStep", text: s.body })),
-          }),
-        },
-      ],
+      ...head,
+      meta: [...head.meta, ...(image ? [{ property: "og:image", content: image }, { name: "twitter:image", content: image }] : [])],
+      scripts: [jsonLd({
+        "@context": "https://schema.org", "@type": "Recipe",
+        name: recipe.title, description: recipe.description, image: image ? [image] : undefined,
+        url: pageUrl(path), datePublished: recipe.published_at || undefined,
+        recipeYield: recipe.servings ? `${recipe.servings} servings` : undefined,
+        prepTime: recipe.prep_minutes ? `PT${recipe.prep_minutes}M` : undefined,
+        cookTime: recipe.cook_minutes ? `PT${recipe.cook_minutes}M` : undefined,
+        totalTime: total ? `PT${total}M` : undefined,
+        recipeIngredient: recipe.ingredients.flatMap(group => group.items),
+        recipeInstructions: recipe.instructions.map((step, index) => ({
+          "@type": "HowToStep", position: index + 1, name: step.title || undefined, text: step.body,
+        })),
+        keywords: recipe.tags.join(", "),
+      }), breadcrumbs("Recipes", "/recipes", recipe.title, path)],
     };
   },
   notFoundComponent: RecipeMissing,

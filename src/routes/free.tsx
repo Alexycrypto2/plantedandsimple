@@ -1,3 +1,4 @@
+import { pageHead } from "@/lib/seo";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { SiteLayout } from "@/components/SiteLayout";
@@ -7,16 +8,7 @@ import { trackEvent } from "@/lib/analytics";
 
 export const Route = createFileRoute("/free")({
   component: FreePage,
-  head: () => ({
-    meta: [
-      { title: "Free Plant-Based Recipe Guide — PlantedAndSimple" },
-      { name: "description", content: "Download our free plant-based recipe guide plus pantry essentials and weekly prep sheet — instant PDF, no cost." },
-      { property: "og:title", content: "Free Recipe Guide — PlantedAndSimple" },
-      { property: "og:description", content: "A free plant-based recipe guide, delivered instantly." },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ],
-  }),
+  head: () => pageHead("/free", "Free Plant-Based Cookbook | PlantedAndSimple", "Get the free 20-Minute Plant Protein Kitchen cookbook. Discover quick plant-based recipes and download your PDF for easy weeknight cooking."),
 });
 
 function FreePage() {

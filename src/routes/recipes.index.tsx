@@ -1,3 +1,4 @@
+import { pageHead } from "@/lib/seo";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { FALLBACK_RECIPES } from "@/lib/fallback-content";
 import { useMemo, useState } from "react";
@@ -17,21 +18,7 @@ export const Route = createFileRoute("/recipes/")({
     ] as const);
     return { recipes: recipes.length ? recipes : FALLBACK_RECIPES, categories };
   },
-  head: () => ({
-    meta: [
-      { title: "Recipe Library — Plant-Based Recipes | PlantedAndSimple" },
-      {
-        name: "description",
-        content:
-          "Browse tested plant-based recipes by category — breakfast, high-protein dinners, meal prep, smoothies and desserts. Free to read, beautifully photographed.",
-      },
-      { property: "og:title", content: "Recipe Library — PlantedAndSimple" },
-      { property: "og:description", content: "Plant-based recipes organised the way you actually cook." },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ],
-    links: [{ rel: "canonical", href: "https://www.primedownloads.store/recipes" }],
-  }),
+  head: () => pageHead("/recipes", "High-Protein Vegan & Plant-Based Recipes | PlantedAndSimple", "Find plant-based recipes with ingredients, step-by-step methods and cooking times. Browse vegan breakfasts, high-protein dinners and meal prep ideas."),
 });
 
 

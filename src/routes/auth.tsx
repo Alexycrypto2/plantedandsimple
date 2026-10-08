@@ -11,7 +11,12 @@ export const Route = createFileRoute("/auth")({
   }),
   head: () => ({
     meta: [
+      { property: "og:title", content: "Sign in — PlantedAndSimple" },
+      { property: "og:description", content: "Access your PlantedAndSimple account." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
       { title: "Sign in · PlantedAndSimple" },
+      { name: "description", content: "Sign in to your PlantedAndSimple account." },
       { name: "robots", content: "noindex,nofollow" },
     ],
   }),

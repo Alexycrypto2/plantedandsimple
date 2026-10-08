@@ -1,3 +1,4 @@
+import { pageHead } from "@/lib/seo";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { trackEvent } from "@/lib/analytics";
@@ -25,32 +26,7 @@ function getStoredAffiliateRef(): string | null {
 
 export const Route = createFileRoute("/prep")({
   component: PrepSalesPage,
-  head: () => ({
-    meta: [
-      { title: "Meal Prep System — Plan the week, cook once | Planted & Simple" },
-      {
-        name: "description",
-        content:
-          "The complete plant-based meal-prep system: 7-day planner with live nutrition, one aisle-sorted grocery list, and kitchen batch-cooking mode. Launch price $27 (normally $54).",
-      },
-      {
-        property: "og:title",
-        content: "Plan the week. Shop once. Cook once. — Planted & Simple",
-      },
-      {
-        property: "og:description",
-        content:
-          "A plant-based meal-prep companion that turns Sunday chaos into one calm session. Launch offer: $27 instead of $54.",
-      },
-      { property: "og:type", content: "product" },
-      { property: "og:image", content: COVER_URL },
-      { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:image", content: COVER_URL },
-    ],
-    links: [
-      { rel: "canonical", href: "https://www.primedownloads.store/prep" },
-    ],
-  }),
+  head: () => pageHead("/prep", "Plant-Based Meal Prep System & Weekly Planner | PlantedAndSimple", "Plan seven days of plant-based meals, track protein and macros, organise groceries and batch cook with the interactive Meal Prep System. $27 one-time.", "product"),
 });
 
 const STEPS = [

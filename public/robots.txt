@@ -21,4 +21,4 @@ Allow: /
 User-agent: Google-Extended
 Allow: /
 
-Sitemap: https://www.primedownloads.store/sitemap.xml
+Sitemap: https://www.plantedandsimple.store/sitemap.xml

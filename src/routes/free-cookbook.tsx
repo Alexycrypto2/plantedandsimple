@@ -1,3 +1,4 @@
+import { pageHead } from "@/lib/seo";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
@@ -7,23 +8,7 @@ import freeCookbookAsset from "@/assets/free-cookbook.pdf.asset.json";
 import { trackEvent } from "@/lib/analytics";
 
 export const Route = createFileRoute("/free-cookbook")({
-  head: () => ({
-    meta: [
-      { title: "Your Free Cookbook — PlantedAndSimple" },
-      {
-        name: "description",
-        content:
-          "Download your free PlantedAndSimple plant-based cookbook with quick, nourishing recipes for real weeknights.",
-      },
-      { property: "og:title", content: "Your Free Cookbook — PlantedAndSimple" },
-      {
-        property: "og:description",
-        content: "Your free collection of simple, satisfying plant-based recipes is ready to download.",
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ],
-  }),
+  head: () => pageHead("/free-cookbook", "20-Minute Plant Protein Kitchen \u2014 Free Cookbook | PlantedAndSimple", "Read and download your free 20-Minute Plant Protein Kitchen cookbook, then explore our full collection of high-protein plant-based meals."),
   component: FreeCookbookPage,
 });
 

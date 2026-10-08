@@ -1,19 +1,11 @@
+import { pageHead } from "@/lib/seo";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { SiteLayout } from "@/components/SiteLayout";
 
 export const Route = createFileRoute("/contact")({
   component: ContactPage,
-  head: () => ({
-    meta: [
-      { title: "Contact — PlantedAndSimple" },
-      { name: "description", content: "Get in touch with PlantedAndSimple. We answer every email personally within one business day." },
-      { property: "og:title", content: "Contact — PlantedAndSimple" },
-      { property: "og:description", content: "Questions about a cookbook, an order, or a recipe? We're here." },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-    ],
-  }),
+  head: () => pageHead("/contact", "Contact PlantedAndSimple | Cookbook & Order Support", "Contact PlantedAndSimple with questions about our digital cookbooks, plant-based recipes, meal planning tools or your order."),
 });
 
 function ContactPage() {

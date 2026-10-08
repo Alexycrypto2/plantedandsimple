@@ -24,6 +24,10 @@ export const Route = createFileRoute("/thank-you")({
   }),
   head: () => ({
     meta: [
+      { property: "og:title", content: "Your order & downloads — PlantedAndSimple" },
+      { property: "og:description", content: "View your PlantedAndSimple order and purchased downloads." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
       { title: "Thank you — Download your cookbook · PlantedAndSimple" },
       {
         name: "description",
@@ -32,7 +36,7 @@ export const Route = createFileRoute("/thank-you")({
       },
       { name: "robots", content: "noindex" },
     ],
-    links: [{ rel: "canonical", href: "https://www.primedownloads.store/thank-you" }],
+    links: [{ rel: "canonical", href: "https://www.plantedandsimple.store/thank-you" }],
   }),
 });
 

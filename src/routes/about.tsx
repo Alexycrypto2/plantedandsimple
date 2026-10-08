@@ -1,19 +1,11 @@
+import { pageHead } from "@/lib/seo";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { SiteLayout } from "@/components/SiteLayout";
 import ritualImg from "@/assets/home-ritual.jpg";
 
 export const Route = createFileRoute("/about")({
   component: AboutPage,
-  head: () => ({
-    meta: [
-      { title: "About — PlantedAndSimple" },
-      { name: "description", content: "PlantedAndSimple is a small digital cookbook studio publishing plant-based recipes for the intentional kitchen." },
-      { property: "og:title", content: "About — PlantedAndSimple" },
-      { property: "og:description", content: "A small digital cookbook studio for the intentional plant-based kitchen." },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ],
-  }),
+  head: () => pageHead("/about", "About PlantedAndSimple | Plant-Based Cookbooks & Meal Planning", "PlantedAndSimple creates digital cookbooks, plant-based recipes and practical meal planning tools to help you plan, shop and cook satisfying meals."),
 });
 
 function AboutPage() {

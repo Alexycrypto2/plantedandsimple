@@ -1,3 +1,4 @@
+import { pageHead } from "@/lib/seo";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { SiteLayout } from "@/components/SiteLayout";
@@ -12,16 +13,7 @@ const COMPARE = "14.99";
 
 export const Route = createFileRoute("/planning-kit")({
   component: PlanningKitPage,
-  head: () => ({
-    meta: [
-      { title: "Weekly Meal Planning Kit — 12 Printable Pages | PlantedAndSimple" },
-      { name: "description", content: "A 12-page printable plant-based meal planning kit: weekly planner, aisle grocery list, pantry check, protein and batch-prep sheets. $4.99 instant download." },
-      { property: "og:title", content: "Plant & Simple Weekly Meal Planning Kit" },
-      { property: "og:description", content: "Plan. Shop. Prep. Eat well. 12 printable pages for $4.99." },
-      { property: "og:type", content: "product" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ],
-  }),
+  head: () => pageHead("/planning-kit", "Printable Plant-Based Meal Planning Kit | PlantedAndSimple", "Plan meals, organise groceries and prep ahead with a 12-page printable plant-based planning kit. One-time $4.99 purchase with instant PDF download.", "product"),
 });
 
 function getRef(): string | null {

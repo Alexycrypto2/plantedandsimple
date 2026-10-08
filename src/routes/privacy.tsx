@@ -1,26 +1,10 @@
+import { pageHead } from "@/lib/seo";
 import { createFileRoute } from "@tanstack/react-router";
 import { LegalShell, BackLink } from "@/components/LegalShell";
 
 export const Route = createFileRoute("/privacy")({
   component: PrivacyPage,
-  head: () => ({
-    meta: [
-      { title: "Privacy Notice · PlantedAndSimple" },
-      {
-        name: "description",
-        content:
-          "How Plantedandsimple collects, uses, shares, and protects your personal data.",
-      },
-      { property: "og:title", content: "Privacy Notice · PlantedAndSimple" },
-      {
-        property: "og:description",
-        content:
-          "Data categories, purposes, retention, user rights, and subprocessors including Paddle as Merchant of Record.",
-      },
-      { name: "robots", content: "index,follow" },
-    ],
-    links: [{ rel: "canonical", href: "https://www.primedownloads.store/privacy" }],
-  }),
+  head: () => pageHead("/privacy", "Privacy Notice | PlantedAndSimple", "How Plantedandsimple collects, uses and protects personal data when you visit our website or purchase our digital products."),
 });
 
 function PrivacyPage() {
