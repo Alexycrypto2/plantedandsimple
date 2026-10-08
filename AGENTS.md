@@ -14,3 +14,4 @@
 - Keep account recovery on a public TanStack route so reset links can work before the user is signed in.
 - Keep customer-facing product previews as public leaf routes under `src/routes`, using `SiteLayout` and bundled, browser-safe assets so they render consistently across hosts.
 - Meal Prep System sales are routed by the webhook's `productSlug` into `prep_purchases` (not `cookbook_downloads`); access to the interactive tools is granted only after server-verified payment against that table — never open registration.
+- The interactive Meal Prep System lives under `/prep-app/*` (code in `src/prep-kit/`, tables prefixed `prep_`); its layout gate calls a server function that allows admins, admin-gifted `prep_members`, or emails with a `prep_purchases` row, and blocks revoked members — so paid access is decided server-side, never by signup.
