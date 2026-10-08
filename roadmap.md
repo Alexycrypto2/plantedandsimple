@@ -7,3 +7,6 @@
 - [ ] Import the interactive Meal Prep app (GitHub: Alexycrypto2/plant-simple-planner-kit) under `/prep` with paid-only access via `prep_purchases` entitlement checks + admin tab.
 - [ ] Add the Quick-Start Plant Meal Planner Guide downsell ($4.99) to Paddle, the shop, and the post-purchase funnel.
 - [ ] Show the cookbook "wait" upsell step and the planner downsell step after cookbook checkout (post-purchase funnel).
+- [x] Import Meal Prep System from GitHub under /prep-app with paid-only access
+- [x] Admin "Meal Prep Members" page (gift / remove access, stats)
+- [ ] Real photos for the 30 Meal Prep recipes (blocked: original photos live in the other Lovable account)
