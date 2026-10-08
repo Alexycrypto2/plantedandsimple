@@ -78,32 +78,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "PlantedAndSimple — 30 High-Protein Plant-Based Meals" },
-      {
-        name: "description",
-        content:
-          "A premium digital cookbook with 30 high-protein vegan recipes, 6 bonus guides, and everything you need for satisfying plant-based meals in under 30 minutes.",
-      },
       { name: "author", content: "PlantedAndSimple" },
       { name: "p:domain_verify", content: "1a837ba5f0252ca8dff4b14b8d6447e6" },
       { name: "theme-color", content: "#2E5E3B" },
       { property: "og:site_name", content: "PlantedAndSimple" },
-      { property: "og:title", content: "PlantedAndSimple — 30 High-Protein Plant-Based Meals" },
-      {
-        property: "og:description",
-        content:
-          "Simple plant-based meals. Powerful nutrition. Instant PDF cookbook + 6 free bonuses.",
-      },
       { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "PlantedAndSimple — 30 High-Protein Plant-Based Meals" },
-      {
-        name: "twitter:description",
-        content:
-          "30 delicious high-protein vegan recipes — quick, satisfying, and meal-prep friendly.",
-      },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/8a2d8b2f-bacc-42cf-a867-a8a59b348ff4/id-preview-51a46c35--52b53015-fb2e-4297-a919-f0cb70f5a6d0.lovable.app-1782938452763.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/8a2d8b2f-bacc-42cf-a867-a8a59b348ff4/id-preview-51a46c35--52b53015-fb2e-4297-a919-f0cb70f5a6d0.lovable.app-1782938452763.png" },
     ],
     links: [
       {
@@ -129,6 +108,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           "@context": "https://schema.org",
           "@type": "Organization",
           name: "PlantedAndSimple",
+          url: "https://www.plantedandsimple.store/",
+          description: "Plant-based recipes, digital cookbooks and practical meal planning tools.",
           slogan: "Simple Plant-Based Meals. Powerful Nutrition.",
         }),
       },

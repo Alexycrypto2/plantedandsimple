@@ -1,3 +1,4 @@
+import { pageHead, pageUrl, plainDescription, jsonLd, breadcrumbs, productSchema } from "@/lib/seo";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { FALLBACK_POSTS } from "@/lib/fallback-content";
 import { SiteLayout } from "@/components/SiteLayout";
@@ -11,16 +12,7 @@ export const Route = createFileRoute("/blog/")({
     try { posts = await listPublishedPosts(); } catch { /* show the editorial fallback while Cloud recovers */ }
     return { posts: posts.length ? posts : FALLBACK_POSTS };
   },
-  head: () => ({
-    meta: [
-      { title: "The Blog — PlantedAndSimple" },
-      { name: "description", content: "Recipes, rituals, and plant-based technique from the PlantedAndSimple kitchen." },
-      { property: "og:title", content: "The Blog — PlantedAndSimple" },
-      { property: "og:description", content: "Recipes, rituals, and plant-based technique from the PlantedAndSimple kitchen." },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ],
-  }),
+  head: () => pageHead("/blog", "Plant-Based Cooking Blog & Meal Prep Tips | PlantedAndSimple", "Explore plant-based cooking articles, vegan protein ideas and practical meal prep tips. Find inspiration for your next meal with PlantedAndSimple."),
 });
 
 

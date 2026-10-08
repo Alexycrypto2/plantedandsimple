@@ -1,3 +1,4 @@
+import { pageHead, pageUrl, plainDescription, jsonLd, breadcrumbs, productSchema } from "@/lib/seo";
 import { createFileRoute, Link, notFound, useRouter } from "@tanstack/react-router";
 import { SiteLayout } from "@/components/SiteLayout";
 import { fallbackPost } from "@/lib/fallback-content";
@@ -23,26 +24,24 @@ export const Route = createFileRoute("/blog/$slug")({
       </div>
     </SiteLayout>
   ),
-  head: ({ loaderData }) => {
-    const post = (loaderData as { post: PublicPost } | undefined)?.post;
-    const title = post ? `${post.seo_title ?? post.title} — PlantedAndSimple` : "Article — PlantedAndSimple";
-    const desc = post?.seo_description ?? post?.excerpt ?? "A plant-based blog article.";
-    const img = post?.featured_image_url;
+  head: ({ loaderData, params }) => {
+    const post = loaderData?.post;
+    const path = `/blog/${encodeURIComponent(params.slug)}`;
+    const title = post?.seo_title?.trim() || `${post?.title ?? "Article not found"} — PlantedAndSimple`;
+    const description = plainDescription(post?.seo_description?.trim() || post?.excerpt || "Plant-based cooking inspiration from PlantedAndSimple.");
+    const head = pageHead(path, title, description, "article");
+    if (!post) return { ...head, meta: [...head.meta, { name: "robots", content: "noindex" }] };
+    const image = post.featured_image_url?.startsWith("https://") ? post.featured_image_url : undefined;
     return {
-      meta: [
-        { title },
-        { name: "description", content: desc },
-        { property: "og:title", content: title },
-        { property: "og:description", content: desc },
-        { property: "og:type", content: "article" },
-        ...(img
-          ? [
-              { property: "og:image", content: img },
-              { name: "twitter:image", content: img },
-            ]
-          : []),
-        { name: "twitter:card", content: "summary_large_image" },
-      ],
+      ...head,
+      meta: [...head.meta, ...(image ? [{ property: "og:image", content: image }, { name: "twitter:image", content: image }] : [])],
+      scripts: [jsonLd({
+        "@context": "https://schema.org", "@type": "BlogPosting",
+        headline: post.title, description, image,
+        datePublished: post.published_at || undefined,
+        mainEntityOfPage: pageUrl(path),
+        publisher: { "@type": "Organization", name: "PlantedAndSimple", url: pageUrl("/") },
+      }), breadcrumbs("Blog", "/blog", post.title, path)],
     };
   },
 });

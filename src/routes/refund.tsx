@@ -1,26 +1,10 @@
+import { pageHead, pageUrl, plainDescription, jsonLd, breadcrumbs, productSchema } from "@/lib/seo";
 import { createFileRoute } from "@tanstack/react-router";
 import { LegalShell, BackLink } from "@/components/LegalShell";
 
 export const Route = createFileRoute("/refund")({
   component: RefundPage,
-  head: () => ({
-    meta: [
-      { title: "Refund Policy · PlantedAndSimple" },
-      {
-        name: "description",
-        content:
-          "30-day money-back guarantee on the PlantedAndSimple cookbook. How to request a refund through Paddle.",
-      },
-      { property: "og:title", content: "Refund Policy · PlantedAndSimple" },
-      {
-        property: "og:description",
-        content:
-          "Full refund within 30 days. Requests are processed by Paddle, our Merchant of Record.",
-      },
-      { name: "robots", content: "index,follow" },
-    ],
-    links: [{ rel: "canonical", href: "https://www.primedownloads.store/refund" }],
-  }),
+  head: () => pageHead("/refund", "Refund Policy & 60-Day Guarantee | PlantedAndSimple", "Read the 60-day money-back guarantee for the PlantedAndSimple cookbook and learn how to request a refund through Paddle."),
 });
 
 function RefundPage() {

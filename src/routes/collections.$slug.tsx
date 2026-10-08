@@ -1,3 +1,4 @@
+import { pageHead, pageUrl, plainDescription, jsonLd, breadcrumbs, productSchema } from "@/lib/seo";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { SiteLayout } from "@/components/SiteLayout";
 import { EditorialCard, Reveal } from "@/components/site/primitives";
@@ -10,23 +11,13 @@ export const Route = createFileRoute("/collections/$slug")({
     if (!res) throw notFound();
     return res;
   },
-  head: ({ loaderData }) => {
-    if (!loaderData) {
-      return { meta: [{ title: "Collection not found — PlantedAndSimple" }, { name: "robots", content: "noindex" }] };
-    }
-    const c = loaderData.collection;
-    const title = c.seo_title ?? `${c.name} — PlantedAndSimple`;
-    const description = c.seo_description ?? c.description ?? `Explore the ${c.name} collection.`;
-    return {
-      meta: [
-        { title },
-        { name: "description", content: description },
-        { property: "og:title", content: title },
-        { property: "og:description", content: description },
-        { property: "og:type", content: "website" },
-        { name: "twitter:card", content: "summary_large_image" },
-      ],
-    };
+  head: ({ loaderData, params }) => {
+    const collection = loaderData?.collection;
+    const path = `/collections/${encodeURIComponent(params.slug)}`;
+    const head = pageHead(path,
+      collection?.seo_title?.trim() || `${collection?.name ?? "Collection not found"} — PlantedAndSimple`,
+      plainDescription(collection?.seo_description || collection?.description || "Explore plant-based collections from PlantedAndSimple."));
+    return collection ? head : { ...head, meta: [...head.meta, { name: "robots", content: "noindex" }] };
   },
   notFoundComponent: () => (
     <SiteLayout>

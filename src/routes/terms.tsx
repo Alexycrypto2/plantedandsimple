@@ -1,26 +1,10 @@
+import { pageHead, pageUrl, plainDescription, jsonLd, breadcrumbs, productSchema } from "@/lib/seo";
 import { createFileRoute } from "@tanstack/react-router";
 import { LegalShell, BackLink } from "@/components/LegalShell";
 
 export const Route = createFileRoute("/terms")({
   component: TermsPage,
-  head: () => ({
-    meta: [
-      { title: "Terms & Conditions · PlantedAndSimple" },
-      {
-        name: "description",
-        content:
-          "Terms governing your use of PlantedAndSimple and purchase of the digital cookbook.",
-      },
-      { property: "og:title", content: "Terms & Conditions · PlantedAndSimple" },
-      {
-        property: "og:description",
-        content:
-          "Seller identity, acceptance, product license, Paddle as Merchant of Record, and suspension rights.",
-      },
-      { name: "robots", content: "index,follow" },
-    ],
-    links: [{ rel: "canonical", href: "https://www.primedownloads.store/terms" }],
-  }),
+  head: () => pageHead("/terms", "Terms & Conditions | PlantedAndSimple", "Terms for using PlantedAndSimple and purchasing our digital cookbook, including product licensing, payments and the refund policy."),
 });
 
 function TermsPage() {

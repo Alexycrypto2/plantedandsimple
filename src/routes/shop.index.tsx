@@ -1,3 +1,4 @@
+import { pageHead, pageUrl, plainDescription, jsonLd, breadcrumbs, productSchema } from "@/lib/seo";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { FALLBACK_PRODUCTS } from "@/lib/fallback-content";
 import { useState } from "react";
@@ -20,24 +21,7 @@ export const Route = createFileRoute("/shop/")({
     ] as const);
     return { products: products.length ? products : FALLBACK_PRODUCTS, categories };
   },
-  head: () => ({
-    meta: [
-      { title: "Shop — Premium Plant-Based Cookbooks & Meal Plans | PlantedAndSimple" },
-      {
-        name: "description",
-        content:
-          "Browse premium digital cookbooks, meal plans, and recipe guides — instant PDF downloads made for healthy plant-based living.",
-      },
-      { property: "og:title", content: "Shop — PlantedAndSimple" },
-      {
-        property: "og:description",
-        content: "Premium plant-based cookbooks, meal plans and recipe guides. Instant download.",
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ],
-    links: [{ rel: "canonical", href: "https://www.primedownloads.store/shop" }],
-  }),
+  head: () => pageHead("/shop", "Plant-Based Cookbooks, Meal Prep System & Planners | PlantedAndSimple", "Shop 30 High-Protein Plant-Based Meals, the interactive Meal Prep System and printable meal planning kit. Digital tools for simpler plant-based cooking."),
 });
 
 

@@ -1,3 +1,4 @@
+import { pageHead, pageUrl, plainDescription, jsonLd, breadcrumbs, productSchema } from "@/lib/seo";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { FALLBACK_RECIPES, FALLBACK_PRODUCTS, FALLBACK_POSTS } from "@/lib/fallback-content";
 import { useEffect, useState } from "react";
@@ -56,24 +57,7 @@ export const Route = createFileRoute("/")({
       posts: posts.length ? posts : FALLBACK_POSTS,
     };
   },
-  head: () => ({
-    meta: [
-      { title: "PlantedAndSimple — Premium Plant-Based Cookbooks & Recipes" },
-      {
-        name: "description",
-        content:
-          "Digital cookbooks, seasonal meal plans and tested plant-based recipes for the intentional kitchen. Instant PDF downloads, made with care.",
-      },
-      { property: "og:title", content: "PlantedAndSimple — Premium Plant-Based Cookbooks" },
-      {
-        property: "og:description",
-        content: "Simple recipes, refined for the modern home cook. Explore our digital cookbook studio.",
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ],
-    links: [{ rel: "canonical", href: "https://www.primedownloads.store/" }],
-  }),
+  head: () => pageHead("/", "PlantedAndSimple | High-Protein Plant-Based Recipes & Cookbooks", "Simple Plant-Based Meals. Powerful Nutrition. Explore vegan recipes, digital cookbooks, meal planning guides and our interactive Meal Prep System."),
 });
 
 const ICONS: Record<string, string> = {

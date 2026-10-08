@@ -1,3 +1,4 @@
+import { pageHead, pageUrl, plainDescription, jsonLd, breadcrumbs, productSchema } from "@/lib/seo";
 import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { trackEvent } from "@/lib/analytics";
@@ -73,37 +74,19 @@ export const Route = createFileRoute("/shop/$slug")({
       </div>
     </SiteLayout>
   ),
-  head: ({ loaderData }) => {
-    if (!loaderData) {
-      return {
-        meta: [
-          { title: "Product unavailable — PlantedAndSimple" },
-          { name: "description", content: "This PlantedAndSimple product is currently unavailable." },
-          { property: "og:title", content: "Product unavailable — PlantedAndSimple" },
-          { property: "og:description", content: "This PlantedAndSimple product is currently unavailable." },
-          { property: "og:type", content: "product" },
-          { name: "twitter:card", content: "summary" },
-          { name: "robots", content: "noindex" },
-        ],
-      };
-    }
-    const p = loaderData.product;
-    const title = p.seo_title ?? `${p.title} — PlantedAndSimple`;
-    const desc =
-      p.seo_description ?? p.subtitle ?? p.description.slice(0, 160);
-    const meta: Array<Record<string, string>> = [
-      { title },
-      { name: "description", content: desc },
-      { property: "og:title", content: title },
-      { property: "og:description", content: desc },
-      { property: "og:type", content: "product" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ];
-    if (p.cover_image_url && p.cover_image_url.startsWith("http")) {
-      meta.push({ property: "og:image", content: p.cover_image_url });
-      meta.push({ name: "twitter:image", content: p.cover_image_url });
-    }
-    return { meta, links: [{ rel: "canonical", href: `https://www.primedownloads.store/shop/${p.slug}` }] };
+  head: ({ loaderData, params }) => {
+    const product = loaderData?.product;
+    const path = `/shop/${encodeURIComponent(params.slug)}`;
+    const title = product?.seo_title?.trim() || `${product?.title ?? "Product unavailable"} — PlantedAndSimple`;
+    const description = plainDescription(product?.seo_description?.trim() || product?.subtitle || product?.description || "This PlantedAndSimple product is currently unavailable.");
+    const head = pageHead(path, title, description, "product");
+    if (!product) return { ...head, meta: [...head.meta, { name: "robots", content: "noindex" }] };
+    const image = product.cover_image_url?.startsWith("https://") ? product.cover_image_url : undefined;
+    return {
+      ...head,
+      meta: [...head.meta, ...(image ? [{ property: "og:image", content: image }, { name: "twitter:image", content: image }] : [])],
+      scripts: [productSchema(product), breadcrumbs("Shop", "/shop", product.title, path)],
+    };
   },
 });
 
