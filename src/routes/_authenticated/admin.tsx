@@ -73,6 +73,7 @@ import { AdminShell, MetricCard, PanelCard, SectionTabs, FlowRibbon } from "@/co
 import { LibrarySection } from "@/components/admin/LibraryPanel";
 import { RecipesSection } from "@/components/admin/RecipesPanel";
 import { MealPrepPanel } from "@/components/admin/MealPrepPanel";
+import { CookbookLibraryPanel } from "@/components/admin/CookbookLibraryPanel";
 import {
   DollarSign, Users, Mail, Gift, Download, Package, FileText,
   Sparkles, ShoppingBag, ArrowUpRight, Image as ImageIcon, Bot,
@@ -101,6 +102,7 @@ type Tab =
   | "campaigns"
   | "products"
   | "meal-prep"
+  | "prep-cookbooks"
   | "audience"
   | "approvals"
   | "analytics"
@@ -164,6 +166,7 @@ function AdminPage() {
         "campaigns",
         "products",
         "meal-prep",
+        "prep-cookbooks",
         "audience",
         "approvals",
         "analytics",
@@ -204,6 +207,7 @@ function AdminPage() {
       {activeTab === "campaigns" && isBoss && <CampaignPanel />}
       {activeTab === "products" && isBoss && <ProductsSection />}
       {activeTab === "meal-prep" && isBoss && <MealPrepPanel />}
+      {activeTab === "prep-cookbooks" && isBoss && <CookbookLibraryPanel />}
       {activeTab === "audience" && isBoss && <AudienceSection />}
       {activeTab === "approvals" && isBoss && <ApprovalQueuePanel />}
       {activeTab === "analytics" && <AnalyticsSection isBoss={isBoss} />}

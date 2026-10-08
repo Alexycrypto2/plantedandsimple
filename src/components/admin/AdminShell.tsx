@@ -18,6 +18,7 @@ export const NAV_META: Record<string, { label: string; icon: LucideIcon; group: 
   campaigns: { label: "Campaign Center", icon: Rocket, group: "Growth" },
   products: { label: "Products", icon: Package, group: "Growth" },
   "meal-prep": { label: "Meal Prep Members", icon: ChefHat, group: "Growth" },
+  "prep-cookbooks": { label: "Prep Cookbooks", icon: BookOpen, group: "Growth" },
   audience: { label: "Audience", icon: Users, group: "Growth" },
   approvals: { label: "Approval Queue", icon: CheckCircle2, group: "Growth" },
   analytics: { label: "Analytics", icon: TrendingUp, group: "Growth" },
