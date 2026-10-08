@@ -1299,6 +1299,42 @@ export type Database = {
           },
         ]
       }
+      prep_cookbooks: {
+        Row: {
+          active: boolean
+          cover_url: string | null
+          created_at: string
+          description: string | null
+          id: string
+          is_builtin: boolean
+          slug: string
+          sort: number
+          title: string
+        }
+        Insert: {
+          active?: boolean
+          cover_url?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_builtin?: boolean
+          slug: string
+          sort?: number
+          title: string
+        }
+        Update: {
+          active?: boolean
+          cover_url?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_builtin?: boolean
+          slug?: string
+          sort?: number
+          title?: string
+        }
+        Relationships: []
+      }
       prep_favorites: {
         Row: {
           created_at: string
@@ -1481,6 +1517,41 @@ export type Database = {
           transaction_id?: string
         }
         Relationships: []
+      }
+      prep_recipes: {
+        Row: {
+          active: boolean
+          cookbook_id: string
+          created_at: string
+          data: Json
+          id: string
+          slug: string
+        }
+        Insert: {
+          active?: boolean
+          cookbook_id: string
+          created_at?: string
+          data: Json
+          id?: string
+          slug: string
+        }
+        Update: {
+          active?: boolean
+          cookbook_id?: string
+          created_at?: string
+          data?: Json
+          id?: string
+          slug?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prep_recipes_cookbook_id_fkey"
+            columns: ["cookbook_id"]
+            isOneToOne: false
+            referencedRelation: "prep_cookbooks"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       pricing_settings: {
         Row: {

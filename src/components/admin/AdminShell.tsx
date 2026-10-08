@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
-  LayoutDashboard, TrendingUp, Package, LibraryBig, ChefHat,
+  LayoutDashboard, TrendingUp, Package, LibraryBig, ChefHat, BookOpen,
   FileText, Sparkles, Image as ImageIcon, CheckCircle2, Settings2,
   Users, LogOut, ExternalLink, Search, X, Menu, Waves, Zap, Palette, Rocket,
   type LucideIcon,
@@ -18,6 +18,7 @@ export const NAV_META: Record<string, { label: string; icon: LucideIcon; group: 
   campaigns: { label: "Campaign Center", icon: Rocket, group: "Growth" },
   products: { label: "Products", icon: Package, group: "Growth" },
   "meal-prep": { label: "Meal Prep Members", icon: ChefHat, group: "Growth" },
+  "prep-cookbooks": { label: "Prep Cookbooks", icon: BookOpen, group: "Growth" },
   audience: { label: "Audience", icon: Users, group: "Growth" },
   approvals: { label: "Approval Queue", icon: CheckCircle2, group: "Growth" },
   analytics: { label: "Analytics", icon: TrendingUp, group: "Growth" },

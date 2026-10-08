@@ -22,6 +22,8 @@ export interface Recipe {
   tips: { substitutions?: string; serving?: string; variations?: string };
   cookbookPage: number;
   image: string;
+  /** cookbook slug this recipe belongs to ("core" = built-in) */
+  cookbook?: string;
 }
 
 export const DAYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"] as const;
