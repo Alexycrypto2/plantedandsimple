@@ -407,15 +407,25 @@ export function AdminShell({
                 <AiThought />
               </p>
             </div>
-            <a
-              href="/"
-              target="_blank"
-              rel="noreferrer"
-              style={{ background: "linear-gradient(120deg, var(--ws-accent), var(--ws-tint))" }}
-              className="sheen-on-hover relative inline-flex w-fit shrink-0 items-center gap-1.5 justify-self-end overflow-hidden rounded-full px-3 py-2 text-[11px] font-semibold text-cream shadow-lg transition-all duration-500 hover:-translate-y-0.5 sm:px-4 sm:text-xs"
-            >
-              View site <ExternalLink className="size-3.5" />
-            </a>
+            <div className="flex shrink-0 items-center gap-2 justify-self-end">
+              <a
+                href="/prep-app"
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex w-fit items-center gap-1.5 rounded-full border border-forest/25 bg-white/70 px-3 py-2 text-[11px] font-semibold text-forest-deep transition hover:-translate-y-0.5 hover:bg-white sm:px-4 sm:text-xs"
+              >
+                Launch Prep App <ExternalLink className="size-3.5" />
+              </a>
+              <a
+                href="/"
+                target="_blank"
+                rel="noreferrer"
+                style={{ background: "linear-gradient(120deg, var(--ws-accent), var(--ws-tint))" }}
+                className="sheen-on-hover relative inline-flex w-fit items-center gap-1.5 overflow-hidden rounded-full px-3 py-2 text-[11px] font-semibold text-cream shadow-lg transition-all duration-500 hover:-translate-y-0.5 sm:px-4 sm:text-xs"
+              >
+                View site <ExternalLink className="size-3.5" />
+              </a>
+            </div>
           </div>
         </header>
 

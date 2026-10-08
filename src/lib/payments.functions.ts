@@ -25,7 +25,7 @@ export const resolvePaddlePrice = createServerFn({ method: "GET" })
     return json.data[0].id as string;
   });
 
-type PaidProduct = "cookbook" | "prep";
+type PaidProduct = "cookbook" | "prep" | "kit";
 
 type VerifyResult =
   | { paid: true; email: string | null; product: PaidProduct }
@@ -99,6 +99,11 @@ export const verifyCookbookPayment = createServerFn({ method: "POST" })
         } catch {
           // Non-fatal.
         }
+      }
+
+      // Planning Kit sales are verified directly against Paddle — no DB row needed.
+      if (json?.data?.custom_data?.productSlug === "planning-kit") {
+        return { paid: true, email, product: "kit" };
       }
 
       if (email) {

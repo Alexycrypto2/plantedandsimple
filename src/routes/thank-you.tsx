@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import cookbookMockup from "@/assets/cookbook-mockup.jpg";
+import kitCover from "@/assets/kit-page-1.jpg";
 import prepSystemCover from "@/assets/prep-system-cover.jpg";
 import { verifyCookbookPayment } from "@/lib/payments.functions";
 import { getPaddleEnvironment } from "@/lib/paddle";
@@ -41,7 +42,7 @@ type State =
       status: "paid";
       email: string | null;
       transactionId: string;
-      product: "cookbook" | "prep";
+      product: "cookbook" | "prep" | "kit";
     }
   | { status: "unpaid"; reason: string }
   | { status: "no_session" };
@@ -146,9 +147,10 @@ function PaidView({
 }: {
   email: string | null;
   transactionId: string;
-  product: "cookbook" | "prep";
+  product: "cookbook" | "prep" | "kit";
 }) {
   if (product === "prep") return <PrepPaidView email={email} />;
+  if (product === "kit") return <KitPaidView email={email} transactionId={transactionId} />;
   return <CookbookPaidView email={email} transactionId={transactionId} />;
 }
 
@@ -270,6 +272,26 @@ function CookbookPaidView({
           className="mt-5 inline-flex items-center justify-center rounded-full bg-forest px-8 py-3 text-sm font-semibold text-cream shadow-sm transition hover:bg-forest-deep"
         >
           See the Meal Prep System — save 50%
+        </a>
+      </div>
+
+      <div className="mt-6 rounded-3xl border border-dashed border-forest/25 bg-white p-6 text-center sm:p-8">
+        <p className="font-mono text-[11px] font-semibold uppercase tracking-widest text-sage">
+          Prefer pen &amp; paper?
+        </p>
+        <h3 className="mt-2 font-display text-2xl italic text-forest-deep">
+          Get the 12-page printable Planning Kit for $4.99
+        </h3>
+        <p className="mx-auto mt-2 max-w-md text-sm text-charcoal/70">
+          Weekly planner, aisle-sorted grocery list, pantry check and batch-prep sheets —
+          made to sit next to your new cookbook.{" "}
+          <span className="line-through opacity-60">$14.99</span>
+        </p>
+        <a
+          href="/planning-kit"
+          className="mt-5 inline-flex items-center justify-center rounded-full border border-forest px-8 py-3 text-sm font-semibold text-forest transition hover:bg-forest hover:text-cream"
+        >
+          See the Planning Kit
         </a>
       </div>
 
@@ -409,6 +431,26 @@ function NoSessionView() {
       >
         Get the Cookbook — $14.99
       </a>
+    </>
+  );
+}
+
+function KitPaidView({ email, transactionId }: { email: string | null; transactionId: string }) {
+  const href = `/api/public/download/planning-kit?session_id=${encodeURIComponent(transactionId)}&env=${getPaddleEnvironment()}`;
+  return (
+    <>
+      <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.28em] text-sage">Payment confirmed</p>
+      <h1 className="mt-3 font-display text-4xl italic text-forest-deep sm:text-5xl">Your Planning Kit is ready!</h1>
+      <p className="mx-auto mt-4 max-w-md text-charcoal/70">
+        Print it, fill it in, and plan a calmer week.
+        {email && (<> A receipt has been sent to <strong className="text-charcoal">{email}</strong>.</>)}
+      </p>
+      <img src={kitCover} alt="Weekly Meal Planning Kit cover" width={600} height={776} loading="lazy" className="mx-auto mt-10 w-48 rounded-2xl shadow-xl ring-1 ring-forest/10" />
+      <a href={href} className="mt-10 inline-flex items-center justify-center gap-2 rounded-full bg-forest px-10 py-5 text-lg font-bold text-cream shadow-xl transition-all hover:-translate-y-0.5 hover:bg-forest-deep">
+        ⬇ Download Planning Kit
+      </a>
+      <p className="mt-4 font-mono text-[11px] uppercase tracking-widest text-charcoal/50">Secure link · Print as many copies as you like</p>
+      <a href="/prep" className="mt-10 block text-sm font-semibold text-forest underline underline-offset-4">Want it done for you? See the interactive Meal Prep System →</a>
     </>
   );
 }

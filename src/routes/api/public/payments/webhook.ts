@@ -300,6 +300,10 @@ export const Route = createFileRoute("/api/public/payments/webhook")({
 
         // Route by product: the Meal Prep System records a prep purchase
         // instead of a cookbook download.
+        // Planning Kit downloads are verified live against Paddle; nothing to record.
+        if (productSlugOf(tx) === "planning-kit") {
+          return Response.json({ ok: true, product: "planning-kit" });
+        }
         if (productSlugOf(tx) === "meal-prep-system") {
           return handlePrepPurchase(
             supabaseAdmin,
