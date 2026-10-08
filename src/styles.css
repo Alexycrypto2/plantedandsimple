@@ -566,3 +566,11 @@
 .article-body .article-cta p:last-child { margin-bottom: 0; }
 .article-body .article-product a,
 .article-body .article-cta a { color: inherit; font-weight: 700; }
+
+@utility eyebrow {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-gold);
+}

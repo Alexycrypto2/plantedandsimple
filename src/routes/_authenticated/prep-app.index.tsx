@@ -87,7 +87,7 @@ function Dashboard() {
   );
 }
 
-function Stat({ to, icon: Icon, label, value }: { to: "/prep-app/planner" | "/grocery" | "/prep"; icon: typeof CalendarDays; label: string; value: string }) {
+function Stat({ to, icon: Icon, label, value }: { to: "/prep-app/planner" | "/prep-app/grocery" | "/prep-app/kitchen"; icon: typeof CalendarDays; label: string; value: string }) {
   return (
     <Link to={to} className="flex items-center gap-4 rounded-2xl border bg-card p-4 hover:shadow-sm">
       <span className="rounded-full bg-secondary p-3 text-primary"><Icon className="h-5 w-5" /></span>
