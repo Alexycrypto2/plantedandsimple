@@ -1299,6 +1299,165 @@ export type Database = {
           },
         ]
       }
+      prep_favorites: {
+        Row: {
+          created_at: string
+          recipe_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          recipe_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          recipe_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      prep_meal_plans: {
+        Row: {
+          created_at: string
+          grocery_checked: string[]
+          id: string
+          is_current: boolean
+          name: string
+          prep_done: string[]
+          slots: Json
+          source: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          grocery_checked?: string[]
+          id?: string
+          is_current?: boolean
+          name?: string
+          prep_done?: string[]
+          slots?: Json
+          source?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          grocery_checked?: string[]
+          id?: string
+          is_current?: boolean
+          name?: string
+          prep_done?: string[]
+          slots?: Json
+          source?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      prep_members: {
+        Row: {
+          created_at: string
+          email: string
+          granted_by: string | null
+          id: string
+          last_seen_at: string | null
+          note: string | null
+          source: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          granted_by?: string | null
+          id?: string
+          last_seen_at?: string | null
+          note?: string | null
+          source?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          granted_by?: string | null
+          id?: string
+          last_seen_at?: string | null
+          note?: string | null
+          source?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      prep_pantry_items: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      prep_profiles: {
+        Row: {
+          allergies: string[]
+          budget: string | null
+          created_at: string
+          dislikes: string[]
+          display_name: string | null
+          goal: string | null
+          id: string
+          onboarded: boolean
+          prep_day: string | null
+          protein_target: number
+          servings: number
+          updated_at: string
+        }
+        Insert: {
+          allergies?: string[]
+          budget?: string | null
+          created_at?: string
+          dislikes?: string[]
+          display_name?: string | null
+          goal?: string | null
+          id: string
+          onboarded?: boolean
+          prep_day?: string | null
+          protein_target?: number
+          servings?: number
+          updated_at?: string
+        }
+        Update: {
+          allergies?: string[]
+          budget?: string | null
+          created_at?: string
+          dislikes?: string[]
+          display_name?: string | null
+          goal?: string | null
+          id?: string
+          onboarded?: boolean
+          prep_day?: string | null
+          protein_target?: number
+          servings?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       prep_purchases: {
         Row: {
           created_at: string
