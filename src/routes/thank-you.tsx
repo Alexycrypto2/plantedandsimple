@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import cookbookMockup from "@/assets/cookbook-mockup.jpg";
+import prepSystemCover from "@/assets/prep-system-cover.jpg";
 import { verifyCookbookPayment } from "@/lib/payments.functions";
 import { getPaddleEnvironment } from "@/lib/paddle";
 import { ReviewForm } from "@/components/ReviewForm";
@@ -36,7 +37,12 @@ export const Route = createFileRoute("/thank-you")({
 
 type State =
   | { status: "checking" }
-  | { status: "paid"; email: string | null; transactionId: string }
+  | {
+      status: "paid";
+      email: string | null;
+      transactionId: string;
+      product: "cookbook" | "prep";
+    }
   | { status: "unpaid"; reason: string }
   | { status: "no_session" };
 
@@ -56,7 +62,12 @@ function ThankYou() {
         });
         if (cancelled) return;
         if (res.paid) {
-          setState({ status: "paid", email: res.email, transactionId });
+          setState({
+            status: "paid",
+            email: res.email,
+            transactionId,
+            product: res.product,
+          });
         } else {
           setState({ status: "unpaid", reason: res.reason });
         }
@@ -89,7 +100,11 @@ function ThankYou() {
         <div className="rounded-[2.5rem] bg-white p-8 text-center shadow-[var(--shadow-card)] ring-1 ring-forest/10 md:p-14">
           {state.status === "checking" && <CheckingView />}
           {state.status === "paid" && (
-            <PaidView email={state.email} transactionId={state.transactionId} />
+            <PaidView
+              email={state.email}
+              transactionId={state.transactionId}
+              product={state.product}
+            />
           )}
           {state.status === "unpaid" && <UnpaidView reason={state.reason} />}
           {state.status === "no_session" && <NoSessionView />}
@@ -125,6 +140,19 @@ function CheckingView() {
 }
 
 function PaidView({
+  email,
+  transactionId,
+  product,
+}: {
+  email: string | null;
+  transactionId: string;
+  product: "cookbook" | "prep";
+}) {
+  if (product === "prep") return <PrepPaidView email={email} />;
+  return <CookbookPaidView email={email} transactionId={transactionId} />;
+}
+
+function CookbookPaidView({
   email,
   transactionId,
 }: {
@@ -222,6 +250,101 @@ function PaidView({
           <ReviewForm transactionId={transactionId} />
         </div>
       )}
+
+      <div className="mt-10 rounded-3xl border border-forest/15 bg-cream-warm/70 p-6 text-center sm:p-8">
+        <p className="font-mono text-[11px] font-semibold uppercase tracking-widest text-sage">
+          Planning upgrade
+        </p>
+        <h3 className="mt-2 font-display text-2xl italic text-forest-deep">
+          One step almost every cookbook buyer adds
+        </h3>
+        <p className="mx-auto mt-2 max-w-md text-sm text-charcoal/70">
+          The Plant-Based Meal Prep &amp; Kitchen System turns your cookbook
+          into full weeks of meals — one plan, one grocery list, one calm prep
+          session. Launch price:{" "}
+          <strong className="text-charcoal">$27</strong>{" "}
+          <span className="line-through opacity-60">$54</span>.
+        </p>
+        <a
+          href="/prep"
+          className="mt-5 inline-flex items-center justify-center rounded-full bg-forest px-8 py-3 text-sm font-semibold text-cream shadow-sm transition hover:bg-forest-deep"
+        >
+          See the Meal Prep System — save 50%
+        </a>
+      </div>
+
+      <a
+        href="/"
+        className="mt-10 inline-block font-mono text-[11px] font-semibold uppercase tracking-widest text-charcoal/50 hover:text-forest"
+      >
+        ← Back to home
+      </a>
+    </>
+  );
+}
+
+function PrepPaidView({ email }: { email: string | null }) {
+  return (
+    <>
+      <div className="mx-auto grid size-16 place-items-center rounded-full bg-sage/20 text-forest">
+        <svg
+          viewBox="0 0 24 24"
+          className="h-8 w-8 fill-none stroke-forest stroke-[2.5]"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="M5 12l5 5 9-11" />
+        </svg>
+      </div>
+      <p className="mt-6 font-mono text-[11px] font-semibold uppercase tracking-[0.28em] text-sage">
+        Payment confirmed
+      </p>
+      <h1 className="mt-3 font-display text-4xl italic text-forest-deep sm:text-5xl">
+        Your Meal Prep System is confirmed!
+      </h1>
+      <p className="mx-auto mt-4 max-w-md text-charcoal/70">
+        Your purchase is confirmed and your access is being set up now. We'll
+        email your personal access link
+        {email && (
+          <>
+            {" "}
+            to <strong className="text-charcoal">{email}</strong>
+          </>
+        )}{" "}
+        the moment it's live. Keep this page — it's your receipt.
+      </p>
+
+      <img
+        src={prepSystemCover}
+        alt="Plant-Based Meal Prep & Kitchen System"
+        width={800}
+        height={1000}
+        loading="lazy"
+        className="mx-auto mt-10 w-48 rounded-2xl shadow-xl ring-1 ring-forest/10"
+      />
+
+      <div className="mt-10 rounded-2xl border border-sage/20 bg-cream/60 p-6 text-left">
+        <p className="font-mono text-[11px] font-semibold uppercase tracking-widest text-sage">
+          What's waiting for you
+        </p>
+        <ul className="mt-3 space-y-2 text-sm text-charcoal/75">
+          <li>• 7-day drag-and-drop planner with live protein &amp; calories</li>
+          <li>• One grocery list, scaled by servings, grouped by aisle</li>
+          <li>• Kitchen batch-cooking mode with timers &amp; storage notes</li>
+          <li>• Pantry tracker + 4 ready-made weekly plans</li>
+          <li>• 30 connected plant-based recipes</li>
+        </ul>
+      </div>
+
+      <a
+        href="/prep"
+        className="mt-10 inline-flex items-center justify-center gap-2 rounded-full bg-forest px-10 py-5 text-lg font-bold text-cream shadow-xl transition-all hover:-translate-y-0.5 hover:bg-forest-deep"
+      >
+        Revisit the Meal Prep System →
+      </a>
+      <p className="mt-4 font-mono text-[11px] uppercase tracking-widest text-charcoal/50">
+        Questions? Reply to your receipt email — support@primedownloads.store
+      </p>
 
       <a
         href="/"

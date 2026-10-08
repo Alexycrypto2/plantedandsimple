@@ -13,3 +13,4 @@
 - Product sales pages use a bundled visual story (mockup first, then product-in-use photography) rather than PDF screenshots so the gallery communicates the customer outcome before the document format.
 - Keep account recovery on a public TanStack route so reset links can work before the user is signed in.
 - Keep customer-facing product previews as public leaf routes under `src/routes`, using `SiteLayout` and bundled, browser-safe assets so they render consistently across hosts.
+- Meal Prep System sales are routed by the webhook's `productSlug` into `prep_purchases` (not `cookbook_downloads`); access to the interactive tools is granted only after server-verified payment against that table — never open registration.
