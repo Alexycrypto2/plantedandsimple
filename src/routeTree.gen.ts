@@ -53,6 +53,7 @@ import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/em
 import { Route as AuthenticatedPrepAppRecipesIndexRouteImport } from './routes/_authenticated/prep-app.recipes.index'
 import { Route as AuthenticatedPrepAppRecipesIdRouteImport } from './routes/_authenticated/prep-app.recipes.$id'
 import { Route as ApiPublicDownloadCookbookRouteImport } from './routes/api/public/download/cookbook'
+import { Route as ApiPublicDownloadPlanningKitRouteImport } from './routes/api/public/download/planning-kit'
 import { Route as ApiPublicImgSplatRouteImport } from './routes/api/public/img/$'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
 import { Route as ApiPublicPinterestPublishDueRouteImport } from './routes/api/public/pinterest/publish-due'
@@ -294,6 +295,12 @@ const ApiPublicDownloadCookbookRoute =
     path: '/api/public/download/cookbook',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicDownloadPlanningKitRoute =
+  ApiPublicDownloadPlanningKitRouteImport.update({
+    id: '/api/public/download/planning-kit',
+    path: '/api/public/download/planning-kit',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicImgSplatRoute = ApiPublicImgSplatRouteImport.update({
   id: '/api/public/img/$',
   path: '/api/public/img/$',
@@ -389,6 +396,7 @@ export interface FileRoutesByFullPath {
   '/prep-app/': typeof AuthenticatedPrepAppIndexRoute
   '/prep-app/recipes/$id': typeof AuthenticatedPrepAppRecipesIdRoute
   '/api/public/download/cookbook': typeof ApiPublicDownloadCookbookRoute
+  '/api/public/download/planning-kit': typeof ApiPublicDownloadPlanningKitRoute
   '/api/public/img/$': typeof ApiPublicImgSplatRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/public/pinterest/publish-due': typeof ApiPublicPinterestPublishDueRoute
@@ -439,6 +447,7 @@ export interface FileRoutesByTo {
   '/prep-app': typeof AuthenticatedPrepAppIndexRoute
   '/prep-app/recipes/$id': typeof AuthenticatedPrepAppRecipesIdRoute
   '/api/public/download/cookbook': typeof ApiPublicDownloadCookbookRoute
+  '/api/public/download/planning-kit': typeof ApiPublicDownloadPlanningKitRoute
   '/api/public/img/$': typeof ApiPublicImgSplatRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/public/pinterest/publish-due': typeof ApiPublicPinterestPublishDueRoute
@@ -495,6 +504,7 @@ export interface FileRoutesById {
   '/_authenticated/prep-app/': typeof AuthenticatedPrepAppIndexRoute
   '/_authenticated/prep-app/recipes/$id': typeof AuthenticatedPrepAppRecipesIdRoute
   '/api/public/download/cookbook': typeof ApiPublicDownloadCookbookRoute
+  '/api/public/download/planning-kit': typeof ApiPublicDownloadPlanningKitRoute
   '/api/public/img/$': typeof ApiPublicImgSplatRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/public/pinterest/publish-due': typeof ApiPublicPinterestPublishDueRoute
@@ -551,6 +561,7 @@ export interface FileRouteTypes {
     | '/prep-app/'
     | '/prep-app/recipes/$id'
     | '/api/public/download/cookbook'
+    | '/api/public/download/planning-kit'
     | '/api/public/img/$'
     | '/api/public/payments/webhook'
     | '/api/public/pinterest/publish-due'
@@ -601,6 +612,7 @@ export interface FileRouteTypes {
     | '/prep-app'
     | '/prep-app/recipes/$id'
     | '/api/public/download/cookbook'
+    | '/api/public/download/planning-kit'
     | '/api/public/img/$'
     | '/api/public/payments/webhook'
     | '/api/public/pinterest/publish-due'
@@ -656,6 +668,7 @@ export interface FileRouteTypes {
     | '/_authenticated/prep-app/'
     | '/_authenticated/prep-app/recipes/$id'
     | '/api/public/download/cookbook'
+    | '/api/public/download/planning-kit'
     | '/api/public/img/$'
     | '/api/public/payments/webhook'
     | '/api/public/pinterest/publish-due'
@@ -693,6 +706,7 @@ export interface RootRouteChildren {
   PSlugRoute: typeof PSlugRoute
   LovableEmailSuppressionRoute: typeof LovableEmailSuppressionRoute
   ApiPublicDownloadCookbookRoute: typeof ApiPublicDownloadCookbookRoute
+  ApiPublicDownloadPlanningKitRoute: typeof ApiPublicDownloadPlanningKitRoute
   ApiPublicImgSplatRoute: typeof ApiPublicImgSplatRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
   ApiPublicPinterestPublishDueRoute: typeof ApiPublicPinterestPublishDueRoute
@@ -1014,6 +1028,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicDownloadCookbookRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/download/planning-kit': {
+      id: '/api/public/download/planning-kit'
+      path: '/api/public/download/planning-kit'
+      fullPath: '/api/public/download/planning-kit'
+      preLoaderRoute: typeof ApiPublicDownloadPlanningKitRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/img/$': {
       id: '/api/public/img/$'
       path: '/api/public/img/$'
@@ -1188,6 +1209,7 @@ const rootRouteChildren: RootRouteChildren = {
   PSlugRoute: PSlugRoute,
   LovableEmailSuppressionRoute: LovableEmailSuppressionRoute,
   ApiPublicDownloadCookbookRoute: ApiPublicDownloadCookbookRoute,
+  ApiPublicDownloadPlanningKitRoute: ApiPublicDownloadPlanningKitRoute,
   ApiPublicImgSplatRoute: ApiPublicImgSplatRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
   ApiPublicPinterestPublishDueRoute: ApiPublicPinterestPublishDueRoute,
