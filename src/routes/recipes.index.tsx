@@ -70,7 +70,7 @@ function RecipesIndex() {
         ) : null}
 
         {filtered.length ? (
-          <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-10 grid grid-cols-2 gap-3 sm:mt-12 sm:gap-6 lg:grid-cols-3">
             {filtered.map((r, i) => (
               <Reveal key={r.id} delay={i * 60}>
                 <EditorialCard

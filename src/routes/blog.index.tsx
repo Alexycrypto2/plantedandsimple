@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { FALLBACK_POSTS } from "@/lib/fallback-content";
 import { SiteLayout } from "@/components/SiteLayout";
 import { listPublishedPosts, type PublicPost } from "@/lib/blog.functions";
+import { EditorialCard } from "@/components/site/primitives";
 
 export const Route = createFileRoute("/blog/")({
   component: BlogPage,
