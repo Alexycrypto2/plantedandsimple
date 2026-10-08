@@ -10,7 +10,7 @@ import prepSystemCover from "@/assets/prep-system-cover.jpg";
 const PRICE_CENTS = 2700;
 const COMPARE_CENTS = 5400;
 const COVER_URL =
-  "https://obxftbsvorxtpeyodbcs.supabase.co/storage/v1/object/public/media/products%2Fprep-system-cover.jpg";
+  "https://plantedandsimple.lovable.app/api/public/img/media/products/prep-system-cover.jpg";
 
 function getStoredAffiliateRef(): string | null {
   if (typeof window === "undefined") return null;
