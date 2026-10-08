@@ -50,22 +50,22 @@ function Planner() {
     write({ ...slots, [day]: { ...(slots[day] ?? {}), [slot]: id } });
   }
 
-  async function runAi() {
+  async function runAi(preset?: string) {
     setAiBusy(true);
     try {
       const p = profile.data;
       const res = await ai({ data: {
         goal: p?.goal ?? undefined, servings: p?.servings, dislikes: p?.dislikes ?? [], allergies: p?.allergies ?? [],
-        proteinTarget: p?.protein_target, pantry: (pantry.data ?? []).map((x) => x.name), note: aiNote || undefined,
+        proteinTarget: p?.protein_target, pantry: (pantry.data ?? []).map((x) => x.name), note: [preset, aiNote].filter(Boolean).join(". ") || undefined,
       } });
-      if ("error" in res && res.error) { toast.error(res.error); return; }
+      if (!res || !("slots" in res) || !res.slots) { toast.error("Couldn't build a plan — try Cookbook weeks."); return; }
       if ("slots" in res && res.slots) {
         await write(res.slots as PlanSlots, { name: "Suggested week", source: "ai", reset: true });
         setAiReason(res.reason ?? null);
         setAiOpen(false);
         toast.success("Your suggested week is ready");
       }
-    } finally { setAiBusy(false); }
+    } catch { toast.error("Couldn't build a plan — try Cookbook weeks."); } finally { setAiBusy(false); }
   }
 
   const dayProtein = (d: Day) => SLOTS.reduce((s, k) => s + (slots[d]?.[k] ? RECIPE_BY_ID[slots[d]![k]!]?.nutrition.protein ?? 0 : 0), 0);
@@ -153,8 +153,20 @@ function Planner() {
         <DialogContent>
           <DialogHeader><DialogTitle className="font-display text-primary">Suggest a week</DialogTitle></DialogHeader>
           <p className="text-sm text-muted-foreground">We'll pick recipes from your cookbook only — using your preferences and what's in your pantry. You can swap anything after.</p>
+          <div className="grid grid-cols-2 gap-2">
+            {[
+              ["⚡ Under 25 mins", "Quick meals under 25 minutes"],
+              ["💪 Max protein", "Maximum protein, aim for 100g+ per day"],
+              ["🥣 Pantry clean-out", "Use up as much of my pantry as possible"],
+              ["🥗 Light & fresh", "Light and fresh meals"],
+            ].map(([label, preset]) => (
+              <button key={label} type="button" disabled={aiBusy} onClick={() => runAi(preset)}
+                className="rounded-xl border bg-card px-3 py-2.5 text-left text-sm font-semibold text-primary hover:border-primary disabled:opacity-60">{label}</button>
+            ))}
+          </div>
+          <p className="text-xs text-muted-foreground">Tap a quick pick to build instantly, or describe your week:</p>
           <Textarea placeholder="Anything for this week? e.g. quick dinners, use up chickpeas" value={aiNote} onChange={(e) => setAiNote(e.target.value)} maxLength={300} />
-          <button onClick={runAi} disabled={aiBusy} className="flex items-center justify-center gap-2 rounded-full bg-primary py-2.5 font-semibold text-primary-foreground disabled:opacity-60">
+          <button onClick={() => runAi()} disabled={aiBusy} className="flex items-center justify-center gap-2 rounded-full bg-primary py-2.5 font-semibold text-primary-foreground disabled:opacity-60">
             <Sparkles className="h-4 w-4" /> {aiBusy ? "Planning your week…" : "Build my week"}
           </button>
         </DialogContent>
