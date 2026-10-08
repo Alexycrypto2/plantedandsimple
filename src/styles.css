@@ -45,6 +45,7 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+  --color-gold: var(--gold);
   --color-ring-offset-background: var(--background);
   --color-chart-1: var(--chart-1);
   --color-chart-2: var(--chart-2);
@@ -77,6 +78,7 @@
 
 :root {
   --radius: 0.625rem;
+  --gold: oklch(0.72 0.12 75);
   /* Brand palette — PlantedAndSimple */
   --forest: #2e5e3b;
   --forest-deep: #234a2e;
@@ -564,3 +566,11 @@
 .article-body .article-cta p:last-child { margin-bottom: 0; }
 .article-body .article-product a,
 .article-body .article-cta a { color: inherit; font-weight: 700; }
+
+@utility eyebrow {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-gold);
+}

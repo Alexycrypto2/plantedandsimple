@@ -15,6 +15,13 @@
       "when": 1791480721560,
       "tag": "0001_create_prep_purchases",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1791481460694,
+      "tag": "0002_prep_system_members_and_tools",
+      "breakpoints": true
     }
   ]
 }

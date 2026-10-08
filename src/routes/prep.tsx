@@ -407,6 +407,10 @@ function PrepSalesPage() {
               hard feelings.
             </p>
             <BuyButton label="Start your 60 days — $27" cta="guarantee" className="mt-8 bg-cream text-forest hover:bg-sage-soft hover:text-forest-deep" />
+            <p className="mt-5 text-sm text-cream/80">
+              Already bought it?{" "}
+              <a href="/auth?next=/prep-app" className="font-semibold underline">Sign in to open your Meal Prep System</a>
+            </p>
           </div>
         </section>
 

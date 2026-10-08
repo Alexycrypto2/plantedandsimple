@@ -229,7 +229,7 @@ async function handlePrepPurchase(
     return Response.json({ ok: true, suppressed: true });
   }
 
-  const accessUrl = `${PUBLIC_ORIGIN}/prep`;
+  const accessUrl = `${PUBLIC_ORIGIN}/auth?next=/prep-app`;
   const element = React.createElement(prepTemplate.component, {
     accessUrl,
     orderId: transactionId,
