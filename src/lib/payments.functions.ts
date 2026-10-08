@@ -25,9 +25,28 @@ export const resolvePaddlePrice = createServerFn({ method: "GET" })
     return json.data[0].id as string;
   });
 
+type PaidProduct = "cookbook" | "prep";
+
 type VerifyResult =
-  | { paid: true; email: string | null }
+  | { paid: true; email: string | null; product: PaidProduct }
   | { paid: false; reason: string };
+
+/**
+ * When a purchase is not recorded under cookbook_downloads it may be a
+ * Meal Prep System sale — the payments webhook records those in
+ * prep_purchases instead.
+ */
+async function isPrepPurchase(transactionId: string): Promise<boolean> {
+  const { supabaseAdmin } = await import(
+    "@/integrations/supabase/client.server"
+  );
+  const { data } = await supabaseAdmin
+    .from("prep_purchases")
+    .select("id")
+    .eq("transaction_id", transactionId)
+    .maybeSingle();
+  return Boolean(data);
+}
 
 /**
  * Verify a Paddle transaction is completed/paid before releasing content.
@@ -94,6 +113,9 @@ export const verifyCookbookPayment = createServerFn({ method: "POST" })
             .maybeSingle();
 
           if (!order) {
+            if (await isPrepPurchase(data.transactionId)) {
+              return { paid: true, email, product: "prep" };
+            }
             return {
               paid: false,
               reason:
@@ -130,6 +152,9 @@ export const verifyCookbookPayment = createServerFn({ method: "POST" })
             .maybeSingle();
 
           if (!order) {
+            if (await isPrepPurchase(data.transactionId)) {
+              return { paid: true, email, product: "prep" };
+            }
             return {
               paid: false,
               reason:
@@ -145,7 +170,7 @@ export const verifyCookbookPayment = createServerFn({ method: "POST" })
         }
       }
 
-      return { paid: true, email };
+      return { paid: true, email, product: "cookbook" };
     } catch (error) {
       return {
         paid: false,
