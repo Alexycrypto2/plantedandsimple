@@ -1,7 +1,8 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { RECIPES } from "@/prep-kit/data/recipes";
+import { RECIPES as BUILTIN } from "@/prep-kit/data/recipes";
+import type { Recipe } from "@/prep-kit/data/types";
 
 const Input = z.object({
   goal: z.string().max(60).optional(),
@@ -24,6 +25,9 @@ export const generateAiPlan = createServerFn({ method: "POST" })
     const resolved = await resolveGeminiKey();
     if (!resolved) return { error: "AI is not available right now." };
     const key = resolved.key;
+    const { loadPrepLibrary } = await import("@/lib/prep-library.server");
+    const lib = await loadPrepLibrary().catch(() => null);
+    const RECIPES: Recipe[] = lib ? [...(lib.builtinActive ? BUILTIN : []), ...lib.recipes] : BUILTIN;
 
     const byCat = (c: string) => RECIPES.filter((r) => r.category === c || (c !== "snack" && c !== "breakfast" && r.category === "meal-prep"));
     const ids = (c: string) => byCat(c).map((r) => r.id);
@@ -49,7 +53,7 @@ export const generateAiPlan = createServerFn({ method: "POST" })
       body: JSON.stringify({
         model: DEFAULT_GEMINI_TEXT_MODEL,
         messages: [
-          { role: "system", content: "You plan a week of meals using ONLY recipes from the PlantedAndSimple high-protein plant-based cookbook catalog provided. Never invent recipes. Avoid any recipe containing the user's allergies or dislikes. Favour recipes that use the user's pantry items, reuse shared ingredients across the week to reduce waste, and repeat batch/meal-prep recipes on consecutive days. Keep a short friendly reason (max 2 sentences), with no health claims." },
+          { role: "system", content: "You plan a week of meals using ONLY recipes from the PlantedAndSimple plant-based cookbook catalog provided. Never invent recipes. Avoid any recipe containing the user's allergies or dislikes. Favour recipes that use the user's pantry items, reuse shared ingredients across the week to reduce waste, and repeat batch/meal-prep recipes on consecutive days. Keep a short friendly reason (max 2 sentences), with no health claims." },
           { role: "user", content: `CATALOG:\n${catalog}\n\nUSER:\nGoal: ${data.goal ?? "high-protein"}\nServings: ${data.servings ?? 2}\nDaily protein target: ${data.proteinTarget ?? "not set"}\nDislikes: ${data.dislikes.join(", ") || "none"}\nAllergies: ${data.allergies.join(", ") || "none"}\nPantry: ${data.pantry.join(", ") || "unknown"}\nNote: ${data.note ?? ""}` },
         ],
         tools: [{
