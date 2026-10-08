@@ -17,6 +17,7 @@ export const NAV_META: Record<string, { label: string; icon: LucideIcon; group: 
   pinterest: { label: "Pinterest Studio", icon: ImageIcon, group: "Content" },
   campaigns: { label: "Campaign Center", icon: Rocket, group: "Growth" },
   products: { label: "Products", icon: Package, group: "Growth" },
+  "meal-prep": { label: "Meal Prep Members", icon: ChefHat, group: "Growth" },
   audience: { label: "Audience", icon: Users, group: "Growth" },
   approvals: { label: "Approval Queue", icon: CheckCircle2, group: "Growth" },
   analytics: { label: "Analytics", icon: TrendingUp, group: "Growth" },
