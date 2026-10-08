@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
-  LayoutDashboard, TrendingUp, Package, LibraryBig, ChefHat,
+  LayoutDashboard, TrendingUp, Package, LibraryBig, ChefHat, BookOpen,
   FileText, Sparkles, Image as ImageIcon, CheckCircle2, Settings2,
   Users, LogOut, ExternalLink, Search, X, Menu, Waves, Zap, Palette, Rocket,
   type LucideIcon,
