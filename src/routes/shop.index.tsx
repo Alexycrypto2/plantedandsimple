@@ -123,6 +123,22 @@ function ShopPage() {
             ))}
           </div>
         )}
+
+        <h2 className="mt-16 font-display text-3xl italic text-forest-deep">Planners &amp; systems</h2>
+        <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2">
+          <Link to="/prep" className="group rounded-2xl border border-forest/10 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-xl">
+            <p className="font-mono text-[11px] font-semibold uppercase tracking-widest text-sage">Interactive app</p>
+            <h3 className="mt-2 font-display text-2xl italic text-forest-deep">Meal Prep &amp; Kitchen System</h3>
+            <p className="mt-2 text-sm text-charcoal/70">Planner, smart grocery list and kitchen mode.</p>
+            <p className="mt-4 font-semibold text-forest-deep">$27 <span className="text-sm font-normal text-charcoal/40 line-through">$54</span></p>
+          </Link>
+          <Link to="/planning-kit" className="group rounded-2xl border border-forest/10 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-xl">
+            <p className="font-mono text-[11px] font-semibold uppercase tracking-widest text-sage">Printable PDF</p>
+            <h3 className="mt-2 font-display text-2xl italic text-forest-deep">Weekly Meal Planning Kit</h3>
+            <p className="mt-2 text-sm text-charcoal/70">12 printable pages to plan, shop and prep.</p>
+            <p className="mt-4 font-semibold text-forest-deep">$4.99 <span className="text-sm font-normal text-charcoal/40 line-through">$14.99</span></p>
+          </Link>
+        </div>
       </section>
     </SiteLayout>
   );
