@@ -1,14 +1,34 @@
-import L0 from "@/assets/cat-breakfast.jpg";
-import L1 from "@/assets/cat-desserts.jpg";
-import L2 from "@/assets/cat-dinners.jpg";
-import L3 from "@/assets/cat-protein.jpg";
-import L4 from "@/assets/recipe-lentil-bolognese.jpg";
-import L5 from "@/assets/recipe-protein-oats.jpg";
-import L6 from "@/assets/recipe-sesame-tofu.jpg";
-import L7 from "@/assets/recipe-smoothie-bowl.jpg";
-import L8 from "@/assets/recipe-tempeh-bowl.jpg";
-import L9 from "@/assets/home-ritual.jpg";
-const IMGS = [L0, L1, L2, L3, L4, L5, L6, L7, L8, L9];
+import img1 from "@/assets/recipes/p13.jpg.asset.json";
+import img2 from "@/assets/recipes/p15.jpg.asset.json";
+import img3 from "@/assets/recipes/p17.jpg.asset.json";
+import img4 from "@/assets/recipes/p19.jpg.asset.json";
+import img5 from "@/assets/recipes/p21.jpg.asset.json";
+import img6 from "@/assets/recipes/p23.jpg.asset.json";
+import img7 from "@/assets/recipes/p26.jpg.asset.json";
+import img8 from "@/assets/recipes/p28.jpg.asset.json";
+import img9 from "@/assets/recipes/p30.jpg.asset.json";
+import img10 from "@/assets/recipes/p32.jpg.asset.json";
+import img11 from "@/assets/recipes/p34.jpg.asset.json";
+import img12 from "@/assets/recipes/p36.jpg.asset.json";
+import img13 from "@/assets/recipes/p39.jpg.asset.json";
+import img14 from "@/assets/recipes/p41.jpg.asset.json";
+import img15 from "@/assets/recipes/p44.jpg.asset.json";
+import img16 from "@/assets/recipes/p46.jpg.asset.json";
+import img17 from "@/assets/recipes/p48.jpg.asset.json";
+import img18 from "@/assets/recipes/p50.jpg.asset.json";
+import img19 from "@/assets/recipes/p53.jpg.asset.json";
+import img20 from "@/assets/recipes/p55.jpg.asset.json";
+import img21 from "@/assets/recipes/p57.jpg.asset.json";
+import img22 from "@/assets/recipes/p59.jpg.asset.json";
+import img23 from "@/assets/recipes/p61.jpg.asset.json";
+import img24 from "@/assets/recipes/p63.jpg.asset.json";
+import img25 from "@/assets/recipes/p66.jpg.asset.json";
+import img26 from "@/assets/recipes/p68.jpg.asset.json";
+import img27 from "@/assets/recipes/p70.jpg.asset.json";
+import img28 from "@/assets/recipes/p72.jpg.asset.json";
+import img29 from "@/assets/recipes/p74.jpg.asset.json";
+import img30 from "@/assets/recipes/p76.jpg.asset.json";
+const IMGS = [img1.url, img2.url, img3.url, img4.url, img5.url, img6.url, img7.url, img8.url, img9.url, img10.url, img11.url, img12.url, img13.url, img14.url, img15.url, img16.url, img17.url, img18.url, img19.url, img20.url, img21.url, img22.url, img23.url, img24.url, img25.url, img26.url, img27.url, img28.url, img29.url, img30.url];
 // Source of truth: Plant & Simple V8 cookbook (30_High_Protein_Plant_Based_Meals_v8.pdf).
 // Extracted verbatim. Do not edit by hand without checking the PDF.
 import type { Recipe } from "./types";
@@ -81,7 +101,7 @@ export const RECIPES: Recipe[] = [
     "variations": "Add chopped spinach or mushrooms with the peppers."
   },
   "cookbookPage": 13,
-  "image": IMGS[1%10]
+  "image": IMGS[0]
 },
 {
   "id": "chocolate-peanut-butter-protein-oats",
@@ -144,7 +164,7 @@ export const RECIPES: Recipe[] = [
     "variations": "Make overnight oats: skip cooking, mix everything (except protein powder)."
   },
   "cookbookPage": 15,
-  "image": IMGS[2%10]
+  "image": IMGS[1]
 },
 {
   "id": "savory-chickpea-pancakes",
@@ -210,7 +230,7 @@ export const RECIPES: Recipe[] = [
     "variations": "Add 1/2 cup crumbled tofu to the batter for an extra 8 g protein."
   },
   "cookbookPage": 17,
-  "image": IMGS[3%10]
+  "image": IMGS[2]
 },
 {
   "id": "berry-almond-protein-smoothie-bowl",
@@ -268,7 +288,7 @@ export const RECIPES: Recipe[] = [
     "variations": "Add 1 cup spinach for a green version — you won't taste it."
   },
   "cookbookPage": 19,
-  "image": IMGS[4%10]
+  "image": IMGS[3]
 },
 {
   "id": "high-protein-tofu-breakfast-hash",
@@ -335,7 +355,7 @@ export const RECIPES: Recipe[] = [
     "variations": "Add 1 cup cooked black beans to bump protein to 30 g per serving."
   },
   "cookbookPage": 21,
-  "image": IMGS[5%10]
+  "image": IMGS[4]
 },
 {
   "id": "tempeh-bacon-avocado-toast",
@@ -400,7 +420,7 @@ export const RECIPES: Recipe[] = [
     "variations": "Layer in baby arugula and a thin smear of vegan cream chees e."
   },
   "cookbookPage": 23,
-  "image": IMGS[6%10]
+  "image": IMGS[5]
 },
 {
   "id": "mediterranean-chickpea-power-bowl",
@@ -464,7 +484,7 @@ export const RECIPES: Recipe[] = [
     "variations": "Top with cubed marinated tofu for an extra 12 g protein."
   },
   "cookbookPage": 26,
-  "image": IMGS[7%10]
+  "image": IMGS[6]
 },
 {
   "id": "smoky-tempeh-caesar-wrap",
@@ -524,7 +544,7 @@ export const RECIPES: Recipe[] = [
     "variations": "Use the dressing on grain bowls or roasted broccoli."
   },
   "cookbookPage": 28,
-  "image": IMGS[8%10]
+  "image": IMGS[7]
 },
 {
   "id": "lentil-walnut-meatball-subs",
@@ -593,7 +613,7 @@ export const RECIPES: Recipe[] = [
     "variations": "Add a slice of vegan mozzarella before broiling the open subs for 2 minutes."
   },
   "cookbookPage": 30,
-  "image": IMGS[9%10]
+  "image": IMGS[8]
 },
 {
   "id": "crispy-tofu-banh-mi-bowl",
@@ -655,7 +675,7 @@ export const RECIPES: Recipe[] = [
     "variations": "Add edamame for an extra 8 g protein."
   },
   "cookbookPage": 32,
-  "image": IMGS[10%10]
+  "image": IMGS[9]
 },
 {
   "id": "white-bean-tuna-less-salad",
@@ -719,7 +739,7 @@ export const RECIPES: Recipe[] = [
     "variations": "Add diced pickles or a teaspoon of relish for extra brightn ess."
   },
   "cookbookPage": 34,
-  "image": IMGS[11%10]
+  "image": IMGS[10]
 },
 {
   "id": "edamame-soba-noodle-salad",
@@ -778,7 +798,7 @@ export const RECIPES: Recipe[] = [
     "variations": "Add chili crisp or sriracha for heat."
   },
   "cookbookPage": 36,
-  "image": IMGS[12%10]
+  "image": IMGS[11]
 },
 {
   "id": "sticky-sesame-tofu-with-broccoli",
@@ -837,7 +857,7 @@ export const RECIPES: Recipe[] = [
     "variations": "Swap broccoli for snap peas, bok choy, or green beans."
   },
   "cookbookPage": 39,
-  "image": IMGS[13%10]
+  "image": IMGS[12]
 },
 {
   "id": "one-pot-lentil-bolognese",
@@ -905,7 +925,7 @@ export const RECIPES: Recipe[] = [
     "variations": "Add a handful of chopped mushrooms with the onions for extr a umami."
   },
   "cookbookPage": 41,
-  "image": IMGS[14%10]
+  "image": IMGS[13]
 },
 {
   "id": "bbq-tempeh-sweet-potato-bowls",
@@ -966,7 +986,7 @@ export const RECIPES: Recipe[] = [
     "variations": "Add black beans for an extra 8 g protein."
   },
   "cookbookPage": 44,
-  "image": IMGS[15%10]
+  "image": IMGS[14]
 },
 {
   "id": "tuscan-white-bean-skillet",
@@ -1033,7 +1053,7 @@ export const RECIPES: Recipe[] = [
     "variations": "Stir in cubed tofu or chickpeas for extra protein."
   },
   "cookbookPage": 46,
-  "image": IMGS[16%10]
+  "image": IMGS[15]
 },
 {
   "id": "spicy-peanut-tempeh-stir-fry",
@@ -1095,7 +1115,7 @@ export const RECIPES: Recipe[] = [
     "variations": "Add cubed pineapple for sweet-spicy contrast."
   },
   "cookbookPage": 48,
-  "image": IMGS[17%10]
+  "image": IMGS[16]
 },
 {
   "id": "seitan-steak-fajitas",
@@ -1153,7 +1173,7 @@ export const RECIPES: Recipe[] = [
     "variations": "Add jalapeños for extra heat."
   },
   "cookbookPage": 50,
-  "image": IMGS[18%10]
+  "image": IMGS[17]
 },
 {
   "id": "high-protein-burrito-bowls",
@@ -1219,7 +1239,7 @@ export const RECIPES: Recipe[] = [
     "variations": "Add a handful of roasted sweet potato cubes for extra fiber ."
   },
   "cookbookPage": 53,
-  "image": IMGS[19%10]
+  "image": IMGS[18]
 },
 {
   "id": "mediterranean-quinoa-jars",
@@ -1279,7 +1299,7 @@ export const RECIPES: Recipe[] = [
     "variations": "Swap cucumbers for shredded carrots in warmer months."
   },
   "cookbookPage": 55,
-  "image": IMGS[20%10]
+  "image": IMGS[19]
 },
 {
   "id": "lemon-herb-lentil-meal-prep",
@@ -1341,7 +1361,7 @@ export const RECIPES: Recipe[] = [
     "variations": "Add roasted chickpeas for an extra 8 g protein."
   },
   "cookbookPage": 57,
-  "image": IMGS[21%10]
+  "image": IMGS[20]
 },
 {
   "id": "buffalo-chickpea-wraps",
@@ -1401,7 +1421,7 @@ export const RECIPES: Recipe[] = [
     "variations": "Add sliced avocado for extra creaminess."
   },
   "cookbookPage": 59,
-  "image": IMGS[22%10]
+  "image": IMGS[21]
 },
 {
   "id": "sheet-pan-tofu-veggies",
@@ -1460,7 +1480,7 @@ export const RECIPES: Recipe[] = [
     "variations": "Drizzle with peanut sauce for a Thai-inspired version."
   },
   "cookbookPage": 61,
-  "image": IMGS[23%10]
+  "image": IMGS[22]
 },
 {
   "id": "curried-lentil-stew",
@@ -1528,7 +1548,7 @@ export const RECIPES: Recipe[] = [
     "variations": "Add cubed tofu in the last 5 minutes for extra protein."
   },
   "cookbookPage": 63,
-  "image": IMGS[24%10]
+  "image": IMGS[23]
 },
 {
   "id": "crispy-roasted-chickpeas",
@@ -1587,7 +1607,7 @@ export const RECIPES: Recipe[] = [
     "variations": "Try curry powder + lime zest for a fragrant twist."
   },
   "cookbookPage": 66,
-  "image": IMGS[25%10]
+  "image": IMGS[24]
 },
 {
   "id": "edamame-hummus-with-veggies",
@@ -1648,7 +1668,7 @@ export const RECIPES: Recipe[] = [
     "variations": "Add fresh basil and mint for a herby spring version."
   },
   "cookbookPage": 68,
-  "image": IMGS[26%10]
+  "image": IMGS[25]
 },
 {
   "id": "no-bake-peanut-butter-protein-bites",
@@ -1711,7 +1731,7 @@ export const RECIPES: Recipe[] = [
     "variations": "Add cocoa powder for a chocolate brownie version."
   },
   "cookbookPage": 70,
-  "image": IMGS[27%10]
+  "image": IMGS[26]
 },
 {
   "id": "tofu-jerky-strips",
@@ -1765,7 +1785,7 @@ export const RECIPES: Recipe[] = [
     "variations": "Add chili flakes or sriracha to marinade for spicy jerky."
   },
   "cookbookPage": 72,
-  "image": IMGS[28%10]
+  "image": IMGS[27]
 },
 {
   "id": "cottage-style-tofu-dip",
@@ -1827,7 +1847,7 @@ export const RECIPES: Recipe[] = [
     "variations": "Stir in everything-bagel seasoning for an instant flavor boost."
   },
   "cookbookPage": 74,
-  "image": IMGS[29%10]
+  "image": IMGS[28]
 },
 {
   "id": "chocolate-hemp-protein-bars",
@@ -1892,6 +1912,6 @@ export const RECIPES: Recipe[] = [
     "variations": "Add shredded coconut or chopped almonds for texture."
   },
   "cookbookPage": 76,
-  "image": IMGS[30%10]
+  "image": IMGS[29]
 }
 ];

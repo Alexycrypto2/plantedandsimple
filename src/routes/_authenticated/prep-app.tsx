@@ -5,6 +5,7 @@ import { Lock, Loader2 } from "lucide-react";
 import { getPrepAccess } from "@/lib/prep-access.functions";
 import { getPrepLibrary } from "@/lib/prep-library.functions";
 import { applyLibrary } from "@/prep-kit/data/library";
+import { AppShell } from "@/prep-kit/components/AppShell";
 
 export const Route = createFileRoute("/_authenticated/prep-app")({
   head: () => ({
@@ -37,7 +38,7 @@ function PrepGate() {
       </div>
     );
   }
-  if (q.data?.allowed) return <Outlet key={lib.dataUpdatedAt} />;
+  if (q.data?.allowed) return <AppShell><Outlet key={lib.dataUpdatedAt} /></AppShell>;
 
   return (
     <div className="grid min-h-screen place-items-center bg-background px-5">
