@@ -20,8 +20,10 @@ export const generateAiPlan = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => Input.parse(d))
   .handler(async ({ data }) => {
-    const key = process.env["LOVABLE_API_KEY"];
-    if (!key) return { error: "AI is not available right now." };
+    const { resolveGeminiKey, GEMINI_OPENAI_URL, DEFAULT_GEMINI_TEXT_MODEL } = await import("@/lib/ai/gateway.server");
+    const resolved = await resolveGeminiKey();
+    if (!resolved) return { error: "AI is not available right now." };
+    const key = resolved.key;
 
     const byCat = (c: string) => RECIPES.filter((r) => r.category === c || (c !== "snack" && c !== "breakfast" && r.category === "meal-prep"));
     const ids = (c: string) => byCat(c).map((r) => r.id);
@@ -41,11 +43,11 @@ export const generateAiPlan = createServerFn({ method: "POST" })
       additionalProperties: false,
     };
 
-    const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const res = await fetch(`${GEMINI_OPENAI_URL}/chat/completions`, {
       method: "POST",
       headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
+        model: DEFAULT_GEMINI_TEXT_MODEL,
         messages: [
           { role: "system", content: "You plan a week of meals using ONLY recipes from the PlantedAndSimple high-protein plant-based cookbook catalog provided. Never invent recipes. Avoid any recipe containing the user's allergies or dislikes. Favour recipes that use the user's pantry items, reuse shared ingredients across the week to reduce waste, and repeat batch/meal-prep recipes on consecutive days. Keep a short friendly reason (max 2 sentences), with no health claims." },
           { role: "user", content: `CATALOG:\n${catalog}\n\nUSER:\nGoal: ${data.goal ?? "high-protein"}\nServings: ${data.servings ?? 2}\nDaily protein target: ${data.proteinTarget ?? "not set"}\nDislikes: ${data.dislikes.join(", ") || "none"}\nAllergies: ${data.allergies.join(", ") || "none"}\nPantry: ${data.pantry.join(", ") || "unknown"}\nNote: ${data.note ?? ""}` },
