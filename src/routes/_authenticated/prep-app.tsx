@@ -3,6 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Lock, Loader2 } from "lucide-react";
 import { getPrepAccess } from "@/lib/prep-access.functions";
+import { getPrepLibrary } from "@/lib/prep-library.functions";
+import { applyLibrary } from "@/prep-kit/data/library";
 
 export const Route = createFileRoute("/_authenticated/prep-app")({
   head: () => ({
@@ -17,16 +19,25 @@ export const Route = createFileRoute("/_authenticated/prep-app")({
 
 function PrepGate() {
   const check = useServerFn(getPrepAccess);
+  const loadLib = useServerFn(getPrepLibrary);
   const q = useQuery({ queryKey: ["prep-access"], queryFn: () => check(), staleTime: 5 * 60_000 });
+  const lib = useQuery({
+    queryKey: ["prep-library"],
+    enabled: !!q.data?.allowed,
+    staleTime: 5 * 60_000,
+    queryFn: async () => {
+      try { const l = await loadLib(); applyLibrary(l); return l; } catch { return null; }
+    },
+  });
 
-  if (q.isLoading) {
+  if (q.isLoading || (q.data?.allowed && lib.isLoading)) {
     return (
       <div className="grid min-h-screen place-items-center bg-background">
         <Loader2 className="h-6 w-6 animate-spin text-primary" />
       </div>
     );
   }
-  if (q.data?.allowed) return <Outlet />;
+  if (q.data?.allowed) return <Outlet key={lib.dataUpdatedAt} />;
 
   return (
     <div className="grid min-h-screen place-items-center bg-background px-5">

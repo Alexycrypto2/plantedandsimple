@@ -11,6 +11,7 @@ export type LibraryCookbook = { slug: string; title: string; isBuiltin: boolean 
 export const COOKBOOKS: LibraryCookbook[] = [];
 
 export function applyLibrary(lib: { cookbooks: LibraryCookbook[]; builtinActive: boolean; recipes: Recipe[] }) {
+  lib.recipes.forEach((r, i) => { if (!r.image) r.image = BUILTIN[i % BUILTIN.length]!.image; });
   const next = [...(lib.builtinActive ? BUILTIN : []), ...lib.recipes];
   RECIPES.splice(0, RECIPES.length, ...next);
   for (const k of Object.keys(RECIPE_BY_ID)) delete RECIPE_BY_ID[k];
