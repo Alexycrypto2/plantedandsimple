@@ -138,15 +138,21 @@ export function EditorialCard({
     <Link
       to={to as any}
       params={params as any}
-      className="group block overflow-hidden rounded-[1.75rem] border border-forest/10 bg-white shadow-[var(--shadow-soft)] transition duration-500 hover:-translate-y-1 hover:shadow-[var(--shadow-card)]"
+      className="group flex h-full flex-col overflow-hidden rounded-2xl border border-forest/10 bg-white shadow-[var(--shadow-soft)] transition duration-500 hover:-translate-y-1 hover:shadow-[var(--shadow-card)] sm:rounded-[1.75rem]"
     >
-      <MediaImage src={image} alt={alt} ratio={ratio ?? "aspect-[4/3]"} />
-      <div className="p-6">
+      <MediaImage src={image} alt={alt} ratio={ratio ?? "aspect-square sm:aspect-[4/3]"} />
+      <div className="flex flex-1 flex-col p-3 sm:p-5 md:p-6">
         {eyebrow ? (
-          <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.24em] text-sage">{eyebrow}</p>
+          <p className="truncate font-mono text-[9px] font-semibold uppercase tracking-[0.2em] text-sage sm:text-[10px] sm:tracking-[0.24em]">
+            {eyebrow}
+          </p>
         ) : null}
-        <h3 className="mt-2 font-display text-2xl italic leading-snug text-forest-deep">{title}</h3>
-        {meta ? <p className="mt-2 text-sm text-charcoal/55">{meta}</p> : null}
+        <h3 className="mt-1 line-clamp-2 font-display text-base italic leading-snug text-forest-deep sm:mt-2 sm:text-xl md:text-2xl">
+          {title}
+        </h3>
+        {meta ? (
+          <p className="mt-1 line-clamp-2 text-[11px] leading-relaxed text-charcoal/55 sm:mt-2 sm:text-sm">{meta}</p>
+        ) : null}
       </div>
     </Link>
   );
