@@ -147,6 +147,8 @@ function HeroSection({ section }: { section: HomepageSection }) {
         alt="A plant-based meal styled on a warm linen table"
         width={1200}
         height={1600}
+        fetchPriority="high"
+        decoding="async"
         className="absolute inset-0 -z-10 h-full w-full object-cover transition-opacity duration-700"
       />
       <div className="absolute inset-0 -z-10 bg-gradient-to-r from-charcoal/80 via-charcoal/48 to-charcoal/15" />
