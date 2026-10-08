@@ -47,37 +47,18 @@ function BlogPage() {
             </Link>
           </div>
         ) : (
-          <div className="mt-14 grid grid-cols-1 gap-10 md:grid-cols-2">
+          <div className="mt-10 grid grid-cols-2 gap-3 sm:mt-14 sm:gap-6 lg:grid-cols-3">
             {posts.map((p) => (
-              <Link
+              <EditorialCard
                 key={p.id}
                 to="/blog/$slug"
                 params={{ slug: p.slug }}
-                className="group block"
-              >
-                <div className="mb-5 aspect-[4/3] overflow-hidden rounded-[2rem] bg-cream-warm">
-                  {p.featured_image_url ? (
-                    <img
-                      src={p.featured_image_url}
-                      alt={p.title}
-                      loading="lazy"
-                      className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
-                    />
-                  ) : (
-                    <div className="grid h-full w-full place-items-center text-charcoal/30">No image</div>
-                  )}
-                </div>
-                {p.category && (
-                  <span className="font-mono text-[10px] font-bold uppercase tracking-[0.25em] text-charcoal/50">
-                    {p.category}
-                  </span>
-                )}
-                <h2 className="mt-2 font-display text-2xl italic text-forest-deep">{p.title}</h2>
-                {p.excerpt && <p className="mt-3 text-sm leading-relaxed text-charcoal/60">{p.excerpt}</p>}
-                <span className="mt-4 inline-block text-[11px] font-bold uppercase tracking-[0.25em] text-forest">
-                  Read article →
-                </span>
-              </Link>
+                image={p.featured_image_url}
+                alt={p.title}
+                eyebrow={p.category}
+                title={p.title}
+                meta={p.excerpt}
+              />
             ))}
           </div>
         )}

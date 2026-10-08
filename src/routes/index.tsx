@@ -295,7 +295,7 @@ function RecipesSection({
           }
         />
       </Reveal>
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-3">
         {recipes.slice(0, limit).map((r, i) => (
           <Reveal key={r.id} delay={i * 80}>
             <EditorialCard
@@ -337,7 +337,7 @@ function BlogsSection({ section, posts }: { section: HomepageSection; posts: Pub
             }
           />
         </Reveal>
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-3">
           {posts.slice(0, limit).map((p, i) => (
             <Reveal key={p.id} delay={i * 80}>
               <EditorialCard
