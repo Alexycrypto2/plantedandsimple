@@ -18,6 +18,7 @@ import { Route as CheckoutRouteImport } from './routes/checkout'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as FreeRouteImport } from './routes/free'
 import { Route as FreeCookbookRouteImport } from './routes/free-cookbook'
+import { Route as PlanningKitRouteImport } from './routes/planning-kit'
 import { Route as PrepRouteImport } from './routes/prep'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as RecipesRouteImport } from './routes/recipes'
@@ -106,6 +107,11 @@ const FreeRoute = FreeRouteImport.update({
 const FreeCookbookRoute = FreeCookbookRouteImport.update({
   id: '/free-cookbook',
   path: '/free-cookbook',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PlanningKitRoute = PlanningKitRouteImport.update({
+  id: '/planning-kit',
+  path: '/planning-kit',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PrepRoute = PrepRouteImport.update({
@@ -362,6 +368,7 @@ export interface FileRoutesByFullPath {
   '/contact': typeof ContactRoute
   '/free': typeof FreeRoute
   '/free-cookbook': typeof FreeCookbookRoute
+  '/planning-kit': typeof PlanningKitRoute
   '/prep': typeof PrepRoute
   '/privacy': typeof PrivacyRoute
   '/recipes': typeof RecipesRouteWithChildren
@@ -416,6 +423,7 @@ export interface FileRoutesByTo {
   '/contact': typeof ContactRoute
   '/free': typeof FreeRoute
   '/free-cookbook': typeof FreeCookbookRoute
+  '/planning-kit': typeof PlanningKitRoute
   '/prep': typeof PrepRoute
   '/privacy': typeof PrivacyRoute
   '/refund': typeof RefundRoute
@@ -470,6 +478,7 @@ export interface FileRoutesById {
   '/contact': typeof ContactRoute
   '/free': typeof FreeRoute
   '/free-cookbook': typeof FreeCookbookRoute
+  '/planning-kit': typeof PlanningKitRoute
   '/prep': typeof PrepRoute
   '/privacy': typeof PrivacyRoute
   '/recipes': typeof RecipesRouteWithChildren
@@ -527,6 +536,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/free'
     | '/free-cookbook'
+    | '/planning-kit'
     | '/prep'
     | '/privacy'
     | '/recipes'
@@ -581,6 +591,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/free'
     | '/free-cookbook'
+    | '/planning-kit'
     | '/prep'
     | '/privacy'
     | '/refund'
@@ -634,6 +645,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/free'
     | '/free-cookbook'
+    | '/planning-kit'
     | '/prep'
     | '/privacy'
     | '/recipes'
@@ -691,6 +703,7 @@ export interface RootRouteChildren {
   ContactRoute: typeof ContactRoute
   FreeRoute: typeof FreeRoute
   FreeCookbookRoute: typeof FreeCookbookRoute
+  PlanningKitRoute: typeof PlanningKitRoute
   PrepRoute: typeof PrepRoute
   PrivacyRoute: typeof PrivacyRoute
   RecipesRoute: typeof RecipesRouteWithChildren
@@ -781,6 +794,13 @@ declare module '@tanstack/react-router' {
       path: '/free-cookbook'
       fullPath: '/free-cookbook'
       preLoaderRoute: typeof FreeCookbookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/planning-kit': {
+      id: '/planning-kit'
+      path: '/planning-kit'
+      fullPath: '/planning-kit'
+      preLoaderRoute: typeof PlanningKitRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/prep': {
@@ -1194,6 +1214,7 @@ const rootRouteChildren: RootRouteChildren = {
   ContactRoute: ContactRoute,
   FreeRoute: FreeRoute,
   FreeCookbookRoute: FreeCookbookRoute,
+  PlanningKitRoute: PlanningKitRoute,
   PrepRoute: PrepRoute,
   PrivacyRoute: PrivacyRoute,
   RecipesRoute: RecipesRouteWithChildren,
