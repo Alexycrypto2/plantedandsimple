@@ -45,6 +45,7 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+  --color-gold: var(--gold);
   --color-ring-offset-background: var(--background);
   --color-chart-1: var(--chart-1);
   --color-chart-2: var(--chart-2);
@@ -77,6 +78,7 @@
 
 :root {
   --radius: 0.625rem;
+  --gold: oklch(0.72 0.12 75);
   /* Brand palette — PlantedAndSimple */
   --forest: #2e5e3b;
   --forest-deep: #234a2e;

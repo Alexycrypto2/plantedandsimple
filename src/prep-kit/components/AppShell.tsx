@@ -18,7 +18,7 @@ const NAV = [
 
 export function Logo({ light = false }: { light?: boolean }) {
   return (
-    <span className={`font-display text-lg font-extrabold tracking-tight ${light ? "text-sidebar-foreground" : "text-primary"}`}>
+    <span className={`font-display text-lg font-extrabold tracking-tight ${light ? "text-primary-foreground" : "text-primary"}`}>
       Planted<span className="text-gold">&</span>Simple
     </span>
   );
@@ -31,26 +31,27 @@ export function AppShell({ children }: { children: ReactNode }) {
     await qc.cancelQueries();
     qc.clear();
     await supabase.auth.signOut();
-    navigate({ to: "/auth", replace: true });
+    navigate({ to: "/prep", replace: true });
   }
   return (
     <div className="min-h-screen md:pl-64">
-      <aside className="fixed inset-y-0 left-0 hidden w-64 flex-col bg-sidebar p-5 text-sidebar-foreground md:flex">
+      <aside className="fixed inset-y-0 left-0 hidden w-64 flex-col bg-primary p-5 text-primary-foreground md:flex">
         <Link to="/prep-app" className="mb-1"><Logo light /></Link>
-        <p className="mb-8 text-xs text-sidebar-foreground/70">Meal Prep Assistant</p>
+        <Link to="/" className="mb-6 text-xs text-primary-foreground/70 underline">← Back to the shop</Link>
+        <p className="mb-8 text-xs text-primary-foreground/70">Meal Prep Assistant</p>
         <nav className="flex flex-1 flex-col gap-1">
           {NAV.map((n) => (
             <Link
               key={n.to}
               to={n.to}
-              className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-sidebar-foreground/85 transition-colors hover:bg-sidebar-accent"
-              activeProps={{ className: "bg-sidebar-accent text-sidebar-foreground" }}
+              className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-primary-foreground/85 transition-colors hover:bg-primary-foreground/10"
+              activeProps={{ className: "bg-primary-foreground/15 text-primary-foreground" }}
             >
               <n.icon className="h-4 w-4" /> {n.label}
             </Link>
           ))}
         </nav>
-        <button onClick={signOut} className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-sidebar-foreground/80 hover:bg-sidebar-accent">
+        <button onClick={signOut} className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-primary-foreground/80 hover:bg-primary-foreground/10">
           <LogOut className="h-4 w-4" /> Sign out
         </button>
       </aside>

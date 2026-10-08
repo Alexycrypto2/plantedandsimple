@@ -30,6 +30,7 @@ import { Route as TermsRouteImport } from './routes/terms'
 import { Route as ThankYouRouteImport } from './routes/thank-you'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedAffiliateRouteImport } from './routes/_authenticated/affiliate'
+import { Route as AuthenticatedPrepAppRouteImport } from './routes/_authenticated/prep-app'
 import { Route as BlogIndexRouteImport } from './routes/blog.index'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as CollectionsSlugRouteImport } from './routes/collections.$slug'
@@ -166,6 +167,11 @@ const AuthenticatedAffiliateRoute = AuthenticatedAffiliateRouteImport.update({
   path: '/affiliate',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedPrepAppRoute = AuthenticatedPrepAppRouteImport.update({
+  id: '/prep-app',
+  path: '/prep-app',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const BlogIndexRoute = BlogIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -213,57 +219,57 @@ const ShopSlugRoute = ShopSlugRouteImport.update({
 } as any)
 const AuthenticatedPrepAppIndexRoute =
   AuthenticatedPrepAppIndexRouteImport.update({
-    id: '/prep-app/',
-    path: '/prep-app/',
-    getParentRoute: () => AuthenticatedRouteRoute,
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedPrepAppRoute,
   } as any)
 const AuthenticatedPrepAppGroceryRoute =
   AuthenticatedPrepAppGroceryRouteImport.update({
-    id: '/prep-app/grocery',
-    path: '/prep-app/grocery',
-    getParentRoute: () => AuthenticatedRouteRoute,
+    id: '/grocery',
+    path: '/grocery',
+    getParentRoute: () => AuthenticatedPrepAppRoute,
   } as any)
 const AuthenticatedPrepAppGuidesRoute =
   AuthenticatedPrepAppGuidesRouteImport.update({
-    id: '/prep-app/guides',
-    path: '/prep-app/guides',
-    getParentRoute: () => AuthenticatedRouteRoute,
+    id: '/guides',
+    path: '/guides',
+    getParentRoute: () => AuthenticatedPrepAppRoute,
   } as any)
 const AuthenticatedPrepAppKitchenRoute =
   AuthenticatedPrepAppKitchenRouteImport.update({
-    id: '/prep-app/kitchen',
-    path: '/prep-app/kitchen',
-    getParentRoute: () => AuthenticatedRouteRoute,
+    id: '/kitchen',
+    path: '/kitchen',
+    getParentRoute: () => AuthenticatedPrepAppRoute,
   } as any)
 const AuthenticatedPrepAppOnboardingRoute =
   AuthenticatedPrepAppOnboardingRouteImport.update({
-    id: '/prep-app/onboarding',
-    path: '/prep-app/onboarding',
-    getParentRoute: () => AuthenticatedRouteRoute,
+    id: '/onboarding',
+    path: '/onboarding',
+    getParentRoute: () => AuthenticatedPrepAppRoute,
   } as any)
 const AuthenticatedPrepAppPantryRoute =
   AuthenticatedPrepAppPantryRouteImport.update({
-    id: '/prep-app/pantry',
-    path: '/prep-app/pantry',
-    getParentRoute: () => AuthenticatedRouteRoute,
+    id: '/pantry',
+    path: '/pantry',
+    getParentRoute: () => AuthenticatedPrepAppRoute,
   } as any)
 const AuthenticatedPrepAppPlannerRoute =
   AuthenticatedPrepAppPlannerRouteImport.update({
-    id: '/prep-app/planner',
-    path: '/prep-app/planner',
-    getParentRoute: () => AuthenticatedRouteRoute,
+    id: '/planner',
+    path: '/planner',
+    getParentRoute: () => AuthenticatedPrepAppRoute,
   } as any)
 const AuthenticatedPrepAppPlansRoute =
   AuthenticatedPrepAppPlansRouteImport.update({
-    id: '/prep-app/plans',
-    path: '/prep-app/plans',
-    getParentRoute: () => AuthenticatedRouteRoute,
+    id: '/plans',
+    path: '/plans',
+    getParentRoute: () => AuthenticatedPrepAppRoute,
   } as any)
 const AuthenticatedPrepAppProfileRoute =
   AuthenticatedPrepAppProfileRouteImport.update({
-    id: '/prep-app/profile',
-    path: '/prep-app/profile',
-    getParentRoute: () => AuthenticatedRouteRoute,
+    id: '/profile',
+    path: '/profile',
+    getParentRoute: () => AuthenticatedPrepAppRoute,
   } as any)
 const LovableEmailSuppressionRoute = LovableEmailSuppressionRouteImport.update({
   id: '/lovable/email/suppression',
@@ -272,15 +278,15 @@ const LovableEmailSuppressionRoute = LovableEmailSuppressionRouteImport.update({
 } as any)
 const AuthenticatedPrepAppRecipesIndexRoute =
   AuthenticatedPrepAppRecipesIndexRouteImport.update({
-    id: '/prep-app/recipes/',
-    path: '/prep-app/recipes/',
-    getParentRoute: () => AuthenticatedRouteRoute,
+    id: '/recipes/',
+    path: '/recipes/',
+    getParentRoute: () => AuthenticatedPrepAppRoute,
   } as any)
 const AuthenticatedPrepAppRecipesIdRoute =
   AuthenticatedPrepAppRecipesIdRouteImport.update({
-    id: '/prep-app/recipes/$id',
-    path: '/prep-app/recipes/$id',
-    getParentRoute: () => AuthenticatedRouteRoute,
+    id: '/recipes/$id',
+    path: '/recipes/$id',
+    getParentRoute: () => AuthenticatedPrepAppRoute,
   } as any)
 const ApiPublicDownloadCookbookRoute =
   ApiPublicDownloadCookbookRouteImport.update({
@@ -361,6 +367,7 @@ export interface FileRoutesByFullPath {
   '/thank-you': typeof ThankYouRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/affiliate': typeof AuthenticatedAffiliateRoute
+  '/prep-app': typeof AuthenticatedPrepAppRouteWithChildren
   '/blog/$slug': typeof BlogSlugRoute
   '/collections/$slug': typeof CollectionsSlugRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
@@ -466,6 +473,7 @@ export interface FileRoutesById {
   '/thank-you': typeof ThankYouRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/affiliate': typeof AuthenticatedAffiliateRoute
+  '/_authenticated/prep-app': typeof AuthenticatedPrepAppRouteWithChildren
   '/blog/$slug': typeof BlogSlugRoute
   '/collections/$slug': typeof CollectionsSlugRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
@@ -521,6 +529,7 @@ export interface FileRouteTypes {
     | '/thank-you'
     | '/admin'
     | '/affiliate'
+    | '/prep-app'
     | '/blog/$slug'
     | '/collections/$slug'
     | '/email/unsubscribe'
@@ -625,6 +634,7 @@ export interface FileRouteTypes {
     | '/thank-you'
     | '/_authenticated/admin'
     | '/_authenticated/affiliate'
+    | '/_authenticated/prep-app'
     | '/blog/$slug'
     | '/collections/$slug'
     | '/email/unsubscribe'
@@ -843,6 +853,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAffiliateRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/prep-app': {
+      id: '/_authenticated/prep-app'
+      path: '/prep-app'
+      fullPath: '/prep-app'
+      preLoaderRoute: typeof AuthenticatedPrepAppRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/blog/': {
       id: '/blog/'
       path: '/'
@@ -908,66 +925,66 @@ declare module '@tanstack/react-router' {
     }
     '/_authenticated/prep-app/': {
       id: '/_authenticated/prep-app/'
-      path: '/prep-app'
+      path: '/'
       fullPath: '/prep-app/'
       preLoaderRoute: typeof AuthenticatedPrepAppIndexRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      parentRoute: typeof AuthenticatedPrepAppRoute
     }
     '/_authenticated/prep-app/grocery': {
       id: '/_authenticated/prep-app/grocery'
-      path: '/prep-app/grocery'
+      path: '/grocery'
       fullPath: '/prep-app/grocery'
       preLoaderRoute: typeof AuthenticatedPrepAppGroceryRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      parentRoute: typeof AuthenticatedPrepAppRoute
     }
     '/_authenticated/prep-app/guides': {
       id: '/_authenticated/prep-app/guides'
-      path: '/prep-app/guides'
+      path: '/guides'
       fullPath: '/prep-app/guides'
       preLoaderRoute: typeof AuthenticatedPrepAppGuidesRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      parentRoute: typeof AuthenticatedPrepAppRoute
     }
     '/_authenticated/prep-app/kitchen': {
       id: '/_authenticated/prep-app/kitchen'
-      path: '/prep-app/kitchen'
+      path: '/kitchen'
       fullPath: '/prep-app/kitchen'
       preLoaderRoute: typeof AuthenticatedPrepAppKitchenRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      parentRoute: typeof AuthenticatedPrepAppRoute
     }
     '/_authenticated/prep-app/onboarding': {
       id: '/_authenticated/prep-app/onboarding'
-      path: '/prep-app/onboarding'
+      path: '/onboarding'
       fullPath: '/prep-app/onboarding'
       preLoaderRoute: typeof AuthenticatedPrepAppOnboardingRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      parentRoute: typeof AuthenticatedPrepAppRoute
     }
     '/_authenticated/prep-app/pantry': {
       id: '/_authenticated/prep-app/pantry'
-      path: '/prep-app/pantry'
+      path: '/pantry'
       fullPath: '/prep-app/pantry'
       preLoaderRoute: typeof AuthenticatedPrepAppPantryRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      parentRoute: typeof AuthenticatedPrepAppRoute
     }
     '/_authenticated/prep-app/planner': {
       id: '/_authenticated/prep-app/planner'
-      path: '/prep-app/planner'
+      path: '/planner'
       fullPath: '/prep-app/planner'
       preLoaderRoute: typeof AuthenticatedPrepAppPlannerRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      parentRoute: typeof AuthenticatedPrepAppRoute
     }
     '/_authenticated/prep-app/plans': {
       id: '/_authenticated/prep-app/plans'
-      path: '/prep-app/plans'
+      path: '/plans'
       fullPath: '/prep-app/plans'
       preLoaderRoute: typeof AuthenticatedPrepAppPlansRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      parentRoute: typeof AuthenticatedPrepAppRoute
     }
     '/_authenticated/prep-app/profile': {
       id: '/_authenticated/prep-app/profile'
-      path: '/prep-app/profile'
+      path: '/profile'
       fullPath: '/prep-app/profile'
       preLoaderRoute: typeof AuthenticatedPrepAppProfileRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      parentRoute: typeof AuthenticatedPrepAppRoute
     }
     '/lovable/email/suppression': {
       id: '/lovable/email/suppression'
@@ -978,17 +995,17 @@ declare module '@tanstack/react-router' {
     }
     '/_authenticated/prep-app/recipes/': {
       id: '/_authenticated/prep-app/recipes/'
-      path: '/prep-app/recipes'
+      path: '/recipes'
       fullPath: '/prep-app/recipes/'
       preLoaderRoute: typeof AuthenticatedPrepAppRecipesIndexRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      parentRoute: typeof AuthenticatedPrepAppRoute
     }
     '/_authenticated/prep-app/recipes/$id': {
       id: '/_authenticated/prep-app/recipes/$id'
-      path: '/prep-app/recipes/$id'
+      path: '/recipes/$id'
       fullPath: '/prep-app/recipes/$id'
       preLoaderRoute: typeof AuthenticatedPrepAppRecipesIdRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      parentRoute: typeof AuthenticatedPrepAppRoute
     }
     '/api/public/download/cookbook': {
       id: '/api/public/download/cookbook'
@@ -1063,9 +1080,7 @@ declare module '@tanstack/react-router' {
   }
 }
 
-interface AuthenticatedRouteRouteChildren {
-  AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
-  AuthenticatedAffiliateRoute: typeof AuthenticatedAffiliateRoute
+interface AuthenticatedPrepAppRouteChildren {
   AuthenticatedPrepAppGroceryRoute: typeof AuthenticatedPrepAppGroceryRoute
   AuthenticatedPrepAppGuidesRoute: typeof AuthenticatedPrepAppGuidesRoute
   AuthenticatedPrepAppKitchenRoute: typeof AuthenticatedPrepAppKitchenRoute
@@ -1079,9 +1094,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedPrepAppRecipesIndexRoute: typeof AuthenticatedPrepAppRecipesIndexRoute
 }
 
-const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
-  AuthenticatedAdminRoute: AuthenticatedAdminRoute,
-  AuthenticatedAffiliateRoute: AuthenticatedAffiliateRoute,
+const AuthenticatedPrepAppRouteChildren: AuthenticatedPrepAppRouteChildren = {
   AuthenticatedPrepAppGroceryRoute: AuthenticatedPrepAppGroceryRoute,
   AuthenticatedPrepAppGuidesRoute: AuthenticatedPrepAppGuidesRoute,
   AuthenticatedPrepAppKitchenRoute: AuthenticatedPrepAppKitchenRoute,
@@ -1093,6 +1106,21 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedPrepAppIndexRoute: AuthenticatedPrepAppIndexRoute,
   AuthenticatedPrepAppRecipesIdRoute: AuthenticatedPrepAppRecipesIdRoute,
   AuthenticatedPrepAppRecipesIndexRoute: AuthenticatedPrepAppRecipesIndexRoute,
+}
+
+const AuthenticatedPrepAppRouteWithChildren =
+  AuthenticatedPrepAppRoute._addFileChildren(AuthenticatedPrepAppRouteChildren)
+
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
+  AuthenticatedAffiliateRoute: typeof AuthenticatedAffiliateRoute
+  AuthenticatedPrepAppRoute: typeof AuthenticatedPrepAppRouteWithChildren
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAdminRoute: AuthenticatedAdminRoute,
+  AuthenticatedAffiliateRoute: AuthenticatedAffiliateRoute,
+  AuthenticatedPrepAppRoute: AuthenticatedPrepAppRouteWithChildren,
 }
 
 const AuthenticatedRouteRouteWithChildren =
