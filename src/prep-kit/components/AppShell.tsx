@@ -5,15 +5,15 @@ import type { ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 const NAV = [
-  { to: "/dashboard", label: "Home", icon: Home, mobile: true },
-  { to: "/recipes", label: "Recipes", icon: BookOpen, mobile: true },
-  { to: "/planner", label: "Planner", icon: CalendarDays, mobile: true },
-  { to: "/grocery", label: "Grocery", icon: ShoppingBasket, mobile: true },
-  { to: "/prep", label: "Prep", icon: ChefHat, mobile: true },
-  { to: "/pantry", label: "Pantry", icon: Archive, mobile: false },
-  { to: "/plans", label: "Saved weeks", icon: CalendarDays, mobile: false },
-  { to: "/guides", label: "Guides & smoothies", icon: Lightbulb, mobile: false },
-  { to: "/profile", label: "Profile", icon: User, mobile: false },
+  { to: "/prep-app", label: "Home", icon: Home, mobile: true },
+  { to: "/prep-app/recipes", label: "Recipes", icon: BookOpen, mobile: true },
+  { to: "/prep-app/planner", label: "Planner", icon: CalendarDays, mobile: true },
+  { to: "/prep-app/grocery", label: "Grocery", icon: ShoppingBasket, mobile: true },
+  { to: "/prep-app/kitchen", label: "Prep", icon: ChefHat, mobile: true },
+  { to: "/prep-app/pantry", label: "Pantry", icon: Archive, mobile: false },
+  { to: "/prep-app/plans", label: "Saved weeks", icon: CalendarDays, mobile: false },
+  { to: "/prep-app/guides", label: "Guides & smoothies", icon: Lightbulb, mobile: false },
+  { to: "/prep-app/profile", label: "Profile", icon: User, mobile: false },
 ] as const;
 
 export function Logo({ light = false }: { light?: boolean }) {
@@ -36,7 +36,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen md:pl-64">
       <aside className="fixed inset-y-0 left-0 hidden w-64 flex-col bg-sidebar p-5 text-sidebar-foreground md:flex">
-        <Link to="/dashboard" className="mb-1"><Logo light /></Link>
+        <Link to="/prep-app" className="mb-1"><Logo light /></Link>
         <p className="mb-8 text-xs text-sidebar-foreground/70">Meal Prep Assistant</p>
         <nav className="flex flex-1 flex-col gap-1">
           {NAV.map((n) => (
@@ -56,12 +56,12 @@ export function AppShell({ children }: { children: ReactNode }) {
       </aside>
 
       <header className="sticky top-0 z-30 flex items-center justify-between border-b bg-background/90 px-4 py-3 backdrop-blur md:hidden">
-        <Link to="/dashboard"><Logo /></Link>
+        <Link to="/prep-app"><Logo /></Link>
         <div className="flex gap-1">
-          <Link to="/pantry" className="rounded-full p-2 text-primary" aria-label="Pantry"><Archive className="h-5 w-5" /></Link>
-          <Link to="/guides" className="rounded-full p-2 text-primary" aria-label="Guides"><Lightbulb className="h-5 w-5" /></Link>
-          <Link to="/recipes" search={{ fav: true }} className="rounded-full p-2 text-primary" aria-label="Favourites"><Heart className="h-5 w-5" /></Link>
-          <Link to="/profile" className="rounded-full p-2 text-primary" aria-label="Profile"><User className="h-5 w-5" /></Link>
+          <Link to="/prep-app/pantry" className="rounded-full p-2 text-primary" aria-label="Pantry"><Archive className="h-5 w-5" /></Link>
+          <Link to="/prep-app/guides" className="rounded-full p-2 text-primary" aria-label="Guides"><Lightbulb className="h-5 w-5" /></Link>
+          <Link to="/prep-app/recipes" search={{ fav: true }} className="rounded-full p-2 text-primary" aria-label="Favourites"><Heart className="h-5 w-5" /></Link>
+          <Link to="/prep-app/profile" className="rounded-full p-2 text-primary" aria-label="Profile"><User className="h-5 w-5" /></Link>
         </div>
       </header>
 

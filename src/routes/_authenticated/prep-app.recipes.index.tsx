@@ -1,14 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { Search } from "lucide-react";
-import { RECIPES } from "@/data/recipes";
-import { CATEGORY_LABEL } from "@/data/content";
-import { RecipeCard } from "@/components/RecipeCard";
-import { PageHeader, Empty } from "@/components/AppShell";
+import { RECIPES } from "@/prep-kit/data/recipes";
+import { CATEGORY_LABEL } from "@/prep-kit/data/content";
+import { RecipeCard } from "@/prep-kit/components/RecipeCard";
+import { PageHeader, Empty } from "@/prep-kit/components/AppShell";
 import { Input } from "@/components/ui/input";
-import { useFavorites } from "@/lib/data";
+import { useFavorites } from "@/prep-kit/lib/data";
 
-export const Route = createFileRoute("/_authenticated/recipes/")({
+export const Route = createFileRoute("/_authenticated/prep-app/recipes/")({
   head: () => ({ meta: [{ title: "Recipes — Planted & Simple" }, { name: "description", content: "All 30 high-protein plant-based recipes from the cookbook." }, { property: "og:title", content: "Recipes — Planted & Simple" }, { property: "og:description", content: "All 30 cookbook recipes." }] }),
   validateSearch: (s: Record<string, unknown>): { fav?: boolean } => (s["fav"] === true || s["fav"] === "true" ? { fav: true } : {}),
   component: Recipes,

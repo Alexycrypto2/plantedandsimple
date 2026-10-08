@@ -1,8 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { PageHeader } from "@/components/AppShell";
-import { ProfileForm } from "./onboarding";
+import { PageHeader } from "@/prep-kit/components/AppShell";
+import { ProfileForm } from "./prep-app.onboarding";
 
-export const Route = createFileRoute("/_authenticated/profile")({
+export const Route = createFileRoute("/_authenticated/prep-app/profile")({
   head: () => ({ meta: [{ title: "Profile — Planted & Simple" }, { name: "description", content: "Your preferences." }, { property: "og:title", content: "Profile — Planted & Simple" }, { property: "og:description", content: "Your preferences." }] }),
   component: () => (
     <div className="max-w-2xl">

@@ -1,11 +1,11 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { Copy, Trash2, Pencil } from "lucide-react";
-import { PageHeader, Empty } from "@/components/AppShell";
-import { useDeletePlan, usePlans, useSavePlan } from "@/lib/data";
-import { planRecipeCounts } from "@/lib/grocery";
+import { PageHeader, Empty } from "@/prep-kit/components/AppShell";
+import { useDeletePlan, usePlans, useSavePlan } from "@/prep-kit/lib/data";
+import { planRecipeCounts } from "@/prep-kit/lib/grocery";
 
-export const Route = createFileRoute("/_authenticated/plans")({
+export const Route = createFileRoute("/_authenticated/prep-app/plans")({
   head: () => ({ meta: [{ title: "Saved weeks — Planted & Simple" }, { name: "description", content: "Rename, repeat or delete past weeks." }, { property: "og:title", content: "Saved weeks — Planted & Simple" }, { property: "og:description", content: "Repeat weeks you loved." }] }),
   component: Plans,
 });
@@ -21,7 +21,7 @@ function Plans() {
     if (!p) return;
     await save.mutateAsync({ name: `${p.name} (again)`, slots: p.slots, source: p.source, is_current: true, grocery_checked: [], prep_done: [] });
     toast.success("Loaded as this week");
-    navigate({ to: "/planner" });
+    navigate({ to: "/prep-app/planner" });
   }
 
   return (

@@ -1,11 +1,11 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { useProfile, useUpdateProfile } from "@/lib/data";
+import { useProfile, useUpdateProfile } from "@/prep-kit/lib/data";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-export const Route = createFileRoute("/_authenticated/onboarding")({
+export const Route = createFileRoute("/_authenticated/prep-app/onboarding")({
   head: () => ({ meta: [{ title: "Set up — Planted & Simple" }, { name: "description", content: "Tell us how you like to eat." }, { property: "og:title", content: "Set up — Planted & Simple" }, { property: "og:description", content: "Tell us how you like to eat." }] }),
   component: Onboarding,
 });
@@ -62,7 +62,7 @@ function Onboarding() {
       <p className="eyebrow">Welcome</p>
       <h1 className="mt-1 text-3xl font-extrabold text-primary">Let's set up your kitchen</h1>
       <p className="mb-8 mt-2 text-muted-foreground">A few quick questions so suggestions fit the way you eat. You can change these any time.</p>
-      <ProfileForm submitLabel="Start planning" onDone={() => navigate({ to: "/planner" })} />
+      <ProfileForm submitLabel="Start planning" onDone={() => navigate({ to: "/prep-app/planner" })} />
     </div>
   );
 }

@@ -1,11 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { Check, Archive } from "lucide-react";
-import { PageHeader, Empty } from "@/components/AppShell";
-import { AISLES, buildGrocery, inPantry } from "@/lib/grocery";
-import { useCurrentPlan, usePantry, usePantryMutations, useSavePlan } from "@/lib/data";
+import { PageHeader, Empty } from "@/prep-kit/components/AppShell";
+import { AISLES, buildGrocery, inPantry } from "@/prep-kit/lib/grocery";
+import { useCurrentPlan, usePantry, usePantryMutations, useSavePlan } from "@/prep-kit/lib/data";
 
-export const Route = createFileRoute("/_authenticated/grocery")({
+export const Route = createFileRoute("/_authenticated/prep-app/grocery")({
   head: () => ({ meta: [{ title: "Grocery list — Planted & Simple" }, { name: "description", content: "Your week's shopping list, grouped by aisle." }, { property: "og:title", content: "Grocery list — Planted & Simple" }, { property: "og:description", content: "Shopping list grouped by aisle." }] }),
   component: Grocery,
 });
@@ -22,7 +22,7 @@ function Grocery() {
   const checked = new Set(plan.data?.grocery_checked ?? []);
 
   if (!plan.isLoading && (!plan.data || !items.length)) {
-    return (<><PageHeader eyebrow="Shop once" title="Grocery list" /><Empty title="Nothing to shop for yet">Add meals to your week and your list builds itself. <Link to="/planner" className="font-semibold text-primary underline">Open the planner</Link></Empty></>);
+    return (<><PageHeader eyebrow="Shop once" title="Grocery list" /><Empty title="Nothing to shop for yet">Add meals to your week and your list builds itself. <Link to="/prep-app/planner" className="font-semibold text-primary underline">Open the planner</Link></Empty></>);
   }
 
   function toggle(key: string) {

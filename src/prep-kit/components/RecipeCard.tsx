@@ -1,8 +1,8 @@
 import { Link } from "@tanstack/react-router";
 import { Heart, Clock, Snowflake } from "lucide-react";
-import type { Recipe } from "@/data/types";
-import { CATEGORY_LABEL } from "@/data/content";
-import { useFavorites, useToggleFavorite } from "@/lib/data";
+import type { Recipe } from "@/prep-kit/data/types";
+import { CATEGORY_LABEL } from "@/prep-kit/data/content";
+import { useFavorites, useToggleFavorite } from "@/prep-kit/lib/data";
 
 export function RecipeCard({ r }: { r: Recipe }) {
   const favs = useFavorites();
@@ -10,7 +10,7 @@ export function RecipeCard({ r }: { r: Recipe }) {
   const fav = favs.data?.has(r.id) ?? false;
   return (
     <div className="group relative overflow-hidden rounded-2xl border bg-card shadow-sm transition-shadow hover:shadow-md">
-      <Link to="/recipes/$id" params={{ id: r.id }} className="block">
+      <Link to="/prep-app/recipes/$id" params={{ id: r.id }} className="block">
         <div className="aspect-[4/3] overflow-hidden bg-muted">
           <img src={r.image} alt={r.title} loading="lazy" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
         </div>

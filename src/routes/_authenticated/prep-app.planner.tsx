@@ -3,16 +3,16 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Plus, Sparkles, RefreshCw, BookOpen, Save } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
-import { PageHeader } from "@/components/AppShell";
-import { RecipePicker } from "@/components/RecipePicker";
-import { COOKBOOK_PLANS, RECIPE_BY_ID } from "@/data/content";
-import { DAYS, DAY_LABEL, SLOTS, type Day, type PlanSlots, type Slot } from "@/data/types";
-import { useCurrentPlan, usePantry, useProfile, useSavePlan } from "@/lib/data";
-import { generateAiPlan } from "@/lib/ai.functions";
+import { PageHeader } from "@/prep-kit/components/AppShell";
+import { RecipePicker } from "@/prep-kit/components/RecipePicker";
+import { COOKBOOK_PLANS, RECIPE_BY_ID } from "@/prep-kit/data/content";
+import { DAYS, DAY_LABEL, SLOTS, type Day, type PlanSlots, type Slot } from "@/prep-kit/data/types";
+import { useCurrentPlan, usePantry, useProfile, useSavePlan } from "@/prep-kit/lib/data";
+import { generateAiPlan } from "@/prep-kit/lib/ai.functions";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 
-export const Route = createFileRoute("/_authenticated/planner")({
+export const Route = createFileRoute("/_authenticated/prep-app/planner")({
   head: () => ({ meta: [{ title: "Weekly planner — Planted & Simple" }, { name: "description", content: "Plan breakfast, lunch, dinner and snacks for the week." }, { property: "og:title", content: "Weekly planner — Planted & Simple" }, { property: "og:description", content: "Plan your plant-based week." }] }),
   component: Planner,
 });
@@ -76,7 +76,7 @@ function Planner() {
         <div className="flex flex-wrap gap-2">
           <button onClick={() => setStartOpen(true)} className="flex items-center gap-2 rounded-full border bg-card px-4 py-2 text-sm font-semibold text-primary"><BookOpen className="h-4 w-4" /> Cookbook weeks</button>
           <button onClick={() => setAiOpen(true)} className="flex items-center gap-2 rounded-full bg-gold px-4 py-2 text-sm font-semibold text-gold-foreground"><Sparkles className="h-4 w-4" /> Suggest a week</button>
-          {plan.data && <Link to="/plans" className="flex items-center gap-2 rounded-full border bg-card px-4 py-2 text-sm font-semibold text-primary"><Save className="h-4 w-4" /> Saved weeks</Link>}
+          {plan.data && <Link to="/prep-app/plans" className="flex items-center gap-2 rounded-full border bg-card px-4 py-2 text-sm font-semibold text-primary"><Save className="h-4 w-4" /> Saved weeks</Link>}
         </div>
       </PageHeader>
 
@@ -106,10 +106,10 @@ function Planner() {
                 const r = id ? RECIPE_BY_ID[id] : null;
                 return r ? (
                   <div key={s} className="group flex items-center gap-3 rounded-xl bg-muted/60 p-2">
-                    <Link to="/recipes/$id" params={{ id: r.id }}><img src={r.image} alt="" className="h-14 w-14 flex-none rounded-lg object-cover" /></Link>
+                    <Link to="/prep-app/recipes/$id" params={{ id: r.id }}><img src={r.image} alt="" className="h-14 w-14 flex-none rounded-lg object-cover" /></Link>
                     <div className="min-w-0 flex-1">
                       <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">{s}</p>
-                      <Link to="/recipes/$id" params={{ id: r.id }} className="line-clamp-2 text-sm font-semibold leading-snug text-primary">{r.title}</Link>
+                      <Link to="/prep-app/recipes/$id" params={{ id: r.id }} className="line-clamp-2 text-sm font-semibold leading-snug text-primary">{r.title}</Link>
                     </div>
                     <button onClick={() => setPicker({ day: d, slot: s })} className="rounded-full p-1.5 text-primary hover:bg-card" aria-label={`Swap ${s}`}><RefreshCw className="h-4 w-4" /></button>
                   </div>

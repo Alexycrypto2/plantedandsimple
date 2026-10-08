@@ -1,12 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { Check, Clock, Hand, Package, Play, Printer, Refrigerator, Snowflake, Layers } from "lucide-react";
-import { KitchenLiveMode } from "@/components/KitchenLiveMode";
-import { PageHeader, Empty } from "@/components/AppShell";
-import { buildPrepPlan, STATIONS, type PrepTask } from "@/lib/prep";
-import { useCurrentPlan, useProfile, useSavePlan } from "@/lib/data";
+import { KitchenLiveMode } from "@/prep-kit/components/KitchenLiveMode";
+import { PageHeader, Empty } from "@/prep-kit/components/AppShell";
+import { buildPrepPlan, STATIONS, type PrepTask } from "@/prep-kit/lib/prep";
+import { useCurrentPlan, useProfile, useSavePlan } from "@/prep-kit/lib/data";
 
-export const Route = createFileRoute("/_authenticated/prep")({
+export const Route = createFileRoute("/_authenticated/prep-app/kitchen")({
   head: () => ({ meta: [{ title: "Prep day — Planted & Simple" }, { name: "description", content: "Your station-by-station prep-day workflow with combined batch amounts." }, { property: "og:title", content: "Prep day — Planted & Simple" }, { property: "og:description", content: "Prep once, eat all week." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }] }),
   component: Prep,
 });
@@ -24,7 +24,7 @@ function Prep() {
   const done = new Set(plan.data?.prep_done ?? []);
 
   if (!plan.isLoading && (!p || p.batches.length === 0)) {
-    return (<><PageHeader eyebrow="Prep once" title="Prep day" /><Empty title="Plan a few meals first">Your prep-day workflow is built from this week's recipes. <Link to="/planner" className="font-semibold text-primary underline">Open the planner</Link></Empty></>);
+    return (<><PageHeader eyebrow="Prep once" title="Prep day" /><Empty title="Plan a few meals first">Your prep-day workflow is built from this week's recipes. <Link to="/prep-app/planner" className="font-semibold text-primary underline">Open the planner</Link></Empty></>);
   }
   if (!p) return null;
 

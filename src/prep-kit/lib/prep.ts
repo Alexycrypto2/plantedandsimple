@@ -1,5 +1,5 @@
-import { RECIPE_BY_ID } from "@/data/content";
-import { DAYS, SLOTS, type PlanSlots, type Recipe } from "@/data/types";
+import { RECIPE_BY_ID } from "@/prep-kit/data/content";
+import { DAYS, SLOTS, type PlanSlots, type Recipe } from "@/prep-kit/data/types";
 import { planRecipeCounts, splitIngredient } from "./grocery";
 
 /* ------------------------------------------------------------------ */

@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { RECIPES } from "@/data/recipes";
+import { RECIPES } from "@/prep-kit/data/recipes";
 
 const Input = z.object({
   goal: z.string().max(60).optional(),

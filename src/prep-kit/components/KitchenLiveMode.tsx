@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Check, ChevronLeft, ChevronRight, Pause, Play, Timer, X, Sun } from "lucide-react";
-import type { PrepTask } from "@/lib/prep";
+import type { PrepTask } from "@/prep-kit/lib/prep";
 
 interface RunningTimer { id: string; title: string; endsAt: number; pausedLeft?: number | undefined }
 const KEY = "ps-live-timers";

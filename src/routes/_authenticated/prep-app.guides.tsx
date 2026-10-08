@@ -1,9 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { PageHeader } from "@/components/AppShell";
-import { GUIDES, PROTEIN_CHEAT, SMOOTHIES } from "@/data/content";
+import { PageHeader } from "@/prep-kit/components/AppShell";
+import { GUIDES, PROTEIN_CHEAT, SMOOTHIES } from "@/prep-kit/data/content";
 
-export const Route = createFileRoute("/_authenticated/guides")({
+export const Route = createFileRoute("/_authenticated/prep-app/guides")({
   head: () => ({ meta: [{ title: "Guides & smoothies — Planted & Simple" }, { name: "description", content: "Protein cheat sheet, 15 smoothies, meal prep hacks and budget tips from the cookbook." }, { property: "og:title", content: "Guides & smoothies — Planted & Simple" }, { property: "og:description", content: "Bonus chapters from the cookbook." }] }),
   component: Guides,
 });

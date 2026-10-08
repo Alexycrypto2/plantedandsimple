@@ -1,11 +1,11 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useState } from "react";
 import { ArrowLeft, Heart, ChefHat, X, ChevronLeft, ChevronRight } from "lucide-react";
-import { RECIPE_BY_ID, CATEGORY_LABEL } from "@/data/content";
-import { useFavorites, useToggleFavorite } from "@/lib/data";
-import { swapSuggestions } from "@/components/RecipePicker";
+import { RECIPE_BY_ID, CATEGORY_LABEL } from "@/prep-kit/data/content";
+import { useFavorites, useToggleFavorite } from "@/prep-kit/lib/data";
+import { swapSuggestions } from "@/prep-kit/components/RecipePicker";
 
-export const Route = createFileRoute("/_authenticated/recipes/$id")({
+export const Route = createFileRoute("/_authenticated/prep-app/recipes/$id")({
   loader: ({ params }) => {
     const r = RECIPE_BY_ID[params.id];
     if (!r) throw notFound();
@@ -14,7 +14,7 @@ export const Route = createFileRoute("/_authenticated/recipes/$id")({
   head: ({ loaderData }) => loaderData
     ? { meta: [{ title: `${loaderData.r.title} — Planted & Simple` }, { name: "description", content: loaderData.r.description }, { property: "og:title", content: loaderData.r.title }, { property: "og:description", content: loaderData.r.description }] }
     : { meta: [{ title: "Recipe not found" }, { name: "robots", content: "noindex" }] },
-  notFoundComponent: () => <p className="text-muted-foreground">That recipe isn't in the cookbook. <Link to="/recipes" className="text-primary underline">Back to recipes</Link></p>,
+  notFoundComponent: () => <p className="text-muted-foreground">That recipe isn't in the cookbook. <Link to="/prep-app/recipes" className="text-primary underline">Back to recipes</Link></p>,
   errorComponent: () => <p className="text-muted-foreground">This recipe couldn't load.</p>,
   component: RecipeDetail,
 });
@@ -32,7 +32,7 @@ function RecipeDetail() {
   const n = r.nutrition;
   return (
     <article className="space-y-8">
-      <Link to="/recipes" className="inline-flex items-center gap-1 text-sm font-semibold text-primary"><ArrowLeft className="h-4 w-4" /> Recipes</Link>
+      <Link to="/prep-app/recipes" className="inline-flex items-center gap-1 text-sm font-semibold text-primary"><ArrowLeft className="h-4 w-4" /> Recipes</Link>
       <div className="grid gap-6 md:grid-cols-2">
         <img src={r.image} alt={r.title} className="aspect-[4/3] w-full rounded-2xl object-cover shadow-md" />
         <div>
@@ -105,7 +105,7 @@ function RecipeDetail() {
         <h2 className="mb-3 text-lg font-bold text-primary">Similar recipes</h2>
         <div className="grid gap-3 sm:grid-cols-3">
           {similar.map((s) => (
-            <Link key={s.id} to="/recipes/$id" params={{ id: s.id }} className="flex items-center gap-3 rounded-xl border bg-card p-2">
+            <Link key={s.id} to="/prep-app/recipes/$id" params={{ id: s.id }} className="flex items-center gap-3 rounded-xl border bg-card p-2">
               <img src={s.image} alt="" className="h-14 w-14 rounded-lg object-cover" />
               <div><p className="line-clamp-2 text-sm font-semibold text-primary">{s.title}</p><p className="text-xs text-muted-foreground">{s.nutrition.protein}g protein</p></div>
             </Link>

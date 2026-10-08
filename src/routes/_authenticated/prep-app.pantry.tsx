@@ -1,13 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { X } from "lucide-react";
-import { PageHeader } from "@/components/AppShell";
+import { PageHeader } from "@/prep-kit/components/AppShell";
 import { Input } from "@/components/ui/input";
-import { usePantry, usePantryMutations } from "@/lib/data";
-import { RECIPES } from "@/data/recipes";
-import { normalizeKey, splitIngredient } from "@/lib/grocery";
+import { usePantry, usePantryMutations } from "@/prep-kit/lib/data";
+import { RECIPES } from "@/prep-kit/data/recipes";
+import { normalizeKey, splitIngredient } from "@/prep-kit/lib/grocery";
 
-export const Route = createFileRoute("/_authenticated/pantry")({
+export const Route = createFileRoute("/_authenticated/prep-app/pantry")({
   head: () => ({ meta: [{ title: "Pantry — Planted & Simple" }, { name: "description", content: "What you already have, and what you can cook with it." }, { property: "og:title", content: "Pantry — Planted & Simple" }, { property: "og:description", content: "Use what you have." }] }),
   component: Pantry,
 });
@@ -67,7 +67,7 @@ function Pantry() {
           <p className="mb-3 text-sm text-muted-foreground">Cookbook recipes ranked by how many ingredients you already own.</p>
           <div className="grid gap-3 sm:grid-cols-2">
             {matches.map(({ r, have, total, missing }) => (
-              <Link key={r.id} to="/recipes/$id" params={{ id: r.id }} className="flex gap-3 rounded-2xl border bg-card p-3">
+              <Link key={r.id} to="/prep-app/recipes/$id" params={{ id: r.id }} className="flex gap-3 rounded-2xl border bg-card p-3">
                 <img src={r.image} alt="" className="h-16 w-16 flex-none rounded-lg object-cover" />
                 <div className="min-w-0">
                   <p className="font-semibold text-primary">{r.title}</p>

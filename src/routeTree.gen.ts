@@ -30,6 +30,7 @@ import { Route as TermsRouteImport } from './routes/terms'
 import { Route as ThankYouRouteImport } from './routes/thank-you'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedAffiliateRouteImport } from './routes/_authenticated/affiliate'
+import { Route as AuthenticatedPrepAppRouteRouteImport } from './routes/_authenticated/prep-app.route'
 import { Route as BlogIndexRouteImport } from './routes/blog.index'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as CollectionsSlugRouteImport } from './routes/collections.$slug'
@@ -39,7 +40,18 @@ import { Route as RecipesIndexRouteImport } from './routes/recipes.index'
 import { Route as RecipesSlugRouteImport } from './routes/recipes.$slug'
 import { Route as ShopIndexRouteImport } from './routes/shop.index'
 import { Route as ShopSlugRouteImport } from './routes/shop.$slug'
+import { Route as AuthenticatedPrepAppIndexRouteImport } from './routes/_authenticated/prep-app.index'
+import { Route as AuthenticatedPrepAppGroceryRouteImport } from './routes/_authenticated/prep-app.grocery'
+import { Route as AuthenticatedPrepAppGuidesRouteImport } from './routes/_authenticated/prep-app.guides'
+import { Route as AuthenticatedPrepAppKitchenRouteImport } from './routes/_authenticated/prep-app.kitchen'
+import { Route as AuthenticatedPrepAppOnboardingRouteImport } from './routes/_authenticated/prep-app.onboarding'
+import { Route as AuthenticatedPrepAppPantryRouteImport } from './routes/_authenticated/prep-app.pantry'
+import { Route as AuthenticatedPrepAppPlannerRouteImport } from './routes/_authenticated/prep-app.planner'
+import { Route as AuthenticatedPrepAppPlansRouteImport } from './routes/_authenticated/prep-app.plans'
+import { Route as AuthenticatedPrepAppProfileRouteImport } from './routes/_authenticated/prep-app.profile'
 import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/email/suppression'
+import { Route as AuthenticatedPrepAppRecipesIndexRouteImport } from './routes/_authenticated/prep-app.recipes.index'
+import { Route as AuthenticatedPrepAppRecipesIdRouteImport } from './routes/_authenticated/prep-app.recipes.$id'
 import { Route as ApiPublicDownloadCookbookRouteImport } from './routes/api/public/download/cookbook'
 import { Route as ApiPublicImgSplatRouteImport } from './routes/api/public/img/$'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
@@ -155,6 +167,12 @@ const AuthenticatedAffiliateRoute = AuthenticatedAffiliateRouteImport.update({
   path: '/affiliate',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedPrepAppRouteRoute =
+  AuthenticatedPrepAppRouteRouteImport.update({
+    id: '/prep-app',
+    path: '/prep-app',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const BlogIndexRoute = BlogIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -200,11 +218,77 @@ const ShopSlugRoute = ShopSlugRouteImport.update({
   path: '/$slug',
   getParentRoute: () => ShopRoute,
 } as any)
+const AuthenticatedPrepAppIndexRoute =
+  AuthenticatedPrepAppIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedPrepAppRouteRoute,
+  } as any)
+const AuthenticatedPrepAppGroceryRoute =
+  AuthenticatedPrepAppGroceryRouteImport.update({
+    id: '/grocery',
+    path: '/grocery',
+    getParentRoute: () => AuthenticatedPrepAppRouteRoute,
+  } as any)
+const AuthenticatedPrepAppGuidesRoute =
+  AuthenticatedPrepAppGuidesRouteImport.update({
+    id: '/guides',
+    path: '/guides',
+    getParentRoute: () => AuthenticatedPrepAppRouteRoute,
+  } as any)
+const AuthenticatedPrepAppKitchenRoute =
+  AuthenticatedPrepAppKitchenRouteImport.update({
+    id: '/kitchen',
+    path: '/kitchen',
+    getParentRoute: () => AuthenticatedPrepAppRouteRoute,
+  } as any)
+const AuthenticatedPrepAppOnboardingRoute =
+  AuthenticatedPrepAppOnboardingRouteImport.update({
+    id: '/onboarding',
+    path: '/onboarding',
+    getParentRoute: () => AuthenticatedPrepAppRouteRoute,
+  } as any)
+const AuthenticatedPrepAppPantryRoute =
+  AuthenticatedPrepAppPantryRouteImport.update({
+    id: '/pantry',
+    path: '/pantry',
+    getParentRoute: () => AuthenticatedPrepAppRouteRoute,
+  } as any)
+const AuthenticatedPrepAppPlannerRoute =
+  AuthenticatedPrepAppPlannerRouteImport.update({
+    id: '/planner',
+    path: '/planner',
+    getParentRoute: () => AuthenticatedPrepAppRouteRoute,
+  } as any)
+const AuthenticatedPrepAppPlansRoute =
+  AuthenticatedPrepAppPlansRouteImport.update({
+    id: '/plans',
+    path: '/plans',
+    getParentRoute: () => AuthenticatedPrepAppRouteRoute,
+  } as any)
+const AuthenticatedPrepAppProfileRoute =
+  AuthenticatedPrepAppProfileRouteImport.update({
+    id: '/profile',
+    path: '/profile',
+    getParentRoute: () => AuthenticatedPrepAppRouteRoute,
+  } as any)
 const LovableEmailSuppressionRoute = LovableEmailSuppressionRouteImport.update({
   id: '/lovable/email/suppression',
   path: '/lovable/email/suppression',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedPrepAppRecipesIndexRoute =
+  AuthenticatedPrepAppRecipesIndexRouteImport.update({
+    id: '/recipes/',
+    path: '/recipes/',
+    getParentRoute: () => AuthenticatedPrepAppRouteRoute,
+  } as any)
+const AuthenticatedPrepAppRecipesIdRoute =
+  AuthenticatedPrepAppRecipesIdRouteImport.update({
+    id: '/recipes/$id',
+    path: '/recipes/$id',
+    getParentRoute: () => AuthenticatedPrepAppRouteRoute,
+  } as any)
 const ApiPublicDownloadCookbookRoute =
   ApiPublicDownloadCookbookRouteImport.update({
     id: '/api/public/download/cookbook',
@@ -282,6 +366,7 @@ export interface FileRoutesByFullPath {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/thank-you': typeof ThankYouRoute
+  '/prep-app': typeof AuthenticatedPrepAppRouteRouteWithChildren
   '/admin': typeof AuthenticatedAdminRoute
   '/affiliate': typeof AuthenticatedAffiliateRoute
   '/blog/$slug': typeof BlogSlugRoute
@@ -293,7 +378,17 @@ export interface FileRoutesByFullPath {
   '/blog/': typeof BlogIndexRoute
   '/recipes/': typeof RecipesIndexRoute
   '/shop/': typeof ShopIndexRoute
+  '/prep-app/grocery': typeof AuthenticatedPrepAppGroceryRoute
+  '/prep-app/guides': typeof AuthenticatedPrepAppGuidesRoute
+  '/prep-app/kitchen': typeof AuthenticatedPrepAppKitchenRoute
+  '/prep-app/onboarding': typeof AuthenticatedPrepAppOnboardingRoute
+  '/prep-app/pantry': typeof AuthenticatedPrepAppPantryRoute
+  '/prep-app/planner': typeof AuthenticatedPrepAppPlannerRoute
+  '/prep-app/plans': typeof AuthenticatedPrepAppPlansRoute
+  '/prep-app/profile': typeof AuthenticatedPrepAppProfileRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
+  '/prep-app/': typeof AuthenticatedPrepAppIndexRoute
+  '/prep-app/recipes/$id': typeof AuthenticatedPrepAppRecipesIdRoute
   '/api/public/download/cookbook': typeof ApiPublicDownloadCookbookRoute
   '/api/public/img/$': typeof ApiPublicImgSplatRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
@@ -303,6 +398,7 @@ export interface FileRoutesByFullPath {
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
   '/lovable/email/transactional/send': typeof LovableEmailTransactionalSendRoute
+  '/prep-app/recipes/': typeof AuthenticatedPrepAppRecipesIndexRoute
   '/api/public/pinterest/oauth/callback': typeof ApiPublicPinterestOauthCallbackRoute
 }
 export interface FileRoutesByTo {
@@ -332,7 +428,17 @@ export interface FileRoutesByTo {
   '/blog': typeof BlogIndexRoute
   '/recipes': typeof RecipesIndexRoute
   '/shop': typeof ShopIndexRoute
+  '/prep-app/grocery': typeof AuthenticatedPrepAppGroceryRoute
+  '/prep-app/guides': typeof AuthenticatedPrepAppGuidesRoute
+  '/prep-app/kitchen': typeof AuthenticatedPrepAppKitchenRoute
+  '/prep-app/onboarding': typeof AuthenticatedPrepAppOnboardingRoute
+  '/prep-app/pantry': typeof AuthenticatedPrepAppPantryRoute
+  '/prep-app/planner': typeof AuthenticatedPrepAppPlannerRoute
+  '/prep-app/plans': typeof AuthenticatedPrepAppPlansRoute
+  '/prep-app/profile': typeof AuthenticatedPrepAppProfileRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
+  '/prep-app': typeof AuthenticatedPrepAppIndexRoute
+  '/prep-app/recipes/$id': typeof AuthenticatedPrepAppRecipesIdRoute
   '/api/public/download/cookbook': typeof ApiPublicDownloadCookbookRoute
   '/api/public/img/$': typeof ApiPublicImgSplatRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
@@ -342,6 +448,7 @@ export interface FileRoutesByTo {
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
   '/lovable/email/transactional/send': typeof LovableEmailTransactionalSendRoute
+  '/prep-app/recipes': typeof AuthenticatedPrepAppRecipesIndexRoute
   '/api/public/pinterest/oauth/callback': typeof ApiPublicPinterestOauthCallbackRoute
 }
 export interface FileRoutesById {
@@ -365,6 +472,7 @@ export interface FileRoutesById {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/thank-you': typeof ThankYouRoute
+  '/_authenticated/prep-app': typeof AuthenticatedPrepAppRouteRouteWithChildren
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/affiliate': typeof AuthenticatedAffiliateRoute
   '/blog/$slug': typeof BlogSlugRoute
@@ -376,7 +484,17 @@ export interface FileRoutesById {
   '/blog/': typeof BlogIndexRoute
   '/recipes/': typeof RecipesIndexRoute
   '/shop/': typeof ShopIndexRoute
+  '/_authenticated/prep-app/grocery': typeof AuthenticatedPrepAppGroceryRoute
+  '/_authenticated/prep-app/guides': typeof AuthenticatedPrepAppGuidesRoute
+  '/_authenticated/prep-app/kitchen': typeof AuthenticatedPrepAppKitchenRoute
+  '/_authenticated/prep-app/onboarding': typeof AuthenticatedPrepAppOnboardingRoute
+  '/_authenticated/prep-app/pantry': typeof AuthenticatedPrepAppPantryRoute
+  '/_authenticated/prep-app/planner': typeof AuthenticatedPrepAppPlannerRoute
+  '/_authenticated/prep-app/plans': typeof AuthenticatedPrepAppPlansRoute
+  '/_authenticated/prep-app/profile': typeof AuthenticatedPrepAppProfileRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
+  '/_authenticated/prep-app/': typeof AuthenticatedPrepAppIndexRoute
+  '/_authenticated/prep-app/recipes/$id': typeof AuthenticatedPrepAppRecipesIdRoute
   '/api/public/download/cookbook': typeof ApiPublicDownloadCookbookRoute
   '/api/public/img/$': typeof ApiPublicImgSplatRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
@@ -386,6 +504,7 @@ export interface FileRoutesById {
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
   '/lovable/email/transactional/send': typeof LovableEmailTransactionalSendRoute
+  '/_authenticated/prep-app/recipes/': typeof AuthenticatedPrepAppRecipesIndexRoute
   '/api/public/pinterest/oauth/callback': typeof ApiPublicPinterestOauthCallbackRoute
 }
 export interface FileRouteTypes {
@@ -409,6 +528,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/terms'
     | '/thank-you'
+    | '/prep-app'
     | '/admin'
     | '/affiliate'
     | '/blog/$slug'
@@ -420,7 +540,17 @@ export interface FileRouteTypes {
     | '/blog/'
     | '/recipes/'
     | '/shop/'
+    | '/prep-app/grocery'
+    | '/prep-app/guides'
+    | '/prep-app/kitchen'
+    | '/prep-app/onboarding'
+    | '/prep-app/pantry'
+    | '/prep-app/planner'
+    | '/prep-app/plans'
+    | '/prep-app/profile'
     | '/lovable/email/suppression'
+    | '/prep-app/'
+    | '/prep-app/recipes/$id'
     | '/api/public/download/cookbook'
     | '/api/public/img/$'
     | '/api/public/payments/webhook'
@@ -430,6 +560,7 @@ export interface FileRouteTypes {
     | '/lovable/email/queue/process'
     | '/lovable/email/transactional/preview'
     | '/lovable/email/transactional/send'
+    | '/prep-app/recipes/'
     | '/api/public/pinterest/oauth/callback'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -459,7 +590,17 @@ export interface FileRouteTypes {
     | '/blog'
     | '/recipes'
     | '/shop'
+    | '/prep-app/grocery'
+    | '/prep-app/guides'
+    | '/prep-app/kitchen'
+    | '/prep-app/onboarding'
+    | '/prep-app/pantry'
+    | '/prep-app/planner'
+    | '/prep-app/plans'
+    | '/prep-app/profile'
     | '/lovable/email/suppression'
+    | '/prep-app'
+    | '/prep-app/recipes/$id'
     | '/api/public/download/cookbook'
     | '/api/public/img/$'
     | '/api/public/payments/webhook'
@@ -469,6 +610,7 @@ export interface FileRouteTypes {
     | '/lovable/email/queue/process'
     | '/lovable/email/transactional/preview'
     | '/lovable/email/transactional/send'
+    | '/prep-app/recipes'
     | '/api/public/pinterest/oauth/callback'
   id:
     | '__root__'
@@ -491,6 +633,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/terms'
     | '/thank-you'
+    | '/_authenticated/prep-app'
     | '/_authenticated/admin'
     | '/_authenticated/affiliate'
     | '/blog/$slug'
@@ -502,7 +645,17 @@ export interface FileRouteTypes {
     | '/blog/'
     | '/recipes/'
     | '/shop/'
+    | '/_authenticated/prep-app/grocery'
+    | '/_authenticated/prep-app/guides'
+    | '/_authenticated/prep-app/kitchen'
+    | '/_authenticated/prep-app/onboarding'
+    | '/_authenticated/prep-app/pantry'
+    | '/_authenticated/prep-app/planner'
+    | '/_authenticated/prep-app/plans'
+    | '/_authenticated/prep-app/profile'
     | '/lovable/email/suppression'
+    | '/_authenticated/prep-app/'
+    | '/_authenticated/prep-app/recipes/$id'
     | '/api/public/download/cookbook'
     | '/api/public/img/$'
     | '/api/public/payments/webhook'
@@ -512,6 +665,7 @@ export interface FileRouteTypes {
     | '/lovable/email/queue/process'
     | '/lovable/email/transactional/preview'
     | '/lovable/email/transactional/send'
+    | '/_authenticated/prep-app/recipes/'
     | '/api/public/pinterest/oauth/callback'
   fileRoutesById: FileRoutesById
 }
@@ -700,6 +854,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAffiliateRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/prep-app': {
+      id: '/_authenticated/prep-app'
+      path: '/prep-app'
+      fullPath: '/prep-app'
+      preLoaderRoute: typeof AuthenticatedPrepAppRouteRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/blog/': {
       id: '/blog/'
       path: '/'
@@ -763,12 +924,89 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ShopSlugRouteImport
       parentRoute: typeof ShopRoute
     }
+    '/_authenticated/prep-app/': {
+      id: '/_authenticated/prep-app/'
+      path: '/'
+      fullPath: '/prep-app/'
+      preLoaderRoute: typeof AuthenticatedPrepAppIndexRouteImport
+      parentRoute: typeof AuthenticatedPrepAppRouteRoute
+    }
+    '/_authenticated/prep-app/grocery': {
+      id: '/_authenticated/prep-app/grocery'
+      path: '/grocery'
+      fullPath: '/prep-app/grocery'
+      preLoaderRoute: typeof AuthenticatedPrepAppGroceryRouteImport
+      parentRoute: typeof AuthenticatedPrepAppRouteRoute
+    }
+    '/_authenticated/prep-app/guides': {
+      id: '/_authenticated/prep-app/guides'
+      path: '/guides'
+      fullPath: '/prep-app/guides'
+      preLoaderRoute: typeof AuthenticatedPrepAppGuidesRouteImport
+      parentRoute: typeof AuthenticatedPrepAppRouteRoute
+    }
+    '/_authenticated/prep-app/kitchen': {
+      id: '/_authenticated/prep-app/kitchen'
+      path: '/kitchen'
+      fullPath: '/prep-app/kitchen'
+      preLoaderRoute: typeof AuthenticatedPrepAppKitchenRouteImport
+      parentRoute: typeof AuthenticatedPrepAppRouteRoute
+    }
+    '/_authenticated/prep-app/onboarding': {
+      id: '/_authenticated/prep-app/onboarding'
+      path: '/onboarding'
+      fullPath: '/prep-app/onboarding'
+      preLoaderRoute: typeof AuthenticatedPrepAppOnboardingRouteImport
+      parentRoute: typeof AuthenticatedPrepAppRouteRoute
+    }
+    '/_authenticated/prep-app/pantry': {
+      id: '/_authenticated/prep-app/pantry'
+      path: '/pantry'
+      fullPath: '/prep-app/pantry'
+      preLoaderRoute: typeof AuthenticatedPrepAppPantryRouteImport
+      parentRoute: typeof AuthenticatedPrepAppRouteRoute
+    }
+    '/_authenticated/prep-app/planner': {
+      id: '/_authenticated/prep-app/planner'
+      path: '/planner'
+      fullPath: '/prep-app/planner'
+      preLoaderRoute: typeof AuthenticatedPrepAppPlannerRouteImport
+      parentRoute: typeof AuthenticatedPrepAppRouteRoute
+    }
+    '/_authenticated/prep-app/plans': {
+      id: '/_authenticated/prep-app/plans'
+      path: '/plans'
+      fullPath: '/prep-app/plans'
+      preLoaderRoute: typeof AuthenticatedPrepAppPlansRouteImport
+      parentRoute: typeof AuthenticatedPrepAppRouteRoute
+    }
+    '/_authenticated/prep-app/profile': {
+      id: '/_authenticated/prep-app/profile'
+      path: '/profile'
+      fullPath: '/prep-app/profile'
+      preLoaderRoute: typeof AuthenticatedPrepAppProfileRouteImport
+      parentRoute: typeof AuthenticatedPrepAppRouteRoute
+    }
     '/lovable/email/suppression': {
       id: '/lovable/email/suppression'
       path: '/lovable/email/suppression'
       fullPath: '/lovable/email/suppression'
       preLoaderRoute: typeof LovableEmailSuppressionRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/prep-app/recipes/': {
+      id: '/_authenticated/prep-app/recipes/'
+      path: '/recipes'
+      fullPath: '/prep-app/recipes/'
+      preLoaderRoute: typeof AuthenticatedPrepAppRecipesIndexRouteImport
+      parentRoute: typeof AuthenticatedPrepAppRouteRoute
+    }
+    '/_authenticated/prep-app/recipes/$id': {
+      id: '/_authenticated/prep-app/recipes/$id'
+      path: '/recipes/$id'
+      fullPath: '/prep-app/recipes/$id'
+      preLoaderRoute: typeof AuthenticatedPrepAppRecipesIdRouteImport
+      parentRoute: typeof AuthenticatedPrepAppRouteRoute
     }
     '/api/public/download/cookbook': {
       id: '/api/public/download/cookbook'
@@ -843,12 +1081,49 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AuthenticatedPrepAppRouteRouteChildren {
+  AuthenticatedPrepAppGroceryRoute: typeof AuthenticatedPrepAppGroceryRoute
+  AuthenticatedPrepAppGuidesRoute: typeof AuthenticatedPrepAppGuidesRoute
+  AuthenticatedPrepAppKitchenRoute: typeof AuthenticatedPrepAppKitchenRoute
+  AuthenticatedPrepAppOnboardingRoute: typeof AuthenticatedPrepAppOnboardingRoute
+  AuthenticatedPrepAppPantryRoute: typeof AuthenticatedPrepAppPantryRoute
+  AuthenticatedPrepAppPlannerRoute: typeof AuthenticatedPrepAppPlannerRoute
+  AuthenticatedPrepAppPlansRoute: typeof AuthenticatedPrepAppPlansRoute
+  AuthenticatedPrepAppProfileRoute: typeof AuthenticatedPrepAppProfileRoute
+  AuthenticatedPrepAppIndexRoute: typeof AuthenticatedPrepAppIndexRoute
+  AuthenticatedPrepAppRecipesIdRoute: typeof AuthenticatedPrepAppRecipesIdRoute
+  AuthenticatedPrepAppRecipesIndexRoute: typeof AuthenticatedPrepAppRecipesIndexRoute
+}
+
+const AuthenticatedPrepAppRouteRouteChildren: AuthenticatedPrepAppRouteRouteChildren =
+  {
+    AuthenticatedPrepAppGroceryRoute: AuthenticatedPrepAppGroceryRoute,
+    AuthenticatedPrepAppGuidesRoute: AuthenticatedPrepAppGuidesRoute,
+    AuthenticatedPrepAppKitchenRoute: AuthenticatedPrepAppKitchenRoute,
+    AuthenticatedPrepAppOnboardingRoute: AuthenticatedPrepAppOnboardingRoute,
+    AuthenticatedPrepAppPantryRoute: AuthenticatedPrepAppPantryRoute,
+    AuthenticatedPrepAppPlannerRoute: AuthenticatedPrepAppPlannerRoute,
+    AuthenticatedPrepAppPlansRoute: AuthenticatedPrepAppPlansRoute,
+    AuthenticatedPrepAppProfileRoute: AuthenticatedPrepAppProfileRoute,
+    AuthenticatedPrepAppIndexRoute: AuthenticatedPrepAppIndexRoute,
+    AuthenticatedPrepAppRecipesIdRoute: AuthenticatedPrepAppRecipesIdRoute,
+    AuthenticatedPrepAppRecipesIndexRoute:
+      AuthenticatedPrepAppRecipesIndexRoute,
+  }
+
+const AuthenticatedPrepAppRouteRouteWithChildren =
+  AuthenticatedPrepAppRouteRoute._addFileChildren(
+    AuthenticatedPrepAppRouteRouteChildren,
+  )
+
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedPrepAppRouteRoute: typeof AuthenticatedPrepAppRouteRouteWithChildren
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
   AuthenticatedAffiliateRoute: typeof AuthenticatedAffiliateRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedPrepAppRouteRoute: AuthenticatedPrepAppRouteRouteWithChildren,
   AuthenticatedAdminRoute: AuthenticatedAdminRoute,
   AuthenticatedAffiliateRoute: AuthenticatedAffiliateRoute,
 }

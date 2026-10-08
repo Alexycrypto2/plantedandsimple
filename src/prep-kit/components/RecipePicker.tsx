@@ -1,9 +1,9 @@
 import { useMemo, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { RECIPES } from "@/data/recipes";
-import { RECIPE_BY_ID } from "@/data/content";
-import type { Recipe, Slot } from "@/data/types";
+import { RECIPES } from "@/prep-kit/data/recipes";
+import { RECIPE_BY_ID } from "@/prep-kit/data/content";
+import type { Recipe, Slot } from "@/prep-kit/data/types";
 
 /** Similar recipes for a swap: same meal type first, then shared protein sources. */
 export function swapSuggestions(currentId: string | null | undefined, slot: Slot, avoid: string[] = []): Recipe[] {
