@@ -1299,6 +1299,30 @@ export type Database = {
           },
         ]
       }
+      prep_purchases: {
+        Row: {
+          created_at: string
+          email: string | null
+          environment: string
+          id: string
+          transaction_id: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          environment?: string
+          id?: string
+          transaction_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          environment?: string
+          id?: string
+          transaction_id?: string
+        }
+        Relationships: []
+      }
       pricing_settings: {
         Row: {
           compare_at_cents: number
