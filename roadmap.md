@@ -1,7 +1,7 @@
 # Roadmap
-- [ ] Rebuild Pinterest Studio with curated food-publisher styles, editable canvas, exports, and approval handoff.
-- [ ] Add content-aware automatic style selection and free-cookbook source.
-- [ ] Connect Magic Hour and Pixazo with secure configuration and safe fallback; verify with available credentials.
+- [x] Rebuild Pinterest Studio with curated food-publisher styles, editable canvas, exports, and approval handoff; authenticated export and approval save verified.
+- [x] Add content-aware automatic style selection and free-cookbook source; source-title mode works without AI.
+- [ ] Verify Magic Hour and Pixazo generation and fallback (blocked: provider keys not configured); Gemini smart-copy verification blocked by upstream high-demand 503.
 - [x] Redirect free-guide email signups to the `/free-cookbook` page, with page content before an explicit download action.
 - [ ] Connect `plantedandsimple.store` so the requested page can use the branded domain (blocked: domain awaiting DNS / paid plan required).
 - [x] Add a password-reset path for the boss account and correct admin sign-in errors that were mislabeled as missing permissions.
