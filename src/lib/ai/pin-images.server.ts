@@ -3,7 +3,7 @@ import { PHOTO_STYLE } from './studio.server';
 import { canFallbackImage } from './pin-design';
 import { decodeMediaUpload } from '../library/media-upload.server';
 import type { Database } from '@/integrations/supabase/types';
-export type PinImageProvider = 'magic-hour' | 'pixazo' | 'gemini';
+export type PinImageProvider = 'magic-hour' | 'pixazo';
 class ProviderError extends Error {
   constructor(message: string, public status?: number, public refused = false) { super(message); }
 }
