@@ -3,7 +3,7 @@ import { PHOTO_STYLE } from './studio.server';
 import { canFallbackImage } from './pin-design';
 import { decodeMediaUpload } from '../library/media-upload.server';
 import type { Database } from '@/integrations/supabase/types';
-export type PinImageProvider = 'magic-hour' | 'pixazo' | 'gemini';
+export type PinImageProvider = 'magic-hour' | 'pixazo';
 class ProviderError extends Error {
   constructor(message: string, public status?: number, public refused = false) { super(message); }
 }
@@ -16,11 +16,10 @@ async function providerJson(url: string, init: RequestInit) {
   return body;
 }
 export async function pinProviderStatus() {
-  const [magic, pixazo, gemini] = await Promise.all([getConfig('MAGIC_HOUR_API_KEY'), getConfig('PIXAZO_API_KEY'), getConfig('GEMINI_API_KEY')]);
+  const [magic, pixazo] = await Promise.all([getConfig('MAGIC_HOUR_API_KEY'), getConfig('PIXAZO_API_KEY')]);
   return [
-    { id: 'magic-hour' as const, name: 'Magic Hour', configured: Boolean(magic), model: 'Provider recommended' },
+    { id: 'magic-hour' as const, name: 'Magic Hour', configured: Boolean(magic), model: 'AI photo generator' },
     { id: 'pixazo' as const, name: 'Pixazo', configured: Boolean(pixazo), model: 'GPT Image 2.5 Sunburst' },
-    { id: 'gemini' as const, name: 'Gemini', configured: Boolean(gemini), model: await getConfig('GEMINI_IMAGE_MODEL') },
   ];
 }
 export async function createPinImageJob(prompt: string, userId: string, provider?: PinImageProvider) {
@@ -59,7 +58,7 @@ export async function advancePinImageJob(id: string, userId: string) {
       const key = await getConfig('MAGIC_HOUR_API_KEY'); if (!key) throw new ProviderError('Magic Hour key is missing.', 401);
       const headers = { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' };
       if (!job.provider_job_id) {
-        const result = await providerJson('https://api.magichour.ai/v1/ai-image-generator', { method: 'POST', headers, body: JSON.stringify({ image_count: 1, aspect_ratio: '9:16', resolution: '1k', model: 'default', style: { prompt: job.prompt, tool: 'ai-photo-generator' } }) });
+        const result = await providerJson('https://api.magichour.ai/v1/ai-image-generator', { method: 'POST', headers, body: JSON.stringify({ image_count: 1, aspect_ratio: '9:16', model: 'default', style: { prompt: job.prompt, tool: 'ai-photo-generator' } }) });
         if (!result.id) throw new ProviderError('Magic Hour returned no project identifier.');
         return update({ provider_job_id: result.id, status: 'running', credits_charged: result.credits_charged ?? null });
       }
@@ -80,18 +79,7 @@ export async function advancePinImageJob(id: string, userId: string) {
       if (result.status !== 'COMPLETED') return update({});
       image = result.output?.media_url?.[0];
     } else {
-      const key = await getConfig('GEMINI_API_KEY');
-      const model = await getConfig('GEMINI_IMAGE_MODEL');
-      if (!key || !model) throw new ProviderError('Select an available Gemini image model in Settings.', 400);
-      const result = await providerJson(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model.replace(/^google\//, ''))}:generateContent`, { method: 'POST', headers: { 'x-goog-api-key': key, 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: job.prompt }] }], generationConfig: { responseModalities: ['IMAGE', 'TEXT'] } }) });
-      if (result.promptFeedback?.blockReason || ['SAFETY', 'IMAGE_SAFETY', 'PROHIBITED_CONTENT'].includes(result.candidates?.[0]?.finishReason)) throw new ProviderError('Gemini declined this image request.', 200, true);
-      const inline = result.candidates?.[0]?.content?.parts?.find((part: any) => part.inlineData?.data)?.inlineData;
-      if (!inline) throw new ProviderError('Gemini returned no image.');
-      const decoded = decodeMediaUpload(inline.data, inline.mimeType || 'image/png');
-      const path = `pinterest/photos/${crypto.randomUUID()}.${decoded.ext}`;
-      const uploaded = await supabaseAdmin.storage.from('ai-images').upload(path, decoded.bytes, { contentType: decoded.type });
-      if (uploaded.error) throw new Error('Could not store the generated photograph.');
-      return update({ status: 'complete', image_url: `/api/public/img/ai-images/${path}`, storage_path: path });
+      throw new ProviderError('Gemini photos are switched off. Use Magic Hour.', 400);
     }
     if (!image || !image.startsWith('https://')) throw new ProviderError('The image provider completed without an image.');
     const response = await fetch(image);
