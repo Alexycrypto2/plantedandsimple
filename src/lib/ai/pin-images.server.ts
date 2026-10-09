@@ -2,6 +2,7 @@ import { getConfig } from '../settings.server';
 import { PHOTO_STYLE } from './studio.server';
 import { canFallbackImage } from './pin-design';
 import { decodeMediaUpload } from '../library/media-upload.server';
+import type { Database } from '@/integrations/supabase/types';
 export type PinImageProvider = 'magic-hour' | 'pixazo' | 'gemini';
 class ProviderError extends Error {
   constructor(message: string, public status?: number, public refused = false) { super(message); }
@@ -40,13 +41,14 @@ export async function advancePinImageJob(id: string, userId: string) {
   const provider = providers[job.provider_index];
   const view = (row: typeof job) => ({ id: row.id, status: row.status, image_url: row.image_url, storage_path: row.storage_path, provider: providers[row.provider_index], credits: row.credits_charged, error: row.error });
   if (['complete', 'failed', 'cancelled'].includes(job.status)) return view(job);
+  if (job.processing) return view(job);
   if (!provider) throw new Error('No configured image providers remain.');
   // Compare-and-set prevents duplicate charged submissions from overlapping polls.
   const lease = new Date().toISOString();
-  const { data: claimed } = await supabaseAdmin.from('pin_image_jobs').update({ updated_at: lease }).eq('id', id).eq('updated_at', job.updated_at).select('id').maybeSingle();
+  const { data: claimed } = await supabaseAdmin.from('pin_image_jobs').update({ updated_at: lease, processing: true }).eq('id', id).eq('processing', false).eq('updated_at', job.updated_at).select('id').maybeSingle();
   if (!claimed) return view(job);
-  const update = async (patch: Record<string, unknown>) => {
-    const { data, error: saveError } = await supabaseAdmin.from('pin_image_jobs').update(patch).eq('id', id).eq('status', job.status).select('*').maybeSingle();
+  const update = async (patch: Database['public']['Tables']['pin_image_jobs']['Update']) => {
+    const { data, error: saveError } = await supabaseAdmin.from('pin_image_jobs').update({ ...patch, processing: false }).eq('id', id).eq('status', job.status).select('*').maybeSingle();
     if (saveError) throw new Error('Could not save image progress.');
     return data ? view(data) : { ...view(job), status: 'cancelled' };
   };
@@ -63,7 +65,7 @@ export async function advancePinImageJob(id: string, userId: string) {
       }
       const result = await providerJson(`https://api.magichour.ai/v1/image-projects/${encodeURIComponent(job.provider_job_id)}`, { headers });
       if (result.status === 'error' || result.status === 'failed') throw new ProviderError(String(result.error?.message ?? result.error ?? 'Magic Hour image failed'), 500, /moderation|safety|content/i.test(JSON.stringify(result.error)));
-      if (result.status !== 'complete') return view(job);
+      if (result.status !== 'complete') return update({});
       image = result.downloads?.[0]?.url; credits = result.credits_charged ?? credits;
     } else if (provider === 'pixazo') {
       const key = await getConfig('PIXAZO_API_KEY'); if (!key) throw new ProviderError('Pixazo key is missing.', 401);
@@ -75,7 +77,7 @@ export async function advancePinImageJob(id: string, userId: string) {
       }
       const result = await providerJson(`https://gateway.pixazo.ai/v2/requests/status/${encodeURIComponent(job.provider_job_id)}`, { headers });
       if (result.status === 'FAILED') throw new ProviderError(String(result.error?.message ?? result.error ?? 'Pixazo image failed'), 500, /moderation|safety|content/i.test(JSON.stringify(result.error)));
-      if (result.status !== 'COMPLETED') return view(job);
+      if (result.status !== 'COMPLETED') return update({});
       image = result.output?.media_url?.[0];
     } else {
       const key = await getConfig('GEMINI_API_KEY');

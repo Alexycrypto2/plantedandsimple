@@ -1085,6 +1085,7 @@ export type Database = {
           error: string | null
           id: string
           image_url: string | null
+          processing: boolean
           prompt: string
           provider_index: number
           provider_job_id: string | null
@@ -1101,6 +1102,7 @@ export type Database = {
           error?: string | null
           id?: string
           image_url?: string | null
+          processing?: boolean
           prompt: string
           provider_index?: number
           provider_job_id?: string | null
@@ -1117,6 +1119,7 @@ export type Database = {
           error?: string | null
           id?: string
           image_url?: string | null
+          processing?: boolean
           prompt?: string
           provider_index?: number
           provider_job_id?: string | null
