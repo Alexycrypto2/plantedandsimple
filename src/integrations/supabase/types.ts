@@ -1076,6 +1076,57 @@ export type Database = {
         }
         Relationships: []
       }
+      pin_image_jobs: {
+        Row: {
+          attempts: Json
+          created_at: string
+          created_by: string
+          credits_charged: number | null
+          error: string | null
+          id: string
+          image_url: string | null
+          prompt: string
+          provider_index: number
+          provider_job_id: string | null
+          providers: Json
+          status: string
+          storage_path: string | null
+          updated_at: string
+        }
+        Insert: {
+          attempts?: Json
+          created_at?: string
+          created_by: string
+          credits_charged?: number | null
+          error?: string | null
+          id?: string
+          image_url?: string | null
+          prompt: string
+          provider_index?: number
+          provider_job_id?: string | null
+          providers?: Json
+          status?: string
+          storage_path?: string | null
+          updated_at?: string
+        }
+        Update: {
+          attempts?: Json
+          created_at?: string
+          created_by?: string
+          credits_charged?: number | null
+          error?: string | null
+          id?: string
+          image_url?: string | null
+          prompt?: string
+          provider_index?: number
+          provider_job_id?: string | null
+          providers?: Json
+          status?: string
+          storage_path?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       pinterest_accounts: {
         Row: {
           access_token_ciphertext: string

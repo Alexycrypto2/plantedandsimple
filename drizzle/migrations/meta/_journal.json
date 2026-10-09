@@ -50,6 +50,13 @@
       "when": 1791512573595,
       "tag": "0006_scope_public_content_and_tracking_policies",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1791527905454,
+      "tag": "0007_pinterest_image_jobs",
+      "breakpoints": true
     }
   ]
 }
