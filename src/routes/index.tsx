@@ -1,5 +1,8 @@
 import { pageHead } from "@/lib/seo";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { subscribeFreeGuide } from "@/lib/free-guide.functions";
+import { trackEvent } from "@/lib/analytics";
+import cookbookMockup from "@/assets/cookbook-mockup.jpg";
 import { FALLBACK_RECIPES, FALLBACK_PRODUCTS, FALLBACK_POSTS } from "@/lib/fallback-content";
 import { useEffect, useState } from "react";
 import { SiteLayout } from "@/components/SiteLayout";
