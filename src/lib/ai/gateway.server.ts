@@ -202,7 +202,7 @@ export async function generateImageBase64(
     const start = await fetch("https://api.magichour.ai/v1/ai-image-generator", {
       method: "POST",
       headers,
-      body: JSON.stringify({ image_count: 1, aspect_ratio: aspect, resolution: "1k", model: "default", style: { prompt: prompt.slice(0, 4000), tool: "ai-photo-generator" } }),
+      body: JSON.stringify({ image_count: 1, aspect_ratio: aspect, model: "default", style: { prompt: prompt.slice(0, 4000), tool: "ai-photo-generator" } }),
     });
     const started = (await start.json().catch(() => ({}))) as any;
     if (!start.ok || !started.id) throw Object.assign(new Error(started.message ?? `Magic Hour returned ${start.status}`), { status: start.status });

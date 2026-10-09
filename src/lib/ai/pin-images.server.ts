@@ -58,7 +58,7 @@ export async function advancePinImageJob(id: string, userId: string) {
       const key = await getConfig('MAGIC_HOUR_API_KEY'); if (!key) throw new ProviderError('Magic Hour key is missing.', 401);
       const headers = { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' };
       if (!job.provider_job_id) {
-        const result = await providerJson('https://api.magichour.ai/v1/ai-image-generator', { method: 'POST', headers, body: JSON.stringify({ image_count: 1, aspect_ratio: '9:16', resolution: '1k', model: 'default', style: { prompt: job.prompt, tool: 'ai-photo-generator' } }) });
+        const result = await providerJson('https://api.magichour.ai/v1/ai-image-generator', { method: 'POST', headers, body: JSON.stringify({ image_count: 1, aspect_ratio: '9:16', model: 'default', style: { prompt: job.prompt, tool: 'ai-photo-generator' } }) });
         if (!result.id) throw new ProviderError('Magic Hour returned no project identifier.');
         return update({ provider_job_id: result.id, status: 'running', credits_charged: result.credits_charged ?? null });
       }
