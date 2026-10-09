@@ -10,6 +10,9 @@ export const SETTING_KEYS = [
   "GEMINI_TEXT_MODEL",
   "AI_MODE",
   "AI_BUDGET_MODE",
+  "MAILERLITE_API_KEY",
+  "MAILERLITE_GROUP_ID",
+  "EMAIL_SYNC_WEBHOOK_URL",
 ] as const;
 export type SettingKey = (typeof SETTING_KEYS)[number];
 
