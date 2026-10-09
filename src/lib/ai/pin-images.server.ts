@@ -16,11 +16,10 @@ async function providerJson(url: string, init: RequestInit) {
   return body;
 }
 export async function pinProviderStatus() {
-  const [magic, pixazo, gemini] = await Promise.all([getConfig('MAGIC_HOUR_API_KEY'), getConfig('PIXAZO_API_KEY'), getConfig('GEMINI_API_KEY')]);
+  const [magic, pixazo] = await Promise.all([getConfig('MAGIC_HOUR_API_KEY'), getConfig('PIXAZO_API_KEY')]);
   return [
-    { id: 'magic-hour' as const, name: 'Magic Hour', configured: Boolean(magic), model: 'Provider recommended' },
+    { id: 'magic-hour' as const, name: 'Magic Hour', configured: Boolean(magic), model: 'AI photo generator' },
     { id: 'pixazo' as const, name: 'Pixazo', configured: Boolean(pixazo), model: 'GPT Image 2.5 Sunburst' },
-    { id: 'gemini' as const, name: 'Gemini', configured: Boolean(gemini), model: await getConfig('GEMINI_IMAGE_MODEL') },
   ];
 }
 export async function createPinImageJob(prompt: string, userId: string, provider?: PinImageProvider) {
