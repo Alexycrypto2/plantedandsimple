@@ -6,6 +6,8 @@ import {
 } from "@/lib/library/admin.functions";
 import { generateStudioRecipe } from "@/lib/ai/recipe-studio.functions";
 import { EmptyState, PanelCard, SkeletonList } from "./AdminShell";
+import { SeoDoctor } from "./SeoDoctor";
+import { recipeToHtml } from "@/lib/content/seo-doctor";
 import { btnCls, inputCls } from "./LibraryPanel";
 
 type Recipe = any;
@@ -326,6 +328,29 @@ export function RecipesSection() {
               Feature on homepage
             </label>
           </div>
+        <SeoDoctor
+            kind="recipe"
+            value={{
+              title: form.title,
+              seo_title: form.seo_title,
+              seo_description: form.seo_description,
+              excerpt: form.description,
+              tags: form.tagsText,
+              content: recipeToHtml({
+                description: form.description,
+                ingredients: lines(form.ingredientsText),
+                instructions: lines(form.instructionsText),
+                nutrition: lines(form.nutritionText),
+                tips: lines(form.tipsText),
+              }),
+            }}
+            onApply={(p) => setForm({
+              ...form,
+              seo_title: p.seo_title ?? form.seo_title,
+              seo_description: p.seo_description ?? form.seo_description,
+              description: p.excerpt ?? form.description,
+            })}
+          />
         </PanelCard>
       </div>
     );

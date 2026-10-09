@@ -7,6 +7,7 @@ import { MediaImage, Pill } from "@/components/site/primitives";
 import { getRecipeBySlug } from "@/lib/library/library.functions";
 import { trackEvent } from "@/lib/analytics";
 import type { Recipe } from "@/lib/library/types";
+import { pickOffer } from "@/lib/content/product-bridge";
 
 type Data = { recipe: Recipe; related: { recipes: any[]; blogs: any[]; products: any[] } };
 
@@ -172,6 +173,8 @@ function RecipeDetail() {
           </section>
         ) : null}
 
+        <RecipeOffer text={`${r.title} ${(r.tags ?? []).join(" ")}`} />
+
         {(related?.products ?? []).length ? (
           <section className="mt-16">
             <h2 className="font-display text-3xl italic text-forest-deep">Goes with</h2>
@@ -209,5 +212,23 @@ function RecipeDetail() {
         ) : null}
       </article>
     </SiteLayout>
+  );
+}
+/** Matching product box: meal prep → Meal Prep System, protein meals → cookbook, otherwise the free cookbook. */
+function RecipeOffer({ text }: { text: string }) {
+  const offer = pickOffer(text);
+  return (
+    <aside className="mt-14 rounded-[1.5rem] bg-forest p-6 text-cream sm:p-8">
+      <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-cream/75">{offer.eyebrow}</p>
+      <h2 className="mt-2 font-display text-2xl italic">{offer.title}</h2>
+      <p className="mt-2 text-sm leading-relaxed text-cream/85">{offer.pitch}</p>
+      <a
+        href={`${offer.href}?utm_source=recipe&utm_medium=content&utm_campaign=product_bridge`}
+        onClick={() => void trackEvent("upsell_click", { refSlug: offer.key, metadata: { source: "recipe_bridge" } })}
+        className="mt-5 inline-block rounded-full bg-cream px-6 py-3 text-sm font-bold text-forest-deep hover:bg-cream-warm"
+      >
+        {offer.cta} →
+      </a>
+    </aside>
   );
 }
