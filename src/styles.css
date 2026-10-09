@@ -574,3 +574,11 @@
   text-transform: uppercase;
   color: var(--color-gold);
 }
+
+/* Fixed artwork colours are print/output tokens, independent of admin theme. */
+.pin-artwork {
+  --pin-paper: #fffdf8;
+  --pin-ink: #192820;
+  --pin-green: #2e5e3b;
+  --pin-berry: #8d3248;
+}
