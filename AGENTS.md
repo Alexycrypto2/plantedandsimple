@@ -19,3 +19,6 @@
 
 - Public leaf routes use the shared SEO helper for self-referencing metadata and JSON-LD; the root keeps only site-wide defaults to prevent outdated previews from overriding content.
 - The sitemap enumerates public content with paginated publishable-key reads and returns an error on failed queries rather than incomplete XML; private downloads and member tools are never listed.
+- CSV exports must neutralize spreadsheet formulas before quoting cells so buyer-controlled text cannot execute when opened.
+- Public catalog reads expose enabled homepage sections, published content links and referenced media only; staff policies retain full management access.
+- Public Paddle price resolution accepts only built-in offers or published catalog prices so it cannot proxy arbitrary provider queries.
