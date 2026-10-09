@@ -442,7 +442,7 @@ function WhyChoose({ section, items }: { section: HomepageSection; items: Array<
   return (
     <section className="mx-auto max-w-7xl px-6 py-24">
       <Reveal>
-        <SectionHeader eyebrow="Why us" title={section.title ?? "Why PrimeDownloads"} subtitle={section.subtitle} />
+        <SectionHeader eyebrow="Why us" title={section.title && !/prime/i.test(section.title) ? section.title : "Why Planted & Simple"} subtitle={section.subtitle} />
       </Reveal>
       <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
         {items.map((it, i) => (
