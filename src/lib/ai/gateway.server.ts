@@ -147,7 +147,38 @@ export async function resolveTextModel(opts?: { structuredOutputs?: boolean; fea
     supportsStructuredOutputs: structuredOutputs,
     headers: { Authorization: `Bearer ${gemini.key}` },
   });
-  return { model: provider(modelId), info };
+  return { model: withBusyFallback(provider, modelId), info };
+}
+
+/** When Google says a model is busy (503/429/overloaded), quietly try the next Gemini model. */
+const BUSY_FALLBACKS = ["gemini-2.5-flash", "gemini-2.5-flash-lite", "gemini-2.5-pro"];
+function isBusy(err: unknown) {
+  const status = (err as any)?.statusCode ?? (err as any)?.status;
+  const text = String((err as any)?.message ?? err);
+  return status === 503 || status === 429 || status === 500 || /unavailable|overloaded|high demand|resource.?exhausted/i.test(text);
+}
+function withBusyFallback(provider: (id: string) => any, primary: string) {
+  const chain = [primary, ...BUSY_FALLBACKS.filter((m) => m !== primary)];
+  const base = provider(primary);
+  const attempt = async (method: "doGenerate" | "doStream", options: any) => {
+    let last: unknown;
+    for (const id of chain) {
+      try {
+        return await provider(id)[method](options);
+      } catch (err) {
+        last = err;
+        if (!isBusy(err)) throw err;
+        logAi("busy-fallback", { from: id });
+      }
+    }
+    throw last;
+  };
+  return new Proxy(base, {
+    get(target, prop, receiver) {
+      if (prop === "doGenerate" || prop === "doStream") return (options: any) => attempt(prop, options);
+      return Reflect.get(target, prop, receiver);
+    },
+  });
 }
 
 export async function textModel(feature?: string, structuredOutputs = true) {
