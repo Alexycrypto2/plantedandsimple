@@ -268,6 +268,9 @@ function HeroSection({ section }: { section: HomepageSection }) {
               {c["primary_cta_label"] ?? "Browse Cookbooks"}
             </Link>
           </div>
+          <a href="#free-cookbook" className="mt-5 inline-block text-xs text-cream/80 underline underline-offset-4 hover:text-cream">
+            Not ready to buy? Get our cookbook free ↓
+          </a>
         </Reveal>
       </div>
     </section>
