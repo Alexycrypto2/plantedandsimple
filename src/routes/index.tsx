@@ -190,16 +190,16 @@ function FreeCookbookStrip() {
       <div className="mx-auto grid max-w-5xl items-center gap-8 overflow-hidden rounded-[2rem] border border-forest/10 bg-white p-6 shadow-[var(--shadow-soft)] md:grid-cols-[240px_1fr] md:p-10">
         <div className="relative mx-auto w-44 md:w-full">
           <img
-            src="/recipes/red-lentil-dahl.jpg"
-            alt="A bowl of red lentil dahl from the free cookbook"
+            src={freeStripBolognese}
+            alt="Lentil bolognese from the free starter guide"
             loading="lazy"
             width={640}
             height={640}
             className="aspect-square w-full -rotate-3 rounded-2xl object-cover shadow-[var(--shadow-soft)]"
           />
           <img
-            src="/recipes/harissa-chickpea-bowl.jpg"
-            alt="A harissa chickpea bowl from the free cookbook"
+            src={freeStripSmoothie}
+            alt="Berry protein smoothie bowl from the free starter guide"
             loading="lazy"
             width={640}
             height={640}
