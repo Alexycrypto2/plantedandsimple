@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { pickOffer, injectOffer, OFFERS } from "../content/product-bridge";
-import { auditSeo } from "../content/seo-doctor";
+import { auditSeo, recipeToHtml } from "../content/seo-doctor";
 
 describe("product bridge", () => {
   it("meal prep topics promote the Meal Prep System", () => {
@@ -27,5 +27,14 @@ describe("seo doctor", () => {
   it("flags a too-long SEO title", () => {
     const r = auditSeo({ title: "x", seoTitle: "a".repeat(70), seoDescription: "", html: "", keyword: "a" });
     expect(r.checks.find((c) => c.id === "title_len")!.pass).toBe(false);
+  });
+});
+
+describe("recipe seo doctor", () => {
+  it("judges recipes on ingredients, not article length", () => {
+    const html = recipeToHtml({ description: "d", ingredients: ["a", "b"], instructions: [], nutrition: [], tips: [] });
+    const r = auditSeo({ title: "t", seoTitle: "t", seoDescription: "", html, kind: "recipe" });
+    expect(r.checks.find((c) => c.id === "ingredients")!.pass).toBe(false);
+    expect(r.checks.some((c) => c.id === "h2_count")).toBe(false);
   });
 });

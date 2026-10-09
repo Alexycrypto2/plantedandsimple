@@ -6,6 +6,8 @@ export type SeoInput = {
   html: string;
   keyword?: string | null;
   slug?: string;
+  /** Recipes are judged on recipe completeness instead of article length. */
+  kind?: "blog" | "recipe";
 };
 export type SeoCheck = { id: string; label: string; pass: boolean; weight: number; fix: string };
 export type SeoReport = { score: number; checks: SeoCheck[]; words: number; keyword: string };
@@ -48,7 +50,32 @@ export function auditSeo(input: SeoInput): SeoReport {
     { id: "alt", label: "All images have alt text", weight: 4, pass: imgs.every((i) => /alt="[^"]+"/.test(i)), fix: "Add descriptive alt text to every image." },
     { id: "internal", label: "2+ internal links", weight: 4, pass: internal >= 2, fix: "Link to 2+ related recipes, posts or products." },
   ];
+  if (input.kind === "recipe") {
+    const section = (name: string) => {
+      const m = input.html.match(new RegExp(`<h2[^>]*>${name}</h2>([\\s\\S]*?)(?=<h2|$)`, "i"));
+      return m?.[1] ?? "";
+    };
+    const count = (h: string) => (h.match(/<li/g) ?? []).length;
+    const replace: Record<string, SeoCheck> = {
+      h2_count: { id: "ingredients", label: "6+ ingredients with quantities", weight: 10, pass: count(section("Ingredients")) >= 6, fix: "List every ingredient with an exact quantity." },
+      h2_kw: { id: "steps", label: "5+ clear steps", weight: 8, pass: count(section("Instructions")) >= 5, fix: "Break the method into 5+ steps with times and cues." },
+      length: { id: "length", label: "250+ words", weight: 10, pass: words >= 250, fix: "Add a richer description and helpful tips." },
+      internal: { id: "protein", label: "Protein listed in nutrition", weight: 4, pass: /protein/i.test(section("Nutrition")), fix: "Add protein per serving to the nutrition list." },
+    };
+    for (let i = 0; i < checks.length; i++) {
+      const r = replace[checks[i]!.id];
+      if (r) checks[i] = r;
+    }
+    const tipsCheck: SeoCheck = { id: "tips", label: "3+ cooking tips", weight: 4, pass: count(section("Tips")) >= 3, fix: "Add make-ahead, swap and storage tips." };
+    checks.push(tipsCheck);
+  }
   const total = checks.reduce((s, c) => s + c.weight, 0);
   const got = checks.reduce((s, c) => s + (c.pass ? c.weight : 0), 0);
   return { score: Math.round((got / total) * 100), checks, words, keyword: kw };
+}
+
+/** Turns recipe fields into simple HTML so the same audit can score recipes. */
+export function recipeToHtml(r: { description: string; ingredients: string[]; instructions: string[]; nutrition: string[]; tips: string[] }) {
+  const li = (a: string[]) => `<ul>${a.map((x) => `<li>${x}</li>`).join("")}</ul>`;
+  return `<p>${r.description}</p><h2>Ingredients</h2>${li(r.ingredients)}<h2>Instructions</h2>${li(r.instructions)}<h2>Nutrition</h2>${li(r.nutrition)}<h2>Tips</h2>${li(r.tips)}`;
 }

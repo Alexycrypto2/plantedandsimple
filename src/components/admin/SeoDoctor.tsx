@@ -5,7 +5,7 @@ import { autoFixSeo } from "@/lib/ai/seo-doctor.functions";
 
 type Fields = { title: string; seo_title: string; seo_description: string; excerpt: string; content: string; tags?: string };
 
-export function SeoDoctor({ value, onApply }: { value: Fields; onApply: (patch: Partial<Fields>) => void }) {
+export function SeoDoctor({ value, onApply, kind = "blog" }: { value: Fields; onApply: (patch: Partial<Fields>) => void; kind?: "blog" | "recipe" }) {
   const [keyword, setKeyword] = useState(() => (value.tags ?? "").split(",")[0]?.trim() ?? "");
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
@@ -13,16 +13,18 @@ export function SeoDoctor({ value, onApply }: { value: Fields; onApply: (patch: 
   const [view, setView] = useState<"none" | "mobile" | "desktop">("none");
 
   const report = useMemo(
-    () => auditSeo({ title: value.title, seoTitle: value.seo_title, seoDescription: value.seo_description, html: value.content, keyword }),
-    [value.title, value.seo_title, value.seo_description, value.content, keyword],
+    () => auditSeo({ title: value.title, seoTitle: value.seo_title, seoDescription: value.seo_description, html: value.content, keyword, kind }),
+    [value.title, value.seo_title, value.seo_description, value.content, keyword, kind],
   );
   const pass = report.score >= SEO_PASS_SCORE;
 
   const fix = async () => {
     setBusy(true); setErr(null); setMsg(null);
     try {
-      const r: any = await autoFixSeo({ data: { title: value.title, seoTitle: value.seo_title, seoDescription: value.seo_description, excerpt: value.excerpt, html: value.content, keyword: keyword || undefined } });
-      onApply({ seo_title: r.seoTitle, seo_description: r.seoDescription, excerpt: r.excerpt, content: r.html });
+      const r: any = await autoFixSeo({ data: { title: value.title, seoTitle: value.seo_title, seoDescription: value.seo_description, excerpt: value.excerpt, html: value.content, keyword: keyword || undefined, kind } });
+      onApply(kind === "recipe"
+        ? { seo_title: r.seoTitle, seo_description: r.seoDescription, excerpt: r.excerpt }
+        : { seo_title: r.seoTitle, seo_description: r.seoDescription, excerpt: r.excerpt, content: r.html });
       setMsg(`Score ${r.before} → ${r.after}. ${(r.changes ?? []).slice(0, 4).join(" · ")}`);
     } catch (e: any) {
       setErr(e?.message ?? "Auto-fix failed");
@@ -68,7 +70,7 @@ export function SeoDoctor({ value, onApply }: { value: Fields; onApply: (patch: 
           <div className={`mx-auto max-h-[70vh] overflow-y-auto rounded-2xl border border-forest/15 bg-white p-5 shadow-sm ${view === "mobile" ? "w-[390px]" : "w-full max-w-3xl"}`}>
             <div className="mb-4 rounded-xl border border-forest/10 p-3">
               <p className="truncate text-sm text-blue-700">{value.seo_title || value.title}</p>
-              <p className="text-[11px] text-green-700">plantedandsimple.store › blog</p>
+              <p className="text-[11px] text-green-700">plantedandsimple.store › {kind === "recipe" ? "recipes" : "blog"}</p>
               <p className="line-clamp-2 text-xs text-charcoal/70">{value.seo_description}</p>
             </div>
             <h1 className="font-display text-3xl italic text-forest-deep">{value.title}</h1>

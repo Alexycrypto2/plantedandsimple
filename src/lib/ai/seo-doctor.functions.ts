@@ -19,17 +19,18 @@ const FixSchema = z.object({
 /** Rewrites only the weak SEO elements of a post; keeps the author's voice and facts. */
 export const autoFixSeo = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { title: string; seoTitle: string; seoDescription: string; excerpt: string; html: string; keyword?: string }) => ({
+  .inputValidator((d: { title: string; seoTitle: string; seoDescription: string; excerpt: string; html: string; keyword?: string; kind?: "blog" | "recipe" }) => ({
     title: String(d.title ?? "").slice(0, 200),
     seoTitle: String(d.seoTitle ?? "").slice(0, 200),
     seoDescription: String(d.seoDescription ?? "").slice(0, 400),
     excerpt: String(d.excerpt ?? "").slice(0, 600),
     html: String(d.html ?? "").slice(0, 60000),
     keyword: d.keyword ? String(d.keyword).slice(0, 80) : undefined,
+    kind: d.kind === "recipe" ? ("recipe" as const) : ("blog" as const),
   }))
   .handler(async ({ data, context }) => {
     await requireBoss(context.supabase, context.userId);
-    const report = auditSeo({ title: data.title, seoTitle: data.seoTitle, seoDescription: data.seoDescription, html: data.html, keyword: data.keyword });
+    const report = auditSeo({ title: data.title, seoTitle: data.seoTitle, seoDescription: data.seoDescription, html: data.html, keyword: data.keyword, kind: data.kind });
     const failing = report.checks.filter((c) => !c.pass);
     if (failing.length === 0) return { ...data, changes: ["Already passing every check."], before: report.score, after: report.score };
 
@@ -41,7 +42,7 @@ export const autoFixSeo = createServerFn({ method: "POST" })
         prompt: `You are an SEO editor for PlantedAndSimple (plant-based food brand). Fix ONLY these failing checks for the target keyword "${report.keyword}":
 ${failing.map((c) => `- ${c.label}: ${c.fix}`).join("\n")}
 
-Rules: keep every fact, quantity, recipe, link, image and product card exactly as is. Keep the warm home-cook voice. Do not add AI cliches (delve, elevate, unlock, game-changer). seo_title 30-60 chars, seo_description 120-155 chars. Return the full corrected content_html (edit minimally) and a short list of changes.
+${data.kind === "recipe" ? "This is a RECIPE. Only rewrite seo_title, seo_description and excerpt (the recipe description, 2-3 warm sentences that include the keyword). Return content_html unchanged. Mention any ingredient/step/tip gaps in changes as advice for the editor.\n" : ""}Rules: keep every fact, quantity, recipe, link, image and product card exactly as is. Keep the warm home-cook voice. Do not add AI cliches (delve, elevate, unlock, game-changer). seo_title 30-60 chars, seo_description 120-155 chars. Return the full corrected content_html (edit minimally) and a short list of changes.
 
 Title: ${data.title}
 SEO title: ${data.seoTitle}
@@ -50,9 +51,10 @@ Excerpt: ${data.excerpt}
 CONTENT HTML:
 ${data.html}`,
       });
-      const after = auditSeo({ title: data.title, seoTitle: output.seo_title, seoDescription: output.seo_description, html: output.content_html, keyword: report.keyword });
+      const html = data.kind === "recipe" ? data.html.replace(/^<p>[\s\S]*?<\/p>/, `<p>${output.excerpt}</p>`) : output.content_html;
+      const after = auditSeo({ title: data.title, seoTitle: output.seo_title, seoDescription: output.seo_description, html, keyword: report.keyword, kind: data.kind });
       // Never accept a "fix" that makes things worse or drops most of the article.
-      if (after.score < report.score || output.content_html.length < data.html.length * 0.7) {
+      if (after.score < report.score || html.length < data.html.length * 0.7) {
         throw new Error("The auto-fix didn't improve the score, so nothing was changed. Try again or edit manually.");
       }
       return {
@@ -60,7 +62,7 @@ ${data.html}`,
         seoTitle: output.seo_title,
         seoDescription: output.seo_description,
         excerpt: output.excerpt || data.excerpt,
-        html: output.content_html,
+        html,
         changes: output.changes,
         before: report.score,
         after: after.score,
