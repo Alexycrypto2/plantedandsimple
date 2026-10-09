@@ -1,6 +1,6 @@
 import { getAccessToken, pinterestFetch } from "./pinterest.server";
 
-export const SITE_ORIGIN = "https://primedownloads.store";
+export const SITE_ORIGIN = "https://www.plantedandsimple.store";
 
 function slugify(v: string) {
   return String(v || "")
