@@ -1,5 +1,8 @@
 import { pageHead } from "@/lib/seo";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { subscribeFreeGuide } from "@/lib/free-guide.functions";
+import { trackEvent } from "@/lib/analytics";
+import cookbookMockup from "@/assets/cookbook-mockup.jpg";
 import { FALLBACK_RECIPES, FALLBACK_PRODUCTS, FALLBACK_POSTS } from "@/lib/fallback-content";
 import { useEffect, useState } from "react";
 import { SiteLayout } from "@/components/SiteLayout";
@@ -91,14 +94,96 @@ function HomePage() {
     }
   }, []);
 
+  // Conversion order: hero → trust → free-cookbook capture → products → everything else.
+  const products = data.sections.filter((s) => s.kind === "featured_products");
+  const rest = data.sections.filter((s) => s.kind !== "featured_products");
+  const anchor = rest.findIndex((s) => s.kind === "trust_row");
+  const insertAt = anchor >= 0 ? anchor + 1 : rest.findIndex((s) => s.kind === "hero") + 1;
+
   return (
     <SiteLayout>
       <main>
-        {data.sections.map((section) => (
+        {rest.slice(0, insertAt).map((section) => (
+          <Section key={section.id} section={section} data={data} />
+        ))}
+        <FreeCookbookStrip />
+        {products.map((section) => (
+          <Section key={section.id} section={section} data={data} />
+        ))}
+        {rest.slice(insertAt).map((section) => (
           <Section key={section.id} section={section} data={data} />
         ))}
       </main>
     </SiteLayout>
+  );
+}
+
+function FreeCookbookStrip() {
+  const navigate = useNavigate();
+  const [email, setEmail] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const clean = email.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(clean) || clean.length > 255) {
+      setErr("Please enter a valid email address.");
+      return;
+    }
+    setBusy(true);
+    setErr(null);
+    try {
+      await subscribeFreeGuide({ data: { email: clean, source: "homepage_inline" } });
+      void trackEvent("free_cookbook_signup", { metadata: { source: "homepage_inline" } });
+      await navigate({ to: "/free-cookbook" });
+    } catch (ex) {
+      setErr(ex instanceof Error ? ex.message : "Something went wrong. Try again.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <section id="free-cookbook" className="px-6 py-14">
+      <div className="mx-auto grid max-w-5xl items-center gap-8 overflow-hidden rounded-[2rem] border border-forest/10 bg-white p-6 shadow-[var(--shadow-soft)] md:grid-cols-[220px_1fr] md:p-10">
+        <img
+          src={cookbookMockup}
+          alt="Free 20-Minute Plant Protein Kitchen cookbook"
+          loading="lazy"
+          className="mx-auto aspect-square w-40 rounded-2xl object-cover md:w-full"
+        />
+        <div>
+          <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.25em] text-sage">Not ready to buy? Start free</p>
+          <h2 className="mt-2 font-display text-3xl italic leading-tight text-forest-deep md:text-4xl">
+            Get our free plant-protein cookbook
+          </h2>
+          <p className="mt-3 text-sm leading-relaxed text-charcoal/65">
+            Quick, tested plant-based recipes you can cook tonight — free PDF, instant download.
+          </p>
+          <form onSubmit={submit} className="mt-5 flex flex-col gap-2 sm:flex-row">
+            <input
+              type="email"
+              required
+              maxLength={255}
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Your email address"
+              aria-label="Email address"
+              className="flex-1 rounded-full border border-forest/15 bg-cream px-5 py-3.5 text-sm focus:border-forest focus:outline-none"
+            />
+            <button
+              disabled={busy}
+              className="rounded-full bg-forest px-7 py-3.5 text-[11px] font-bold uppercase tracking-[0.2em] text-cream transition hover:bg-forest-deep disabled:opacity-60"
+            >
+              {busy ? "Sending…" : "Get it free →"}
+            </button>
+          </form>
+          {err ? <p className="mt-2 text-sm text-destructive">{err}</p> : null}
+          <p className="mt-2 text-xs text-charcoal/45">No spam. Unsubscribe anytime.</p>
+        </div>
+      </div>
+    </section>
   );
 }
 
@@ -183,6 +268,9 @@ function HeroSection({ section }: { section: HomepageSection }) {
               {c["primary_cta_label"] ?? "Browse Cookbooks"}
             </Link>
           </div>
+          <a href="#free-cookbook" className="mt-5 inline-block text-xs text-cream/80 underline underline-offset-4 hover:text-cream">
+            Not ready to buy? Get our cookbook free ↓
+          </a>
         </Reveal>
       </div>
     </section>
@@ -357,7 +445,7 @@ function WhyChoose({ section, items }: { section: HomepageSection; items: Array<
   return (
     <section className="mx-auto max-w-7xl px-6 py-24">
       <Reveal>
-        <SectionHeader eyebrow="Why us" title={section.title ?? "Why PrimeDownloads"} subtitle={section.subtitle} />
+        <SectionHeader eyebrow="Why us" title={section.title && !/prime/i.test(section.title) ? section.title : "Why Planted & Simple"} subtitle={section.subtitle} />
       </Reveal>
       <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
         {items.map((it, i) => (
