@@ -4,6 +4,7 @@ import { FALLBACK_RECIPES, FALLBACK_PRODUCTS, FALLBACK_POSTS } from "@/lib/fallb
 import { useEffect, useState } from "react";
 import { SiteLayout } from "@/components/SiteLayout";
 import { Reveal, SectionHeader, MediaImage, EditorialCard } from "@/components/site/primitives";
+import { FlagshipWithCompanions, FLAGSHIP_SLUG, productImage } from "@/components/site/ProductFamily";
 import heroEditorial from "@/assets/hero-editorial.jpg";
 import heroRotation2 from "@/assets/hero-rotation-2.jpg";
 import heroRotation4 from "@/assets/hero-rotation-4.jpg";
@@ -207,6 +208,8 @@ function TrustRow({ items }: { items: Array<{ icon: string; label: string }> }) 
 function ProductsSection({ section, products }: { section: HomepageSection; products: PublicProduct[] }) {
   if (!products.length) return null;
   const limit = Number(section.config?.["limit"] ?? 3);
+  const flagship = products.find((p) => p.slug === FLAGSHIP_SLUG);
+  const rest = products.filter((p) => p.slug !== FLAGSHIP_SLUG && p.slug !== "meal-prep-system" && p.slug !== "planning-kit");
   return (
     <section className="bg-cream-warm px-6 py-24">
       <div className="mx-auto max-w-7xl">
@@ -223,8 +226,13 @@ function ProductsSection({ section, products }: { section: HomepageSection; prod
             }
           />
         </Reveal>
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {products.slice(0, limit).map((p, i) => (
+        {flagship ? (
+          <Reveal>
+            <FlagshipWithCompanions product={flagship} />
+          </Reveal>
+        ) : null}
+        <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {rest.slice(0, limit).map((p, i) => (
             <Reveal key={p.id} delay={i * 80}>
               <Link
                 to="/shop/$slug"

@@ -7,6 +7,7 @@ import {
   listPublishedProducts,
   type PublicProduct,
 } from "@/lib/products.functions";
+import { productImage } from "@/components/site/ProductFamily";
 import { SiteLayout } from "@/components/SiteLayout";
 import { fallbackProduct } from "@/lib/fallback-content";
 import actionKitchen from "@/assets/product-action-kitchen.jpg";
@@ -33,7 +34,7 @@ function uniqueImages(product: PublicProduct): Array<{ url: string; label: strin
     seen.add(url);
     images.push({ url, label, number: String(images.length + 1).padStart(2, "0") });
   };
-  add(product.cover_image_url, "Cookbook cover");
+  add(productImage(product), "Cookbook cover");
   PREVIEWS.forEach((preview) => add(preview.url, preview.label));
   return images;
 }
