@@ -2,7 +2,8 @@ import { pageHead } from "@/lib/seo";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { subscribeFreeGuide } from "@/lib/free-guide.functions";
 import { trackEvent } from "@/lib/analytics";
-import cookbookMockup from "@/assets/cookbook-mockup.jpg";
+import freeStripBolognese from "@/assets/recipe-lentil-bolognese.jpg";
+import freeStripSmoothie from "@/assets/recipe-smoothie-bowl.jpg";
 import { FALLBACK_RECIPES, FALLBACK_PRODUCTS, FALLBACK_POSTS } from "@/lib/fallback-content";
 import { useEffect, useState } from "react";
 import { SiteLayout } from "@/components/SiteLayout";
@@ -99,7 +100,7 @@ function HomePage() {
     }
   }, []);
 
-  // Conversion order: hero → trust → free-cookbook capture → products → everything else.
+  // Conversion order: hero → trust → flagship cookbook + companions → free-cookbook capture → everything else.
   const products = data.sections.filter((s) => s.kind === "featured_products");
   const rest = data.sections.filter((s) => s.kind !== "featured_products");
   const anchor = rest.findIndex((s) => s.kind === "trust_row");
@@ -111,10 +112,10 @@ function HomePage() {
         {rest.slice(0, insertAt).map((section) => (
           <Section key={section.id} section={section} data={data} />
         ))}
-        <FreeCookbookStrip />
         {products.map((section) => (
           <Section key={section.id} section={section} data={data} />
         ))}
+        <FreeCookbookStrip />
         <CustomerProof reviews={data.reviews} />
         {rest.slice(insertAt).map((section) => (
           <Section key={section.id} section={section} data={data} />
@@ -186,20 +187,33 @@ function FreeCookbookStrip() {
 
   return (
     <section id="free-cookbook" className="px-6 py-14">
-      <div className="mx-auto grid max-w-5xl items-center gap-8 overflow-hidden rounded-[2rem] border border-forest/10 bg-white p-6 shadow-[var(--shadow-soft)] md:grid-cols-[220px_1fr] md:p-10">
-        <img
-          src={cookbookMockup}
-          alt="Free 20-Minute Plant Protein Kitchen cookbook"
-          loading="lazy"
-          className="mx-auto aspect-square w-40 rounded-2xl object-cover md:w-full"
-        />
+      <div className="mx-auto grid max-w-5xl items-center gap-8 overflow-hidden rounded-[2rem] border border-forest/10 bg-white p-6 shadow-[var(--shadow-soft)] md:grid-cols-[240px_1fr] md:p-10">
+        <div className="relative mx-auto w-44 md:w-full">
+          <img
+            src={freeStripBolognese}
+            alt="Lentil bolognese from the free starter guide"
+            loading="lazy"
+            width={640}
+            height={640}
+            className="aspect-square w-full -rotate-3 rounded-2xl object-cover shadow-[var(--shadow-soft)]"
+          />
+          <img
+            src={freeStripSmoothie}
+            alt="Berry protein smoothie bowl from the free starter guide"
+            loading="lazy"
+            width={640}
+            height={640}
+            className="absolute -bottom-8 -right-6 aspect-square w-24 rotate-3 rounded-xl border-4 border-white object-cover shadow-[var(--shadow-card)] md:w-32"
+          />
+        </div>
         <div>
           <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.25em] text-sage">Not ready to buy? Start free</p>
           <h2 className="mt-2 font-display text-3xl italic leading-tight text-forest-deep md:text-4xl">
-            Get our free plant-protein cookbook
+            Get our free plant-protein starter guide
           </h2>
           <p className="mt-3 text-sm leading-relaxed text-charcoal/65">
-            Quick, tested plant-based recipes you can cook tonight — free PDF, instant download.
+            Quick, tested plant-based recipes you can cook tonight — a free PDF, instant download.
+            The full 30-recipe cookbook with exact macros is the one above.
           </p>
           <form onSubmit={submit} className="mt-5 flex flex-col gap-2 sm:flex-row">
             <input
