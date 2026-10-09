@@ -130,9 +130,9 @@ function ProductCard({ p }: { p: PublicProduct }) {
       className="group flex flex-col overflow-hidden rounded-2xl border border-forest/10 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-xl"
     >
       <div className="aspect-[4/5] w-full overflow-hidden bg-sage/10">
-        {p.cover_image_url ? (
+        {productImage(p) ? (
           <img
-            src={p.cover_image_url}
+            src={productImage(p) ?? undefined}
             alt={p.title}
             loading="lazy"
             className="h-full w-full object-cover transition group-hover:scale-105"
