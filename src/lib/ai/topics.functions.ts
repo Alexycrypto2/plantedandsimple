@@ -107,6 +107,8 @@ const TrendsSchema = z.object({
       best_format: z.enum(["blog", "recipe", "listicle", "guide"]),
       angle: z.string(),
       seasonality: z.string(),
+      competitor_gap: z.string(),
+      growth: z.string(),
     }),
   ),
 });
@@ -145,6 +147,9 @@ Rules:
 - why_trending: 1-2 concrete sentences explaining the driver (season, viral format, news, search shift) — no vague filler.
 - sources: name the signals you inferred it from, e.g. "Google Trends", "Pinterest", "Reddit r/veganrecipes", "Seasonality".
 - rating, google_score, pinterest_score: 0-100 honest estimates. rating reflects overall opportunity for us (demand x fit x conversion).
+- competitor_gap: 1-2 sentences on what the current top Google results get wrong (too slow, no macros, outdated, thin, no meal-prep angle) and exactly how our version wins.
+- growth: short label of search momentum, e.g. "Rising (+120% in 30 days)", "Seasonal peak in 3 weeks", "Steady evergreen". Be honest; estimates are fine but never invent precision you lack — prefer words like "approx".
+- Mix formats: include both blog-worthy topics and specific recipe ideas.
 - Order by rating, highest first. No duplicates.`,
       });
 
@@ -167,6 +172,8 @@ Rules:
           primary_keyword: t.primary_keyword,
           secondary_keywords: t.secondary_keywords,
           google_score: Math.round(t.google_score),
+          competitor_gap: t.competitor_gap,
+          growth: t.growth,
         }),
       }));
       const { error } = await (supabaseAdmin as any).from("ai_topics").insert(rows);

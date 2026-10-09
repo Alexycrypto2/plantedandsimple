@@ -291,6 +291,10 @@ function AiStudioSection({ onNavigate }: { onNavigate: (t: string) => void }) {
                 sessionStorage.setItem("ps_ai_blog_seed", JSON.stringify({ topic, keywords }));
                 onNavigate("blogs");
               }}
+              onWriteRecipe={(topic, keywords) => {
+                sessionStorage.setItem("ps_ai_recipe_seed", JSON.stringify({ topic, keywords }));
+                onNavigate("recipes");
+              }}
             />
           )}
           {t === "assistant" && <AssistantPanel />}

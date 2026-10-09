@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Radar, Loader2, TrendingUp, Flame, Trash2, PenLine, Search } from "lucide-react";
+import { Radar, Loader2, TrendingUp, Flame, Trash2, PenLine, Search, ChefHat } from "lucide-react";
 import { scanTrends, listTopics, deleteTopic } from "@/lib/ai/topics.functions";
 
 type Row = {
@@ -23,6 +23,8 @@ type Meta = {
   seasonality?: string;
   primary_keyword?: string;
   secondary_keywords?: string[];
+  competitor_gap?: string;
+  growth?: string;
 };
 
 function parseMeta(notes: string | null): Meta {
@@ -56,8 +58,10 @@ function Score({ value }: { value: number }) {
 
 export function TrendingPanel({
   onWriteBlog,
+  onWriteRecipe,
 }: {
   onWriteBlog: (topic: string, keywords: string) => void;
+  onWriteRecipe: (topic: string, keywords: string) => void;
 }) {
   const [niche, setNiche] = useState("plant-based recipes, high-protein vegan, meal prep, digital cookbooks");
   const [rows, setRows] = useState<Row[]>([]);
@@ -96,7 +100,7 @@ export function TrendingPanel({
             <Radar className="h-6 w-6" />
           </span>
           <div>
-            <h2 className="font-display text-3xl italic">Trend Radar</h2>
+            <h2 className="font-display text-3xl italic">Research Engine</h2>
             <p className="text-xs text-cream/70">
               Scans Google Trends, Pinterest, Reddit food communities and seasonality, then scores what your brand
               should write next.
@@ -173,7 +177,17 @@ export function TrendingPanel({
                   {t.recommendation}
                 </p>
               )}
+              {meta.growth && (
+                <p className="mt-2 text-xs font-semibold text-forest">Search trend: {meta.growth}</p>
+              )}
+              {meta.competitor_gap && (
+                <p className="mt-2 rounded-xl bg-sage/15 px-3 py-2 text-xs leading-relaxed text-forest-deep">
+                  <span className="font-semibold">How we beat page 1: </span>
+                  {meta.competitor_gap}
+                </p>
+              )}
               {meta.angle && <p className="mt-2 text-xs text-charcoal/60">Angle: {meta.angle}</p>}
+              {keywords && <p className="mt-1 text-[11px] text-charcoal/50">Keywords: {keywords}</p>}
 
               <div className="mt-4 grid gap-2 sm:grid-cols-2">
                 <div>
@@ -195,7 +209,13 @@ export function TrendingPanel({
                   onClick={() => onWriteBlog(t.topic, keywords)}
                   className="flex items-center gap-2 rounded-full bg-gradient-to-r from-forest to-sage px-5 py-2 text-xs font-bold uppercase tracking-[0.15em] text-cream hover:opacity-90"
                 >
-                  <PenLine className="h-3.5 w-3.5" /> Write this blog
+                  <PenLine className="h-3.5 w-3.5" /> Write blog post
+                </button>
+                <button
+                  onClick={() => onWriteRecipe(t.topic, keywords)}
+                  className="flex items-center gap-2 rounded-full border border-forest/30 px-5 py-2 text-xs font-bold uppercase tracking-[0.15em] text-forest-deep hover:bg-forest/5"
+                >
+                  <ChefHat className="h-3.5 w-3.5" /> Create recipe
                 </button>
                 <button
                   onClick={async () => {
