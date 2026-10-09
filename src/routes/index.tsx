@@ -18,6 +18,8 @@ import { listPublishedPosts, type PublicPost } from "@/lib/blog.functions";
 import { getHomepage, listCollections, listPublishedRecipes } from "@/lib/library/library.functions";
 import type { Collection, HomepageSection, Recipe } from "@/lib/library/types";
 import { trackAffiliateClick } from "@/lib/affiliates.functions";
+import { listApprovedReviews, type PublicReview } from "@/lib/reviews.functions";
+import { BadgeCheck, ShieldCheck, Star } from "lucide-react";
 
 type LoaderData = {
   sections: HomepageSection[];
@@ -26,6 +28,7 @@ type LoaderData = {
   collections: Collection[];
   recipes: Recipe[];
   posts: PublicPost[];
+  reviews: PublicReview[];
 };
 
 const FALLBACK_SECTIONS: HomepageSection[] = [
@@ -42,15 +45,16 @@ const FALLBACK_SECTIONS: HomepageSection[] = [
 export const Route = createFileRoute("/")({
   component: HomePage,
   loader: async (): Promise<LoaderData> => {
-    const [home, products, collections, recipes, posts] = await Promise.allSettled([
+    const [home, products, collections, recipes, posts, reviews] = await Promise.allSettled([
       getHomepage(), listPublishedProducts({ data: {} }), listCollections({ data: { featuredOnly: true } }),
-      listPublishedRecipes({ data: { limit: 6 } }), listPublishedPosts(),
+      listPublishedRecipes({ data: { limit: 6 } }), listPublishedPosts(), listApprovedReviews(),
     ]).then((results) => [
       results[0].status === "fulfilled" ? results[0].value : { sections: [], settings: {} },
       results[1].status === "fulfilled" ? results[1].value : [],
       results[2].status === "fulfilled" ? results[2].value : [],
       results[3].status === "fulfilled" ? results[3].value : [],
       results[4].status === "fulfilled" ? results[4].value : [],
+      results[5].status === "fulfilled" ? results[5].value : [],
     ] as const);
     return {
       sections: home.sections.length ? home.sections : FALLBACK_SECTIONS,
@@ -59,6 +63,7 @@ export const Route = createFileRoute("/")({
       collections,
       recipes: recipes.length ? recipes : FALLBACK_RECIPES,
       posts: posts.length ? posts : FALLBACK_POSTS,
+      reviews,
     };
   },
   head: () => pageHead("/", "PlantedAndSimple | High-Protein Plant-Based Recipes & Cookbooks", "Simple Plant-Based Meals. Powerful Nutrition. Explore vegan recipes, digital cookbooks, meal planning guides and our interactive Meal Prep System."),
@@ -110,11 +115,46 @@ function HomePage() {
         {products.map((section) => (
           <Section key={section.id} section={section} data={data} />
         ))}
+        <CustomerProof reviews={data.reviews} />
         {rest.slice(insertAt).map((section) => (
           <Section key={section.id} section={section} data={data} />
         ))}
       </main>
     </SiteLayout>
+  );
+}
+
+function CustomerProof({ reviews }: { reviews: PublicReview[] }) {
+  return (
+    <section aria-label="Customer reviews and trust" className="border-y border-forest/10 bg-cream px-6 py-10">
+      <div className="mx-auto max-w-7xl">
+        <div className="flex flex-wrap items-center justify-center gap-x-10 gap-y-4 text-sm text-forest-deep">
+          <span className="inline-flex items-center gap-2"><BadgeCheck className="h-5 w-5 shrink-0 text-forest" aria-hidden="true" />Purchase-checked review submissions</span>
+          <span className="inline-flex items-center gap-2"><ShieldCheck className="h-5 w-5 shrink-0 text-forest" aria-hidden="true" />Secure checkout with Paddle</span>
+          <Link to="/refund" className="inline-flex items-center gap-2 underline underline-offset-4"><Icon name="refresh" className="h-5 w-5 shrink-0 text-forest" />60-day money-back guarantee</Link>
+        </div>
+        {reviews.length > 0 ? (
+          <div className="mt-12">
+            <SectionHeader eyebrow="Customer stories" title="From our community" subtitle="Real feedback, shared with permission." />
+            <div className="grid gap-5 md:grid-cols-3">
+              {reviews.slice(0, 3).map((review) => (
+                <figure key={review.id} className="flex flex-col rounded-lg border border-forest/10 bg-cream-warm p-6">
+                  <div className="flex gap-1 text-forest" role="img" aria-label={`${review.rating} out of 5 stars`}>
+                    {Array.from({ length: 5 }, (_, index) => <Star key={index} className={`h-4 w-4 ${index < review.rating ? "fill-current" : "opacity-25"}`} aria-hidden="true" />)}
+                  </div>
+                  <blockquote className="my-5 flex-1 break-words text-base leading-relaxed text-charcoal">“{review.quote}”</blockquote>
+                  <figcaption className="border-t border-forest/10 pt-4">
+                    <p className="font-semibold text-forest-deep">{review.name}</p>
+                    {review.location ? <p className="mt-1 text-xs text-charcoal/60">{review.location}</p> : null}
+                    <p className="mt-2 inline-flex items-center gap-1.5 text-xs text-forest"><BadgeCheck className="h-4 w-4" aria-hidden="true" />Approved customer review</p>
+                  </figcaption>
+                </figure>
+              ))}
+            </div>
+          </div>
+        ) : null}
+      </div>
+    </section>
   );
 }
 
