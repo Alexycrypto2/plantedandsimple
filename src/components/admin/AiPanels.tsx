@@ -20,8 +20,10 @@ import {
   pinterestStatus,
   pinterestAuthUrl,
   pinterestDisconnect,
+  pinterestBoards,
   type PinterestStatus,
 } from "@/lib/pinterest.functions";
+import { publishPinNow } from "@/lib/pinterest-publish.functions";
 
 const card = "rounded-2xl border border-forest/10 bg-white p-5 shadow-sm";
 const input =
@@ -243,11 +245,19 @@ export function ApprovalQueuePanel() {
   const [rows, setRows] = useState<Generation[]>([]);
   const [open, setOpen] = useState<string | null>(null);
   const [msg, setMsg] = useToast();
+  const [boards, setBoards] = useState<Array<{ id: string; name: string }>>([]);
+  const [board, setBoard] = useState("");
 
   const load = () =>
     listGenerations({ data: { kind, status } })
       .then((r) => setRows(r))
       .catch((e: any) => setMsg(e?.message ?? "Failed to load"));
+
+  useEffect(() => {
+    pinterestBoards()
+      .then((b: any) => { setBoards(b ?? []); if (b?.[0]) setBoard(b[0].id); })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     load();
@@ -284,11 +294,28 @@ export function ApprovalQueuePanel() {
         ))}
       </div>
 
+      <div className={`${card} flex flex-wrap items-center gap-3`}>
+        <span className="text-sm font-semibold text-forest-deep">Pinterest board</span>
+        {boards.length ? (
+          <select className={`${input} max-w-xs py-2`} value={board} onChange={(e) => setBoard(e.target.value)}>
+            {boards.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
+          </select>
+        ) : (
+          <span className="text-xs text-charcoal/60">Connect Pinterest in Settings to post pins directly.</span>
+        )}
+      </div>
+
       <div className="space-y-3">
         {rows.map((g) => (
           <article key={g.id} className={card}>
             <div className="flex flex-wrap items-start gap-3">
-              {g.preview_url && <img src={g.preview_url} alt={g.title} className="h-24 w-24 rounded-xl object-cover" />}
+              {(g.payload?.image_url || g.preview_url) && (
+                <img
+                  src={g.payload?.image_url || g.preview_url!}
+                  alt={g.title}
+                  className={g.kind === "pinterest_pin" ? "aspect-[2/3] w-28 rounded-xl object-cover" : "h-24 w-24 rounded-xl object-cover"}
+                />
+              )}
               <div className="min-w-[200px] flex-1">
                 <p className="font-mono text-[10px] uppercase tracking-widest text-sage">
                   {g.kind.replace("_", " ")} · {g.status}
@@ -308,6 +335,18 @@ export function ApprovalQueuePanel() {
               {g.status !== "approved" && (
                 <button className={btnGhost} onClick={() => act(() => setGenerationStatus({ data: { id: g.id, status: "approved" } }), "Approved.")}>
                   Approve
+                </button>
+              )}
+              {g.kind === "pinterest_pin" && g.status !== "published" && g.status !== "rejected" && (
+                <button
+                  className={btn}
+                  disabled={!board}
+                  onClick={() => act(async () => {
+                    if (g.status !== "approved") await setGenerationStatus({ data: { id: g.id, status: "approved" } });
+                    await publishPinNow({ data: { generationId: g.id, boardId: board, boardName: boards.find((b) => b.id === board)?.name ?? null } });
+                  }, "Posted to Pinterest.")}
+                >
+                  Approve & post to Pinterest
                 </button>
               )}
               {g.status !== "rejected" && (
