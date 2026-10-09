@@ -13,6 +13,8 @@ const FIELDS: { key: string; label: string; hint: string }[] = [
   { key: "PINTEREST_CLIENT_ID", label: "Pinterest App ID", hint: "From your Pinterest developer app" },
   { key: "PINTEREST_CLIENT_SECRET", label: "Pinterest App Secret", hint: "Keep this private" },
   { key: "GEMINI_API_KEY", label: "Gemini API key", hint: "Required — every AI feature connects directly to Google Gemini" },
+  { key: "MAGIC_HOUR_API_KEY", label: "Magic Hour API key", hint: "Pinterest photography · primary image provider · billed by Magic Hour" },
+  { key: "PIXAZO_API_KEY", label: "Pixazo API key", hint: "Pinterest photography · backup image provider · billed by Pixazo" },
   { key: "GEMINI_IMAGE_MODEL", label: "Gemini image model", hint: "Default: gemini-2.5-flash-image" },
   { key: "GEMINI_TEXT_MODEL", label: "Gemini text model", hint: "Default: gemini-2.5-flash — powers blogs, recipes, pins, assistant" },
   { key: "AI_MODE", label: "AI model selection", hint: "Automatic chooses a suitable model for each task; Manual uses your selected models" },
