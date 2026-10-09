@@ -22,3 +22,7 @@
 - CSV exports must neutralize spreadsheet formulas before quoting cells so buyer-controlled text cannot execute when opened.
 - Public catalog reads expose enabled homepage sections, published content links and referenced media only; staff policies retain full management access.
 - Public Paddle price resolution accepts only built-in offers or published catalog prices so it cannot proxy arbitrary provider queries.
+- Transactional email sending requires authenticated boss/admin role rows; public free-cookbook signup uses its dedicated delivery handler.
+- Reviews without sign-in require a recorded cookbook purchase before any Paddle transaction lookup.
+- Public review-photo retrieval requires approved, consented reviews and no caching; moderation uses short-lived signed URLs after staff authorization.
+- Media uploads validate encoded size, allowed MIME types and byte signatures before storage; paths use a generated UUID and detected extension.

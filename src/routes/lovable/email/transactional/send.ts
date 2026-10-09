@@ -59,6 +59,17 @@ export const Route = createFileRoute("/lovable/email/transactional/send")({
           return Response.json({ error: 'Unauthorized' }, { status: 401 })
         }
 
+        // Authorize through the caller's RLS-scoped role rows, not editable metadata.
+        const caller = createClient(supabaseUrl, process.env['SUPABASE_PUBLISHABLE_KEY']!, {
+          auth: { persistSession: false, autoRefreshToken: false },
+          global: { headers: { Authorization: `Bearer ${token}` } },
+        })
+        const { data: roles, error: roleError } = await caller.from('user_roles')
+          .select('role').eq('user_id', user.id)
+        if (roleError || !roles?.some((row) => row.role === 'admin' || row.role === 'boss')) {
+          return Response.json({ error: 'Forbidden' }, { status: 403 })
+        }
+
         // Parse request body
         let templateName: string
         let recipientEmail: string
