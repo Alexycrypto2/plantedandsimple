@@ -48,6 +48,10 @@ function AuthPage() {
     supabase.auth.getUser().then(({ data }) => {
       if (data.user) navigate({ to: dest });
     });
+    const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "SIGNED_IN" && session) navigate({ to: dest });
+    });
+    return () => sub.subscription.unsubscribe();
   }, [dest, navigate]);
 
   const onSubmit = async (e: React.FormEvent) => {
@@ -93,6 +97,7 @@ function AuthPage() {
     try {
       const result = await lovable.auth.signInWithOAuth("google", {
         redirect_uri: window.location.origin + "/auth",
+        extraParams: { prompt: "select_account" },
       });
       if (result.error) {
         setErr(
@@ -100,7 +105,10 @@ function AuthPage() {
             ? result.error.message
             : "Google sign-in failed",
         );
+        return;
       }
+      if (result.redirected) return;
+      navigate({ to: dest });
     } finally {
       setBusy(false);
     }
