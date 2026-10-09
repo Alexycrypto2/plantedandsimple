@@ -1,6 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 function html(title: string, body: string, detail?: string) {
+  const escape = (value: string) => value.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
+  title = escape(title);
+  body = escape(body);
+  detail = detail ? escape(detail) : undefined;
   return new Response(
     `<!doctype html><meta charset="utf-8"><title>${title}</title><body style="font-family:system-ui;background:#FAF8F3;color:#2b2b2b;display:grid;place-items:center;min-height:100vh;margin:0;text-align:center"><div style="max-width:520px;padding:24px"><h1 style="color:#2E5E3B">${title}</h1><p>${body}</p>${
       detail
@@ -112,7 +116,7 @@ export const Route = createFileRoute("/api/public/pinterest/oauth/callback")({
             return html(
               "Pinterest connection failed",
               "We got your Pinterest token but could not save it.",
-              `step: database_save — ${String(dbErr?.message ?? dbErr).slice(0, 240)}`,
+              "step: database_save — Please try again or contact support.",
             );
           }
           pinLog("callback:connected", { uid: storedState.userId, username, finalConnectionStatus: "connected" });
@@ -121,10 +125,11 @@ export const Route = createFileRoute("/api/public/pinterest/oauth/callback")({
             `Your account${username ? ` @${username}` : ""} is now linked to PrimeDownloads.`,
           );
         } catch (e: any) {
+          pinLog("callback:exchange-failed", { error: String(e?.message ?? e).slice(0, 300) });
           return html(
             "Pinterest connection failed",
             "Pinterest would not exchange the authorization code.",
-            `step: token_exchange — ${String(e?.message ?? e).slice(0, 280)}`,
+            "step: token_exchange — Please start a fresh connection from Admin.",
           );
         }
       },

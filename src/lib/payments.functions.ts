@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { z } from "zod";
 import {
   gatewayFetch,
   type PaddleEnv,
@@ -9,13 +10,15 @@ import {
  * to a Paddle internal price ID (pri_...). Required by Paddle.Checkout.open().
  */
 export const resolvePaddlePrice = createServerFn({ method: "GET" })
-  .inputValidator((data: { priceId: string; environment: PaddleEnv }) => {
-    if (!/^[a-zA-Z0-9_-]+$/.test(data.priceId)) {
-      throw new Error("Invalid priceId");
-    }
-    return data;
-  })
+  .inputValidator((data) => z.object({ priceId: z.string().regex(/^[a-zA-Z0-9_-]+$/).max(120), environment: z.enum(["live", "sandbox"]) }).parse(data))
   .handler(async ({ data }): Promise<string> => {
+    // Only published catalog prices or the app's three built-in offers may be resolved.
+    const builtIn = ["high_protein_cookbook_onetime", "prep_system_onetime", "planning_kit_onetime"];
+    if (!builtIn.includes(data.priceId)) {
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      const { data: product, error } = await supabaseAdmin.from("products").select("id").eq("status", "published").eq("paddle_price_external_id", data.priceId).limit(1).maybeSingle();
+      if (error || !product) throw new Error("Price not available");
+    }
     const res = await gatewayFetch(
       data.environment,
       `/prices?external_id=${encodeURIComponent(data.priceId)}`,
