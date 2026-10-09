@@ -45,9 +45,10 @@ const PREP_WORDS = ["meal prep", "prep", "weekly", "week of", "batch", "plan", "
 const PROTEIN_WORDS = ["protein", "high-protein", "tofu", "tempeh", "lentil", "chickpea", "seitan", "bean", "dinner", "lunch", "bowl", "recipe", "macro", "muscle", "edamame"];
 
 export function pickOffer(text: string): Offer {
-  const t = ` ${text.toLowerCase()} `;
-  if (PREP_WORDS.some((w) => t.includes(w))) return OFFERS.prep;
-  if (PROTEIN_WORDS.some((w) => t.includes(w))) return OFFERS.cookbook;
+  const t = text.toLowerCase();
+  const has = (w: string) => new RegExp(`(^|[^a-z])${w.replace(/[-]/g, "\\-")}s?([^a-z]|$)`).test(t);
+  if (PREP_WORDS.some(has)) return OFFERS.prep;
+  if (PROTEIN_WORDS.some(has)) return OFFERS.cookbook;
   return OFFERS.free;
 }
 
