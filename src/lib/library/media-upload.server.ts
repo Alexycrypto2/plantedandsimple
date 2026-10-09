@@ -6,7 +6,9 @@ export function decodeMediaUpload(base64: string, contentType: string) {
     throw new Error("File must be 20 MB or smaller");
   }
   const raw = base64.replace(/^data:[^;]+;base64,/, "");
-  if (!raw || !/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/.test(raw)) {
+  const padding = raw.endsWith("==") ? 2 : raw.endsWith("=") ? 1 : 0;
+  const body = raw.slice(0, raw.length - padding);
+  if (!body || raw.length % 4 !== 0 || /[^A-Za-z0-9+/]/.test(body)) {
     throw new Error("Invalid file encoding");
   }
   const bytes = Buffer.from(raw, "base64");
