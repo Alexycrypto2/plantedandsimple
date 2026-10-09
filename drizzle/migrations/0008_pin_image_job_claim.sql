@@ -1,0 +1,1 @@
+ALTER TABLE public.pin_image_jobs ADD COLUMN processing boolean NOT NULL DEFAULT false;

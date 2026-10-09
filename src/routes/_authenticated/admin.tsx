@@ -89,6 +89,11 @@ export const Route = createFileRoute("/_authenticated/admin")({
   head: () => ({
     meta: [
       { title: "Admin · PlantedAndSimple" },
+      { name: "description", content: "Manage PlantedAndSimple content, customers, and Pinterest publishing." },
+      { property: "og:title", content: "Admin · PlantedAndSimple" },
+      { property: "og:description", content: "Manage PlantedAndSimple content, customers, and Pinterest publishing." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { name: "robots", content: "noindex,nofollow" },
     ],
   }),

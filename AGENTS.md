@@ -26,3 +26,5 @@
 - Reviews without sign-in require a recorded cookbook purchase before any Paddle transaction lookup.
 - Public review-photo retrieval requires approved, consented reviews and no caching; moderation uses short-lived signed URLs after staff authorization.
 - Media uploads validate encoded size, allowed MIME types and byte signatures before storage; paths use a generated UUID and detected extension.
+- Pinterest Studio separates AI copy/photography from a shared browser canvas compositor; export and approval uploads use the same finished artwork so publishing never drops the title overlay.
+- Pinterest image providers run through authenticated, resumable jobs; only transient failures fall through to configured backups, while refusals and permission denials stop the job.

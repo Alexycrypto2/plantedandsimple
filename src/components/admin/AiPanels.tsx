@@ -650,7 +650,7 @@ export function IntegrationsPanel() {
       <section className={card}>
         <div className="flex items-center gap-2"><Cloud className="h-4 w-4 text-sage" /><h3 className="font-semibold text-forest-deep">Provider details</h3></div>
         <div className="mt-4 space-y-4">
-           {settings.filter((s) => s.key.startsWith("GEMINI_")).map((s) => {
+           {settings.filter((s) => s.key.startsWith("GEMINI_") || s.key === "MAGIC_HOUR_API_KEY" || s.key === "PIXAZO_API_KEY").map((s) => {
              const modelField = s.key === "GEMINI_TEXT_MODEL" || s.key === "GEMINI_IMAGE_MODEL";
              const choices = models.filter((model) => s.key === "GEMINI_IMAGE_MODEL" ? model.image : !model.image);
              return (
