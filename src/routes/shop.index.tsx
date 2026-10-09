@@ -3,6 +3,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { FALLBACK_PRODUCTS } from "@/lib/fallback-content";
 import { useState } from "react";
 import { SiteLayout } from "@/components/SiteLayout";
+import { FlagshipWithCompanions, FLAGSHIP_SLUG, productImage } from "@/components/site/ProductFamily";
 import {
   listPublishedProducts,
   listCategories,
@@ -40,6 +41,9 @@ function ShopPage() {
     if (sort === "price_desc") return b.price_cents - a.price_cents;
     return 0;
   });
+  const companionSlugs = new Set(["meal-prep-system", "planning-kit"]);
+  const flagship = products.find((p) => p.slug === FLAGSHIP_SLUG);
+  const others = filtered.filter((p) => (cat ? true : p.slug !== FLAGSHIP_SLUG) && !companionSlugs.has(p.slug));
 
   return (
     <SiteLayout>
