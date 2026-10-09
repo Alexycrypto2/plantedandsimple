@@ -29,6 +29,27 @@
       "when": 1791482739161,
       "tag": "0003_prep_cookbooks_library",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1791512459330,
+      "tag": "0004_pin_selected_email_function_search_paths",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1791512531502,
+      "tag": "0005_remove_unused_public_submission_rules",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1791512573595,
+      "tag": "0006_scope_public_content_and_tracking_policies",
+      "breakpoints": true
     }
   ]
 }

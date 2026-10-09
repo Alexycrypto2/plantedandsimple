@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { csvCell } from "@/lib/csv";
 import { supabase } from "@/integrations/supabase/client";
 import {
   AiStudioPanel,
@@ -695,7 +696,7 @@ function BuyersPanel() {
           r.download_count,
           r.last_downloaded_at ?? "",
         ]
-          .map((v) => `"${String(v).replace(/"/g, '""')}"`)
+          .map(csvCell)
           .join(","),
       )
       .join("\n");
