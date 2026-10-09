@@ -87,7 +87,7 @@ Return JSON only.`,
           topic: data.subject,
           preview_url: img?.url ?? null,
           payload: { ...pin, link: data.link ?? null, storage_path: img?.path ?? null, image_url: img?.url ?? null },
-          model: pin.provider ? `curated artwork · ${pin.provider}` : 'curated artwork · source photography',
+          model: `${DEFAULT_CHAT_MODEL} + ${DEFAULT_IMAGE_MODEL}`,
           created_by: context.userId,
           status: "pending",
         })
@@ -261,7 +261,7 @@ export const savePinPreviews = createServerFn({ method: "POST" })
           topic: data.subject,
           preview_url: pin.image_url ?? null,
           payload: { ...pin, link: data.link },
-          model: `${DEFAULT_CHAT_MODEL} + ${DEFAULT_IMAGE_MODEL}`,
+          model: pin.provider ? `curated artwork · ${pin.provider}` : 'curated artwork · source photography',
           created_by: context.userId,
           status: "pending",
         })
