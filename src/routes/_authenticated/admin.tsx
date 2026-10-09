@@ -14,6 +14,7 @@ import { CampaignPanel } from "@/components/admin/CampaignPanel";
 import { AnalyticsDashboard } from "@/components/admin/AnalyticsPanel";
 import { AiBlogWriterModal, type AiBlogDraft } from "@/components/admin/AiBlogWriter";
 import { TrendingPanel } from "@/components/admin/TrendingPanel";
+import { SeoDoctor } from "@/components/admin/SeoDoctor";
 import {
   IntelligencePanel,
   BrandPanel,
@@ -2486,6 +2487,10 @@ function BlogPanel() {
               />
             </Field>
           </div>
+          <SeoDoctor
+            value={editing}
+            onApply={(patch) => setEditing({ ...editing, ...patch })}
+          />
           <div className="mt-6 flex justify-end gap-3">
             <button
               onClick={() => setEditing(null)}
