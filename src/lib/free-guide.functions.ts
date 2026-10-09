@@ -37,5 +37,12 @@ export const subscribeFreeGuide = createServerFn({ method: "POST" })
       // The download must remain available even if the email provider is temporarily unavailable.
     }
 
+    try {
+      const { syncSubscriber } = await import("@/lib/email-sync.server");
+      await syncSubscriber(data.email, data.source ?? "free_guide");
+    } catch {
+      // List sync is best-effort; the subscriber is already saved.
+    }
+
     return { ok: true, download_url: freeCookbookAsset.url, email_queued };
   });

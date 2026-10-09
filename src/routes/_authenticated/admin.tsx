@@ -73,6 +73,7 @@ import {
 import { AdminShell, MetricCard, PanelCard, SectionTabs, FlowRibbon } from "@/components/admin/AdminShell";
 import { LibrarySection } from "@/components/admin/LibraryPanel";
 import { RecipesSection } from "@/components/admin/RecipesPanel";
+import { SubscribersPanel } from "@/components/admin/SubscribersPanel";
 import { MealPrepPanel } from "@/components/admin/MealPrepPanel";
 import { CookbookLibraryPanel } from "@/components/admin/CookbookLibraryPanel";
 import {
@@ -323,14 +324,16 @@ function AudienceSection() {
   return (
     <Section
       tabs={[
-        { id: "subscribers", label: "Subscribers", icon: Users },
+        { id: "subscribers", label: "Email list", icon: Users },
+        { id: "buyers", label: "Buyers", icon: Users },
         { id: "reviews", label: "Reviews", icon: Star },
         { id: "affiliates", label: "Affiliates", icon: Handshake },
       ]}
     >
       {(t) => (
         <>
-          {t === "subscribers" && <BuyersPanel />}
+          {t === "subscribers" && <SubscribersPanel />}
+          {t === "buyers" && <BuyersPanel />}
           {t === "reviews" && <ReviewsPanel />}
           {t === "affiliates" && <AffiliatesPanel />}
         </>
