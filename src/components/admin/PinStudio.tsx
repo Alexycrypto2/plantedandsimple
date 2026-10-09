@@ -71,7 +71,7 @@ export function PinterestStudioPanel() {
       if (result.status === 'failed') throw new Error(result.error || 'Image generation could not complete.');
       if (result.status === 'cancelled') return;
       if (result.status === 'complete') {
-        setPins(rows => rows.map((row, i) => i === index ? { ...row, image_url: result.image_url, storage_path: result.storage_path, provider: result.provider } : row));
+        setPins(rows => rows.map((row, i) => i === index ? { ...row, image_url: result.image_url, storage_path: result.storage_path, provider: result.provider, credits: result.credits } : row));
         return;
       }
       await delay(3000);
@@ -119,6 +119,13 @@ export function PinterestStudioPanel() {
   };
   const openConnections = () => { setConnections(true); adminListSettings().then(setSettings).catch(e => setError(e.message)); };
   const ready = type === 'custom' ? subject.trim().length > 3 : Boolean(sourceId);
+  const useSource = () => {
+    const title = selected?.title || subject;
+    if (!title.trim()) return;
+    const image = selected?.image_url || (type === 'product' ? cookbookPhoto : type === 'free' ? freePhoto : null);
+    const rows = Array.from({ length: count }, (_, index) => ({ ...preview, title, overlay_text: title, description: selected?.summary ?? '', alt: title, style: auto ? PIN_LAYOUTS[index % PIN_LAYOUTS.length]?.id ?? layout : layout, image_url: image, image_prompt: `Food photography for ${title}`, why_it_works: '' }));
+    setPins(rows); setActive(0); setIncluded(rows.map((_, i) => i)); setHeading(title); setDestination(selected?.url ?? ''); setError('');
+  };
   return <div className="min-w-0 space-y-5 text-foreground">
     <header className="flex flex-wrap items-center justify-between gap-3 border-b border-border pb-5">
       <div><p className="mb-1 text-xs font-medium text-muted-foreground">CREATE / PINTEREST</p><h2 className="text-2xl font-semibold">Pin Studio<span className="ml-2 text-primary">.</span></h2></div>
@@ -146,6 +153,7 @@ export function PinterestStudioPanel() {
           </div>
           <div className="flex items-center justify-between"><label htmlFor="pin-count" className="text-sm font-semibold">Variants</label><input id="pin-count" type="number" min="1" max="5" className={`${field} w-20`} value={count} onChange={e => setCount(Math.min(5, Math.max(1, Number(e.target.value) || 1)))} /></div>
           <Button className="w-full" disabled={!ready || busy || saving || (photoMode === 'generate' && !providers.some(row => row.configured))} onClick={generate}>{busy ? <Loader2 className="animate-spin" /> : <Wand2 />}{busy ? 'Creating pins…' : `Create ${count} pins`}</Button>
+          <Button variant="outline" className="w-full" disabled={!ready || busy || saving} onClick={useSource}>Use source title · no AI</Button>
           {busy && <div className="space-y-2"><p role="status" className="text-xs text-muted-foreground">{stage}</p><Button variant="outline" className="w-full" onClick={stop}><Square /> Stop</Button></div>}
         </div>
       </aside>
@@ -170,7 +178,7 @@ export function PinterestStudioPanel() {
               <Field label="Hashtags" value={current.hashtags.join(' ')} onChange={value => patch({ hashtags: value.split(/\s+/).filter(Boolean) })} />
               <Field label="Destination" value={destination} onChange={setDestination} />
               <p className="text-xs leading-relaxed text-muted-foreground">{current.why_it_works}</p>
-              {current.provider && <p className="text-xs text-muted-foreground">Photography: {current.provider}</p>}
+              {current.provider && <p className="text-xs text-muted-foreground">Photography: {current.provider}{current.credits != null ? ` · ${current.credits} provider credits` : ' · cost reported by provider'}</p>}
               <Button variant="ghost" size="sm" onClick={() => { setPins([]); setIncluded([]); }} disabled={busy}><Trash2 />Discard set</Button>
             </>}
           </div>

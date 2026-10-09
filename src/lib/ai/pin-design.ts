@@ -12,7 +12,7 @@ export type PinArtwork = {
   hashtags: string[]; primary_keyword: string; board_suggestion: string; why_it_works: string;
   image_prompt: string; image_url: string | null; secondary_image_url?: string | null;
   badge?: string; palette?: 'brand' | 'paper' | 'berry'; storage_path?: string | null;
-  provider?: string; jobId?: string;
+  provider?: string; jobId?: string; credits?: number | null;
 };
 export function validLayout(value: string): PinLayoutId {
   return PIN_LAYOUTS.find(layout => layout.id === value)?.id ?? 'bottom-card';
