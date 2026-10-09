@@ -1,536 +1,192 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import {
-  BookOpen,
-  Check,
-  ChefHat,
-  ChevronLeft,
-  ChevronRight,
-  Loader2,
-  Newspaper,
-  RefreshCw,
-  Search,
-  Sparkles,
-  X,
-  Wand2,
-} from "lucide-react";
-import {
-  listPinSources,
-  generatePinsFromSource,
-  savePinPreviews,
-  type PinSource,
-  type PinSourceType,
-  type PinLayout,
-} from "@/lib/ai/pin-studio.functions";
+import { useEffect, useRef, useState } from 'react';
+import { BookOpen, Check, ChefHat, Download, Gift, ImagePlus, Loader2, Newspaper, RefreshCw, Settings2, Sparkles, Square, Trash2, Wand2, X } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
+import { listPinSources, generatePinsFromSource, savePinPreviews, type PinSource, type PinSourceType } from '@/lib/ai/pin-studio.functions';
+import { adminListSettings, adminSaveSetting } from '@/lib/settings.functions';
+import { getPinProviders, startPinPhoto, pollPinPhoto, cancelPinPhoto, uploadPinArtwork } from '@/lib/ai/pin-images.functions';
+import { PIN_LAYOUTS, type PinArtwork, type PinLayoutId } from '@/lib/ai/pin-design';
+import { exportPin } from '@/lib/ai/pin-canvas';
+import { PinCanvas } from './PinCanvas';
+import samplePhoto from '@/assets/recipe-sesame-tofu.jpg';
+import cookbookPhoto from '@/assets/cookbook-mockup.jpg';
+import freePhoto from '@/assets/hero-editorial.jpg';
 
-const shell = "rounded-3xl border border-forest/10 bg-white/80 p-6 shadow-[0_18px_60px_-40px_rgba(46,94,59,0.6)] backdrop-blur";
-const input =
-  "w-full rounded-xl border border-forest/20 bg-cream/40 px-4 py-3 text-sm outline-none transition focus:border-forest";
-const label = "font-mono text-[10px] font-bold uppercase tracking-[0.22em] text-sage";
-const btn =
-  "inline-flex items-center gap-2 rounded-full bg-forest px-6 py-3 text-sm font-semibold text-cream transition hover:bg-forest-deep disabled:opacity-40";
-const btnGhost =
-  "inline-flex items-center gap-2 rounded-full border border-forest/20 px-4 py-2 text-xs font-semibold text-forest transition hover:bg-forest/5 disabled:opacity-40";
-
-const SOURCES: { id: PinSourceType; label: string; blurb: string; icon: typeof ChefHat }[] = [
-  { id: "recipe", label: "Recipe", blurb: "Dish-led pins from a published recipe", icon: ChefHat },
-  { id: "blog", label: "Blog article", blurb: "Idea-led pins from an article", icon: Newspaper },
-  { id: "product", label: "Cookbook", blurb: "Premium pins that sell the product", icon: BookOpen },
-  { id: "custom", label: "Free subject", blurb: "Type anything and let AI shape it", icon: Sparkles },
-];
-
-const LAYOUTS: Array<{ id: PinLayout; label: string; blurb: string }> = [
-  { id: "top-banner", label: "Top banner", blurb: "Bold color bar above the food" },
-  { id: "center-card", label: "Center card", blurb: "Large white editorial title block" },
-  { id: "middle-band", label: "Middle band", blurb: "High-contrast stripe across the image" },
-  { id: "bottom-card", label: "Bottom recipe card", blurb: "Food first, structured caption below" },
-  { id: "minimal-label", label: "Floating label", blurb: "Small clean label with lots of image" },
-  { id: "split-collage", label: "Photo collage", blurb: "Grid-led list or roundup pin" },
-];
+const field = 'w-full rounded-md border border-input bg-card px-3 py-2.5 text-sm text-foreground outline-none focus:ring-2 focus:ring-ring';
+const TYPES = [{ id: 'recipe', title: 'Recipes', icon: ChefHat }, { id: 'blog', title: 'Articles', icon: Newspaper }, { id: 'product', title: 'Products', icon: BookOpen }, { id: 'free', title: 'Free cookbook', icon: Gift }, { id: 'custom', title: 'Custom', icon: Sparkles }] as const;
+const preview: PinArtwork = { style: 'top-banner', title: 'Sesame tofu bowls', overlay_text: 'Sesame tofu bowls', description: '', alt: 'Sesame tofu bowl template sample', hashtags: [], primary_keyword: '', board_suggestion: '', why_it_works: '', image_prompt: '', image_url: samplePhoto, palette: 'brand' };
+type Provider = 'magic-hour' | 'pixazo' | 'gemini';
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+const toBase64 = (blob: Blob): Promise<string> => new Promise((resolve, reject) => { const reader = new FileReader(); reader.onload = () => resolve(String(reader.result).split(',')[1] ?? ''); reader.onerror = reject; reader.readAsDataURL(blob); });
 
 export function PinterestStudioPanel() {
-  const [type, setType] = useState<PinSourceType>("recipe");
+  const [type, setType] = useState<PinSourceType>('recipe');
   const [sources, setSources] = useState<Record<string, PinSource[]>>({});
-  const [loadingSources, setLoadingSources] = useState(true);
-  const [query, setQuery] = useState("");
-  const [pickedId, setPickedId] = useState<string | null>(null);
-  const [subject, setSubject] = useState("");
-  const [angle, setAngle] = useState("");
-  const [count, setCount] = useState(5);
-  const [layouts, setLayouts] = useState<PinLayout[]>(["top-banner", "center-card", "middle-band", "bottom-card", "minimal-label"]);
-
+  const [loading, setLoading] = useState(true);
+  const [sourceId, setSourceId] = useState('');
+  const [query, setQuery] = useState('');
+  const [subject, setSubject] = useState('');
+  const [angle, setAngle] = useState('');
+  const [count, setCount] = useState(3);
+  const [auto, setAuto] = useState(true);
+  const [layout, setLayout] = useState<PinLayoutId>('top-banner');
+  const [photoMode, setPhotoMode] = useState<'existing' | 'generate'>('existing');
+  const [provider, setProvider] = useState<Provider | ''>('');
+  const [providers, setProviders] = useState<Awaited<ReturnType<typeof getPinProviders>>>([]);
+  const [pins, setPins] = useState<PinArtwork[]>([]);
+  const [active, setActive] = useState(0);
+  const [included, setIncluded] = useState<number[]>([]);
+  const [destination, setDestination] = useState('');
+  const [heading, setHeading] = useState('');
   const [busy, setBusy] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [msg, setMsg] = useState<string | null>(null);
-  const [err, setErr] = useState<string | null>(null);
-  const [pack, setPack] = useState<any[] | null>(null);
-  const [picked, setPicked] = useState<number[]>([]);
-  const [link, setLink] = useState<string | null>(null);
-  const [heading, setHeading] = useState("");
-  const [reviewIndex, setReviewIndex] = useState<number | null>(null);
-  const [imageModel, setImageModel] = useState("");
-  const reviewRef = useRef<HTMLElement | null>(null);
-
-  const loadSources = () => {
-    setLoadingSources(true);
-    listPinSources()
-      .then((r: any) => setSources(r ?? {}))
-      .catch((e: any) => setErr(e?.message ?? "Could not load your content"))
-      .finally(() => setLoadingSources(false));
+  const [stage, setStage] = useState('');
+  const [error, setError] = useState('');
+  const [notice, setNotice] = useState('');
+  const [connections, setConnections] = useState(false);
+  const [keyValues, setKeyValues] = useState<Record<string, string>>({});
+  const [settings, setSettings] = useState<Awaited<ReturnType<typeof adminListSettings>>>([]);
+  const jobs = useRef<string[]>([]);
+  const stopped = useRef(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+  const targetSecondary = useRef(false);
+  const objectUrls = useRef<string[]>([]);
+  useEffect(() => () => { stopped.current = true; objectUrls.current.forEach(url => URL.revokeObjectURL(url)); }, []);
+  const load = () => {
+    setLoading(true);
+    listPinSources().then(setSources).catch(e => setError(e.message)).finally(() => setLoading(false));
+    getPinProviders().then(setProviders).catch(e => setError(e.message));
   };
-  useEffect(loadSources, []);
-
-  const list = useMemo(() => {
-    const rows = sources[type] ?? [];
-    const q = query.trim().toLowerCase();
-    return q ? rows.filter((r) => r.title.toLowerCase().includes(q)) : rows;
-  }, [sources, type, query]);
-
-  const selected = (sources[type] ?? []).find((s) => s.id === pickedId) ?? null;
-  const ready = type === "custom" ? subject.trim().length > 3 : Boolean(pickedId);
-
-  const run = async () => {
-    setBusy(true);
-    setErr(null);
-    setMsg(null);
-    setPack(null);
-    setPicked([]);
-    try {
-         const res: any = await generatePinsFromSource({
-         data: { type, id: pickedId ?? undefined, subject, count, angle: angle || undefined, layouts: layouts.slice(0, count), imageModel: imageModel || undefined },
-      });
-      setPack(res.pins ?? []);
-      setPicked((res.pins ?? []).map((_: any, i: number) => i));
-      setLink(res.link ?? null);
-      setHeading(res.subject ?? subject);
-      if ((res.pins ?? []).length) setReviewIndex(0);
-    } catch (e: any) {
-      setErr(e?.message ?? "Pin generation failed");
-    } finally {
-      setBusy(false);
+  useEffect(load, []);
+  const selected = (sources[type] ?? []).find(row => row.id === sourceId);
+  const current = pins[active];
+  const patch = (change: Partial<PinArtwork>) => setPins(rows => rows.map((row, index) => index === active ? { ...row, ...change } : row));
+  const photo = async (index: number, prompt: string) => {
+    setStage(`Photograph ${index + 1} of ${count}`);
+    const job = await startPinPhoto({ data: { prompt, provider: provider || undefined } });
+    jobs.current.push(job.id);
+    while (!stopped.current) {
+      const result = await pollPinPhoto({ data: { id: job.id } });
+      if (stopped.current) break;
+      if (result.status === 'failed') throw new Error(result.error || 'Image generation could not complete.');
+      if (result.status === 'cancelled') return;
+      if (result.status === 'complete') {
+        setPins(rows => rows.map((row, i) => i === index ? { ...row, image_url: result.image_url, storage_path: result.storage_path, provider: result.provider } : row));
+        return;
+      }
+      await delay(3000);
     }
   };
-
+  const generate = async () => {
+    setBusy(true); setError(''); setNotice(''); stopped.current = false; jobs.current = [];
+    try {
+      setStage('Reading your content and writing pin headlines…');
+      const result = await generatePinsFromSource({ data: { type, id: sourceId || undefined, subject, angle, count, layouts: [layout], automaticStyle: auto, imageMode: photoMode } });
+      if (stopped.current) return;
+      const artwork = result.pins.map(pin => ({ ...pin, image_url: pin.image_url || (type === 'product' ? cookbookPhoto : type === 'free' ? freePhoto : null), palette: 'brand' as const }));
+      setPins(artwork); setActive(0); setIncluded(artwork.map((_, i) => i)); setHeading(result.subject); setDestination(result.link ?? '');
+      if (photoMode === 'generate') for (let i = 0; i < artwork.length && !stopped.current; i++) await photo(i, artwork[i].image_prompt);
+    } catch (e) { setError(e instanceof Error ? e.message : 'Could not complete your pin set.'); }
+    finally { setBusy(false); setStage(''); }
+  };
+  const stop = async () => {
+    stopped.current = true; setStage('Stopping…');
+    await Promise.all(jobs.current.map(id => cancelPinPhoto({ data: { id } }).catch(() => undefined)));
+    setNotice('Stopped. Completed pins remain available. Provider work already submitted may still be billed.');
+  };
+  const download = async () => {
+    if (!current) return;
+    try {
+      const url = URL.createObjectURL(await exportPin(current));
+      const a = document.createElement('a'); a.href = url; a.download = `planted-simple-pin-${active + 1}.png`; a.click(); URL.revokeObjectURL(url);
+    } catch (e) { setError(e instanceof Error ? e.message : 'Download failed.'); }
+  };
   const save = async () => {
-    if (!pack) return;
-    setSaving(true);
-    setErr(null);
+    setSaving(true); setError('');
     try {
-      const chosen = pack.filter((_, i) => picked.includes(i));
-      const res: any = await savePinPreviews({ data: { subject: heading, link, pins: chosen } });
-      setMsg(`${res.saved} pin${res.saved === 1 ? "" : "s"} sent to the Approval Queue — approve them in Pinterest → Publishing.`);
-      setPack(null);
-      setReviewIndex(null);
-    } catch (e: any) {
-      setErr(e?.message ?? "Could not save pins");
-    } finally {
-      setSaving(false);
-    }
+      const url = new URL(destination);
+      if (!['https:', 'http:'].includes(url.protocol)) throw new Error('Enter a valid destination link.');
+      const finished = [];
+      for (const index of included) {
+        const pin = pins[index]; if (!pin) continue;
+        const uploaded = await uploadPinArtwork({ data: { base64: await toBase64(await exportPin(pin)) } });
+        finished.push({ ...pin, ...uploaded, photo_url: pin.image_url });
+      }
+      const result = await savePinPreviews({ data: { subject: heading, link: destination, pins: finished } });
+      setNotice(`${result.saved} finished pins sent to approvals. Open Publish & Schedule to choose a board.`);
+    } catch (e) { setError(e instanceof Error ? e.message : 'Could not save pins.'); }
+    finally { setSaving(false); }
   };
-
-  const patchPin = (index: number, patch: Record<string, unknown>) =>
-    setPack((c) => (c ? c.map((p, i) => (i === index ? { ...p, ...patch } : p)) : c));
-
-  useEffect(() => {
-    if (!pack) return;
-    reviewRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-  }, [pack]);
-
-  return (
-    <div className="space-y-6">
-      <header className="relative overflow-hidden rounded-3xl border border-forest/10 bg-gradient-to-br from-forest-deep via-forest to-sage p-8 text-cream">
-        <div className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-cream/10 blur-2xl" />
-        <p className="font-mono text-[10px] font-bold uppercase tracking-[0.3em] text-cream/70">Pinterest Studio</p>
-        <h2 className="mt-2 max-w-xl font-display text-3xl italic leading-tight">
-          Turn any recipe, article or cookbook into a pin set that looks art-directed.
-        </h2>
-        <p className="mt-3 max-w-2xl text-sm text-cream/80">
-          Pick the content, and the studio reads it end to end — ingredients, timings, benefits — then chooses the
-          layouts that suit that content type instead of spamming every style.
-        </p>
-      </header>
-
-      {err && <p className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{err}</p>}
-      {msg && <p className="rounded-2xl bg-forest/10 px-4 py-3 text-sm text-forest-deep">{msg}</p>}
-
-      <section className={shell}>
-        <p className={label}>Step 1 · What are we pinning?</p>
-        <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {SOURCES.map((s) => {
-            const Icon = s.icon;
-            const on = type === s.id;
-            return (
-              <button
-                key={s.id}
-                onClick={() => {
-                  setType(s.id);
-                  setPickedId(null);
-                  setQuery("");
-                }}
-                className={`group rounded-2xl border p-4 text-left transition ${
-                  on
-                    ? "border-forest bg-forest text-cream shadow-lg"
-                    : "border-forest/15 bg-cream/40 text-forest-deep hover:-translate-y-0.5 hover:border-forest/40"
-                }`}
-              >
-                <Icon className={`h-5 w-5 ${on ? "text-cream" : "text-sage"}`} />
-                <p className="mt-3 text-sm font-semibold">{s.label}</p>
-                <p className={`mt-1 text-xs ${on ? "text-cream/75" : "text-charcoal/55"}`}>{s.blurb}</p>
-              </button>
-            );
-          })}
+  const openConnections = () => { setConnections(true); adminListSettings().then(setSettings).catch(e => setError(e.message)); };
+  const ready = type === 'custom' ? subject.trim().length > 3 : Boolean(sourceId);
+  return <div className="min-w-0 space-y-5 text-foreground">
+    <header className="flex flex-wrap items-center justify-between gap-3 border-b border-border pb-5">
+      <div><p className="mb-1 text-xs font-medium text-muted-foreground">CREATE / PINTEREST</p><h2 className="text-2xl font-semibold">Pin Studio<span className="ml-2 text-primary">.</span></h2></div>
+      <Button variant="outline" onClick={openConnections}><Settings2 /> Connections</Button>
+    </header>
+    {error && <div role="alert" className="flex items-start justify-between gap-3 rounded-md border border-destructive/25 bg-destructive/5 p-3 text-sm text-destructive"><span>{error}</span><Button variant="ghost" size="icon" aria-label="Dismiss error" onClick={() => setError('')}><X /></Button></div>}
+    {notice && <p role="status" className="rounded-md bg-secondary p-3 text-sm text-secondary-foreground">{notice}</p>}
+    <div className="grid min-w-0 gap-0 overflow-hidden rounded-lg border border-border bg-card xl:grid-cols-[320px_minmax(0,1fr)]">
+      <aside className="min-w-0 border-b border-border p-5 xl:border-b-0 xl:border-r">
+        <div className="mb-5 flex flex-wrap gap-1" aria-label="Content type">{TYPES.map(item => <Button key={item.id} size="sm" variant={type === item.id ? 'default' : 'ghost'} onClick={() => { setType(item.id); setSourceId(item.id === 'free' ? 'free-cookbook' : ''); }}><item.icon />{item.title}</Button>)}</div>
+        <div className="space-y-5">
+          <div><div className="mb-2 flex items-center justify-between"><label className="text-sm font-semibold" htmlFor="pin-source">Content</label><Button size="icon" variant="ghost" title="Refresh content" aria-label="Refresh content" onClick={load}><RefreshCw /></Button></div>
+            {type === 'custom' ? <input id="pin-source" className={field} placeholder="Your topic or recipe title" value={subject} onChange={e => setSubject(e.target.value)} /> : <>
+              <input aria-label="Search content" className={`${field} mb-2`} placeholder="Search your library" value={query} onChange={e => setQuery(e.target.value)} />
+              <select id="pin-source" className={field} value={sourceId} onChange={e => setSourceId(e.target.value)}><option value="">{loading ? 'Loading content…' : 'Choose content'}</option>{(sources[type] ?? []).filter(row => row.title.toLowerCase().includes(query.toLowerCase())).map(row => <option key={row.id} value={row.id}>{row.title}</option>)}</select>
+              {selected && <p className="mt-2 line-clamp-3 text-xs text-muted-foreground">{selected.summary}</p>}
+            </>}
+          </div>
+          <div><label className="mb-2 block text-sm font-semibold" htmlFor="pin-angle">Hook / angle <span className="font-normal text-muted-foreground">optional</span></label><input id="pin-angle" className={field} placeholder="Quick weeknight meals, pantry staples…" value={angle} onChange={e => setAngle(e.target.value)} /></div>
+          <div><div className="mb-3 flex items-center justify-between"><span className="text-sm font-semibold">Pin style</span><label className="flex items-center gap-2 text-xs"><input type="checkbox" checked={auto} onChange={e => setAuto(e.target.checked)} className="accent-primary" />Smart pick</label></div>
+            <div className="grid grid-cols-3 gap-2">{PIN_LAYOUTS.map(item => <Button key={item.id} variant="ghost" aria-pressed={!auto && layout === item.id} title={item.note} onClick={() => { setLayout(item.id); setAuto(false); }} className={`h-auto min-w-0 flex-col gap-2 whitespace-normal rounded-md border p-2 ${!auto && layout === item.id ? 'border-primary bg-secondary/40' : 'border-border'}`}><div className="pointer-events-none w-full"><PinCanvas pin={{ ...preview, style: item.id, secondary_image_url: item.id === 'split-collage' ? freePhoto : null }} /></div><span className="text-center text-[10px] leading-tight">{item.name}</span></Button>)}</div>
+          </div>
+          <div><label className="mb-2 block text-sm font-semibold" htmlFor="photo-mode">Photography</label><select id="photo-mode" className={field} value={photoMode} onChange={e => setPhotoMode(e.target.value === 'generate' ? 'generate' : 'existing')}><option value="existing">Use content photography</option><option value="generate">Generate new photography</option></select>
+            {photoMode === 'generate' && <select aria-label="Image provider" className={`${field} mt-2`} value={provider} onChange={e => setProvider(e.target.value as Provider | '')}><option value="">Automatic fallback</option>{providers.map(row => <option key={row.id} value={row.id} disabled={!row.configured}>{row.name}{row.configured ? '' : ' · not connected'}</option>)}</select>}
+          </div>
+          <div className="flex items-center justify-between"><label htmlFor="pin-count" className="text-sm font-semibold">Variants</label><input id="pin-count" type="number" min="1" max="5" className={`${field} w-20`} value={count} onChange={e => setCount(Math.min(5, Math.max(1, Number(e.target.value) || 1)))} /></div>
+          <Button className="w-full" disabled={!ready || busy || saving || (photoMode === 'generate' && !providers.some(row => row.configured))} onClick={generate}>{busy ? <Loader2 className="animate-spin" /> : <Wand2 />}{busy ? 'Creating pins…' : `Create ${count} pins`}</Button>
+          {busy && <div className="space-y-2"><p role="status" className="text-xs text-muted-foreground">{stage}</p><Button variant="outline" className="w-full" onClick={stop}><Square /> Stop</Button></div>}
         </div>
-
-        {type !== "custom" ? (
-          <div className="mt-6">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <p className={label}>Step 2 · Choose the piece</p>
-              <button className={btnGhost} onClick={loadSources}>
-                <RefreshCw className="h-3 w-3" /> Refresh
-              </button>
-            </div>
-            <div className="relative mt-3">
-              <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-sage" />
-              <input
-                className={`${input} pl-11`}
-                placeholder={`Search your ${type === "product" ? "cookbooks" : type === "blog" ? "articles" : "recipes"}…`}
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-              />
-            </div>
-            <div className="mt-3 max-h-72 space-y-2 overflow-y-auto pr-1">
-              {loadingSources && <p className="py-6 text-center text-sm text-charcoal/50">Loading your library…</p>}
-              {!loadingSources && list.length === 0 && (
-                <p className="py-6 text-center text-sm text-charcoal/50">Nothing here yet — create content first.</p>
-              )}
-              {list.map((s) => {
-                const on = pickedId === s.id;
-                return (
-                  <button
-                    key={s.id}
-                    onClick={() => setPickedId(s.id)}
-                    className={`flex w-full items-center gap-3 rounded-2xl border px-4 py-3 text-left transition ${
-                      on ? "border-forest bg-forest/5" : "border-transparent bg-cream/40 hover:border-forest/25"
-                    }`}
-                  >
-                    {s.image_url ? (
-                      <img src={s.image_url} alt="" className="h-12 w-12 shrink-0 rounded-xl object-cover" />
-                    ) : (
-                      <div className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-forest/10 text-sage">
-                        <ChefHat className="h-4 w-4" />
-                      </div>
-                    )}
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate text-sm font-semibold text-forest-deep">{s.title}</span>
-                      <span className="block truncate text-xs text-charcoal/55">{s.summary ?? s.url}</span>
-                    </span>
-                    {on && <Check className="h-4 w-4 shrink-0 text-forest" />}
-                  </button>
-                );
-              })}
-            </div>
+      </aside>
+      <main className="min-w-0 bg-muted/35 p-5 sm:p-6">
+        <div className="mb-5 flex flex-wrap items-center justify-between gap-3"><div><h3 className="font-semibold">{pins.length ? 'Your pin collection' : 'Style preview'}</h3><p className="mt-1 text-xs text-muted-foreground">{pins.length ? `${pins.length} variants · ${included.length} selected` : 'Recipe headline · 1000 × 1500'}</p></div><div className="flex gap-2"><Button variant="outline" size="icon" aria-label="Download selected pin" title="Download PNG" onClick={download} disabled={!current?.image_url || busy}><Download /></Button><Button disabled={!included.length || busy || saving || included.some(i => !pins[i]?.image_url)} onClick={save}>{saving ? <Loader2 className="animate-spin" /> : <Check />}Send to approvals</Button></div></div>
+        <div className="grid min-w-0 gap-6 lg:grid-cols-[minmax(0,1fr)_240px]">
+          <div className="min-w-0">
+            <div className="mx-auto max-w-[360px] shadow-card">{current?.image_url ? <PinCanvas pin={current} /> : current ? <div className="grid aspect-[2/3] place-items-center bg-muted p-6 text-center"><div><ImagePlus className="mx-auto mb-3 h-8 w-8 text-muted-foreground" /><p className="text-sm">Add a photo or generate photography</p><Button variant="outline" className="mt-3" onClick={() => { targetSecondary.current = false; fileRef.current?.click(); }}><ImagePlus />Add photo</Button></div></div> : <PinCanvas pin={{ ...preview, style: layout, secondary_image_url: layout === 'split-collage' ? freePhoto : null }} />}</div>
+            {pins.length > 0 && <div className="mt-5 grid grid-cols-5 gap-2">{pins.map((pin, index) => <div key={index} className="min-w-0"><Button aria-label={`Edit pin ${index + 1}`} variant="ghost" onClick={() => setActive(index)} className={`h-auto w-full overflow-hidden border-2 p-0 ${active === index ? 'border-primary' : 'border-transparent'}`}>{pin.image_url ? <PinCanvas pin={pin} /> : <div className="grid aspect-[2/3] w-full place-items-center bg-muted"><ImagePlus /></div>}</Button><label className="mt-2 flex justify-center gap-1 text-xs"><input type="checkbox" aria-label={`Include pin ${index + 1}`} checked={included.includes(index)} onChange={() => setIncluded(rows => rows.includes(index) ? rows.filter(i => i !== index) : [...rows, index])} className="accent-primary" />{index + 1}</label></div>)}</div>}
           </div>
-        ) : (
-          <div className="mt-6 space-y-1.5">
-            <p className={label}>Step 2 · Subject</p>
-            <input
-              className={input}
-              value={subject}
-              onChange={(e) => setSubject(e.target.value)}
-              placeholder="High-protein smoky tofu buddha bowl"
-            />
-          </div>
-        )}
-
-         <div className="mt-6 grid gap-5 sm:grid-cols-3">
-          <div className="space-y-1.5">
-            <p className={label}>Optional angle</p>
-            <input
-              className={input}
-              value={angle}
-              onChange={(e) => setAngle(e.target.value)}
-              placeholder="Lean into 20-minute weeknight dinners"
-            />
-          </div>
-          <div className="space-y-1.5">
-            <p className={label}>Image provider / model</p>
-            <select className={input} value={imageModel} onChange={(e) => setImageModel(e.target.value)}>
-              <option value="">Use configured model and fallback chain</option>
-              <option value="gemini-2.5-flash-image">Google Gemini 2.5 Flash Image</option>
-              <option value="gemini-3.1-flash-image">Google Gemini 3.1 Flash Image</option>
-              <option value="gemini-3-pro-image">Google Gemini 3 Pro Image</option>
-            </select>
-          </div>
-          <div>
-            <div className="flex justify-between text-xs font-semibold text-charcoal/70">
-              <span>Pin variants</span>
-              <span className="text-forest">{count}</span>
-            </div>
-            <input
-              type="range"
-              min={1}
-              max={5}
-              value={count}
-              onChange={(e) => setCount(Number(e.target.value))}
-              className="mt-3 w-full accent-forest"
-            />
-            <p className="mt-1 text-[11px] text-charcoal/50">
-              The AI picks a different layout and hook for each variant.
-            </p>
+          <div className="min-w-0 space-y-4 border-t border-border pt-5 lg:border-l lg:border-t-0 lg:pl-5 lg:pt-0">
+            <h4 className="text-sm font-semibold">{current ? `Edit pin ${active + 1}` : 'The food comes first.'}</h4>
+            {!current ? <p className="text-sm leading-relaxed text-muted-foreground">Planted &amp; Simple<br />Photo-led recipes, useful stories, and readable headlines.</p> : <>
+              <Field label="Headline on pin" value={current.overlay_text} onChange={value => patch({ overlay_text: value })} />
+              <Field label="Small label" value={current.badge ?? ''} onChange={value => patch({ badge: value.slice(0, 45) })} />
+              <label className="block text-xs font-medium">Layout<select className={`${field} mt-2`} value={current.style} onChange={e => patch({ style: e.target.value })}>{PIN_LAYOUTS.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
+              <div className="flex gap-2" aria-label="Pin palette">{(['brand', 'paper', 'berry'] as const).map(palette => <Button key={palette} size="icon" variant={current.palette === palette ? 'default' : 'outline'} aria-label={`${palette} palette`} title={`${palette} palette`} onClick={() => patch({ palette })}><span className={`h-4 w-4 rounded-full pin-swatch-${palette}`} /></Button>)}</div>
+              <div className="flex flex-wrap gap-2"><Button variant="outline" size="sm" onClick={() => { targetSecondary.current = false; fileRef.current?.click(); }}><ImagePlus />Replace photo</Button>{current.style === 'split-collage' && <Button variant="outline" size="sm" onClick={() => { targetSecondary.current = true; fileRef.current?.click(); }}><ImagePlus />Second photo</Button>}</div>
+              <Field label="Pinterest title" value={current.title} onChange={value => patch({ title: value.slice(0, 100) })} />
+              <label className="block text-xs font-medium">Description<textarea className={`${field} mt-2 min-h-28`} value={current.description} onChange={e => patch({ description: e.target.value })} /></label>
+              <Field label="Alt text" value={current.alt} onChange={value => patch({ alt: value })} />
+              <Field label="Hashtags" value={current.hashtags.join(' ')} onChange={value => patch({ hashtags: value.split(/\s+/).filter(Boolean) })} />
+              <Field label="Destination" value={destination} onChange={setDestination} />
+              <p className="text-xs leading-relaxed text-muted-foreground">{current.why_it_works}</p>
+              {current.provider && <p className="text-xs text-muted-foreground">Photography: {current.provider}</p>}
+              <Button variant="ghost" size="sm" onClick={() => { setPins([]); setIncluded([]); }} disabled={busy}><Trash2 />Discard set</Button>
+            </>}
           </div>
         </div>
-
-        <div className="mt-6">
-          <p className={label}>Overlay layout</p>
-          <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-            {LAYOUTS.map((layout) => {
-              const on = layouts.includes(layout.id);
-              return <button key={layout.id} type="button" onClick={() => setLayouts((current) => on ? current.filter((id) => id !== layout.id) : [...current, layout.id])} className={`rounded-2xl border p-3 text-left transition ${on ? "border-forest bg-forest/5" : "border-forest/10 bg-cream/30"}`}>
-                <span className="text-sm font-semibold text-forest-deep">{layout.label}</span>
-                <span className="mt-1 block text-xs text-charcoal/55">{layout.blurb}</span>
-              </button>;
-            })}
-          </div>
-        </div>
-
-        <div className="mt-6 flex flex-wrap items-center gap-3">
-          <button className={btn} disabled={!ready || busy} onClick={run}>
-            {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Wand2 className="h-4 w-4" />}
-            {busy ? "Art-directing your pins…" : `Design ${count} pin${count === 1 ? "" : "s"}`}
-          </button>
-          {selected && <span className="text-xs text-charcoal/55">Linking to {selected.url}</span>}
-        </div>
-      </section>
-
-      {busy && !pack && (
-        <section className={shell}>
-          <p className={label}>Rendering</p>
-          <div className="mt-4 grid gap-3 sm:grid-cols-5">
-            {Array.from({ length: count }).map((_, i) => (
-              <div
-                key={i}
-                className="aspect-[2/3] animate-pulse rounded-2xl bg-forest/10"
-                style={{ animationDelay: `${i * 140}ms` }}
-              />
-            ))}
-          </div>
-        </section>
-      )}
-
-      {pack && (
-        <section ref={reviewRef} className={`${shell} scroll-mt-6 duration-500 animate-in fade-in`}>
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <p className={label}>Step 3 · Review</p>
-              <h3 className="mt-1 font-display text-xl italic text-forest-deep">{heading}</h3>
-            </div>
-            <p className="text-xs text-charcoal/55">Nothing is saved until you send it to approvals.</p>
-          </div>
-
-          <div className="mt-5 grid gap-4 sm:grid-cols-3 lg:grid-cols-5">
-            {pack.map((p: any, i: number) => {
-              const on = picked.includes(i);
-              return (
-                <button
-                  key={i}
-                  onClick={() => setReviewIndex(i)}
-                  className={`overflow-hidden rounded-2xl border-2 p-2 text-left transition ${
-                    on ? "border-forest bg-forest/5" : "border-transparent bg-cream/40 opacity-70 hover:opacity-100"
-                  }`}
-                >
-                  <div className="relative">
-                    {p.image_url ? (
-                      <PinVisual pin={p} className="rounded-xl" />
-                    ) : (
-                      <div className="grid aspect-[2/3] w-full place-items-center rounded-xl bg-forest/10 text-[10px] text-charcoal/50">
-                        image failed
-                      </div>
-                    )}
-                    <span className="absolute left-2 top-2 rounded-full bg-black/45 px-2 py-0.5 text-[9px] font-bold uppercase tracking-widest text-white backdrop-blur">
-                      {p.style}
-                    </span>
-                    {on && (
-                      <span className="absolute right-2 top-2 grid h-6 w-6 place-items-center rounded-full bg-forest text-cream">
-                        <Check className="h-3.5 w-3.5" />
-                      </span>
-                    )}
-                  </div>
-                  <p className="mt-2 line-clamp-2 text-xs font-semibold text-forest-deep">{p.overlay_text}</p>
-                  <p className="mt-1 line-clamp-2 text-[10px] text-charcoal/60">{p.why_it_works}</p>
-                  <p className="mt-1 truncate font-mono text-[9px] uppercase tracking-wider text-sage">
-                    {p.primary_keyword}
-                  </p>
-                  <p className="mt-1 text-[10px] font-semibold text-forest underline">Review this pin</p>
-                </button>
-              );
-            })}
-          </div>
-
-          <div className="mt-5 flex flex-wrap gap-3">
-            <button className={btnGhost} onClick={() => setReviewIndex(0)}>
-              Review pin by pin
-            </button>
-            <button className={btn} disabled={!picked.length || saving} onClick={save}>
-              {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
-              Send {picked.length} pin{picked.length === 1 ? "" : "s"} to approvals
-            </button>
-            <button className={btnGhost} onClick={() => setPack(null)}>
-              Discard
-            </button>
-          </div>
-        </section>
-      )}
-
-      {pack && reviewIndex !== null && pack[reviewIndex] && (
-        <PinReviewer
-          pin={pack[reviewIndex]}
-          index={reviewIndex}
-          total={pack.length}
-          included={picked.includes(reviewIndex)}
-          link={link}
-          onLinkChange={setLink}
-          onToggle={() =>
-            setPicked((c) =>
-              c.includes(reviewIndex) ? c.filter((x) => x !== reviewIndex) : [...c, reviewIndex],
-            )
-          }
-          onPatch={(patch) => patchPin(reviewIndex, patch)}
-          onPrev={() => setReviewIndex((i) => (i === null ? null : Math.max(0, i - 1)))}
-          onNext={() => setReviewIndex((i) => (i === null ? null : Math.min(pack.length - 1, i + 1)))}
-          onClose={() => setReviewIndex(null)}
-        />
-      )}
+      </main>
     </div>
-  );
+    <input ref={fileRef} type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={e => {
+      const file = e.target.files?.[0]; if (!file || !current) return;
+      if (file.size > 20 * 1024 * 1024) { setError('Choose a photo smaller than 20 MB.'); return; }
+      const url = URL.createObjectURL(file); objectUrls.current.push(url);
+      patch(targetSecondary.current ? { secondary_image_url: url } : { image_url: url }); e.target.value = '';
+    }} />
+    <Dialog open={connections} onOpenChange={setConnections}><DialogContent className="max-h-[85vh] overflow-y-auto"><DialogTitle>Image connections</DialogTitle><p className="text-sm text-muted-foreground">Magic Hour → Pixazo → Gemini. Connected backups take over on temporary provider failures. Provider usage is billed separately.</p>
+      {['MAGIC_HOUR_API_KEY', 'PIXAZO_API_KEY'].map(key => <div key={key} className="space-y-2 border-t border-border pt-4"><label className="text-sm font-semibold" htmlFor={key}>{key === 'MAGIC_HOUR_API_KEY' ? 'Magic Hour' : 'Pixazo'}</label><p className="text-xs text-muted-foreground">{settings.find(row => row.key === key)?.source === 'missing' ? 'Not connected' : settings.find(row => row.key === key)?.masked ? 'Key saved securely' : 'Checking connection…'}</p><input id={key} type="password" className={field} autoComplete="off" placeholder="Private API key" value={keyValues[key] ?? ''} onChange={e => setKeyValues(rows => ({ ...rows, [key]: e.target.value }))} /><Button disabled={saving || !keyValues[key]?.trim()} onClick={async () => { setSaving(true); try { await adminSaveSetting({ data: { key, value: keyValues[key] ?? '' } }); setKeyValues(rows => ({ ...rows, [key]: '' })); setSettings(await adminListSettings()); setProviders(await getPinProviders()); setNotice('Image provider key saved securely.'); } catch (e) { setError(e instanceof Error ? e.message : 'Could not save key.'); } finally { setSaving(false); } }}>Save connection</Button></div>)}
+      <p className="text-xs text-muted-foreground">Gemini uses your existing key and selected image model in Settings. Permission denials, billing blocks, and safety refusals need attention rather than hidden retries.</p>
+    </DialogContent></Dialog>
+  </div>;
 }
-
-function PinReviewer({
-  pin,
-  index,
-  total,
-  included,
-  link,
-  onLinkChange,
-  onToggle,
-  onPatch,
-  onPrev,
-  onNext,
-  onClose,
-}: {
-  pin: any;
-  index: number;
-  total: number;
-  included: boolean;
-  link: string | null;
-  onLinkChange: (v: string) => void;
-  onToggle: () => void;
-  onPatch: (patch: Record<string, unknown>) => void;
-  onPrev: () => void;
-  onNext: () => void;
-  onClose: () => void;
-}) {
-  const hashtags = Array.isArray(pin.hashtags) ? pin.hashtags.join(" ") : "";
-  return (
-    <div className="fixed inset-0 z-50 grid place-items-center bg-charcoal/60 p-4 backdrop-blur-sm duration-200 animate-in fade-in">
-      <div className="max-h-[92vh] w-full max-w-4xl overflow-y-auto rounded-3xl border border-forest/10 bg-cream p-6 shadow-2xl duration-300 animate-in zoom-in-95">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <p className={label}>
-              Pin {index + 1} of {total} · pre-flight review
-            </p>
-            <h3 className="mt-1 font-display text-2xl italic text-forest-deep">{pin.style}</h3>
-            <p className="mt-1 text-xs text-charcoal/55">
-              Nothing is saved or scheduled until you send the selected pins to approvals.
-            </p>
-          </div>
-          <button className={btnGhost} onClick={onClose}>
-            <X className="h-3.5 w-3.5" /> Close
-          </button>
-        </div>
-
-        <div className="mt-5 grid gap-6 md:grid-cols-[minmax(0,260px)_1fr]">
-          <div>
-            {pin.image_url ? (
-              <PinVisual pin={pin} className="rounded-2xl" />
-            ) : (
-              <div className="grid aspect-[2/3] w-full place-items-center rounded-2xl bg-forest/10 text-xs text-charcoal/50">
-                image failed
-              </div>
-            )}
-            <div className="mt-3 rounded-2xl bg-white/70 p-3">
-              <p className={label}>Layout logic</p>
-              <p className="mt-1 text-xs text-charcoal/65">{pin.why_it_works ?? "—"}</p>
-            </div>
-            <button
-              className={`mt-3 w-full justify-center ${included ? btn : btnGhost}`}
-              onClick={onToggle}
-            >
-              {included ? <Check className="h-4 w-4" /> : null}
-              {included ? "Included in this batch" : "Excluded — tap to include"}
-            </button>
-          </div>
-
-          <div className="space-y-4">
-            <Field label="Title" value={pin.title} onChange={(v) => onPatch({ title: v })} />
-            <Field label="Overlay text" value={pin.overlay_text} onChange={(v) => onPatch({ overlay_text: v })} />
-            <div className="space-y-1.5">
-              <p className={label}>Description (caption)</p>
-              <textarea
-                className={`${input} min-h-[130px] resize-y`}
-                value={pin.description ?? ""}
-                onChange={(e) => onPatch({ description: e.target.value })}
-              />
-              <p className="text-[11px] text-charcoal/50">{(pin.description ?? "").length} characters</p>
-            </div>
-            <Field
-              label="Hashtags"
-              value={hashtags}
-              onChange={(v) => onPatch({ hashtags: v.split(/\s+/).filter(Boolean) })}
-            />
-            <Field label="Alt text" value={pin.alt ?? ""} onChange={(v) => onPatch({ alt: v })} />
-            <Field label="Board suggestion" value={pin.board_suggestion ?? ""} onChange={(v) => onPatch({ board_suggestion: v })} />
-            <div className="space-y-1.5">
-              <p className={label}>Destination link (applies to every pin in this batch)</p>
-              <input className={input} value={link ?? ""} onChange={(e) => onLinkChange(e.target.value)} />
-            </div>
-          </div>
-        </div>
-
-        <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
-          <div className="flex gap-2">
-            <button className={btnGhost} disabled={index === 0} onClick={onPrev}>
-              <ChevronLeft className="h-3.5 w-3.5" /> Previous
-            </button>
-            <button className={btnGhost} disabled={index === total - 1} onClick={onNext}>
-              Next <ChevronRight className="h-3.5 w-3.5" />
-            </button>
-          </div>
-          <button className={btn} onClick={onClose}>
-            Done reviewing
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function PinVisual({ pin, className = "" }: { pin: any; className?: string }) {
-  const layout = String(pin.style ?? "center-card").toLowerCase();
-  const text = pin.overlay_text ?? pin.title;
-  const base = "absolute left-3 right-3 text-center font-display text-xl font-bold leading-tight shadow-lg";
-  let overlay = `${base} top-3 bg-forest px-3 py-3 text-cream`;
-  if (layout.includes("center")) overlay = `${base} top-1/2 -translate-y-1/2 bg-cream px-3 py-5 text-forest-deep`;
-  if (layout.includes("middle")) overlay = `${base} left-0 right-0 top-1/2 -translate-y-1/2 bg-forest px-3 py-4 text-cream`;
-  if (layout.includes("bottom")) overlay = `${base} bottom-3 bg-cream px-3 py-4 text-forest-deep`;
-  if (layout.includes("minimal")) overlay = "absolute bottom-4 left-4 max-w-[80%] bg-cream px-3 py-2 font-display text-base font-bold leading-tight text-forest-deep shadow-lg";
-  if (layout.includes("split")) overlay = `${base} top-1/2 -translate-y-1/2 border-4 border-cream bg-forest px-3 py-5 text-cream`;
-  return <div className={`relative aspect-[2/3] w-full overflow-hidden ${className}`}><img src={pin.image_url} alt={pin.alt ?? "Pinterest pin preview"} className="h-full w-full object-cover" /><div className={overlay}>{text}</div></div>;
-}
-
-function Field({ label: name, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
-  return (
-    <div className="space-y-1.5">
-      <p className={label}>{name}</p>
-      <input className={input} value={value ?? ""} onChange={(e) => onChange(e.target.value)} />
-    </div>
-  );
-}
+function Field({ label, value, onChange }: { label: string; value: string; onChange: (value: string) => void }) { return <label className="block text-xs font-medium">{label}<input className={`${field} mt-2`} value={value} onChange={e => onChange(e.target.value)} /></label>; }

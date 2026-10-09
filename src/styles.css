@@ -582,3 +582,6 @@
   --pin-green: #2e5e3b;
   --pin-berry: #8d3248;
 }
+.pin-swatch-brand { background: var(--forest); }
+.pin-swatch-paper { background: var(--card); border: 1px solid var(--border); }
+.pin-swatch-berry { background: var(--pin-berry, #8d3248); }
