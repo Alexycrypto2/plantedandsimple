@@ -136,9 +136,11 @@ export async function resolveTextModel(opts?: { structuredOutputs?: boolean; fea
   const feature = opts?.feature ?? "unknown";
   const mode = (await getConfig("AI_MODE")) === "manual" ? "manual" : "automatic";
   const budget = normalizeBudget(await getConfig("AI_BUDGET_MODE"));
-  const modelId = mode === "manual"
+  const available = await availableGeminiTextModels(gemini.key);
+  const wanted = mode === "manual"
     ? normalizeGeminiTextModel(await getConfig("GEMINI_TEXT_MODEL"))
     : automaticTextModel(feature, budget);
+  const modelId = pickAvailable(wanted, available);
   const info: AiProviderInfo = { provider: "gemini", modelId, keySource: gemini.source };
   logAi("request", { feature, mode, budget, ...info });
   const provider = createOpenAICompatible({
@@ -147,7 +149,38 @@ export async function resolveTextModel(opts?: { structuredOutputs?: boolean; fea
     supportsStructuredOutputs: structuredOutputs,
     headers: { Authorization: `Bearer ${gemini.key}` },
   });
-  return { model: withBusyFallback(provider, modelId), info };
+  return { model: withBusyFallback(provider, modelId, available), info };
+}
+
+/** Ask Google which text models this key can use right now (cached 10 min). */
+let modelCache: { key: string; at: number; ids: string[] } | null = null;
+export async function availableGeminiTextModels(key: string): Promise<string[]> {
+  if (modelCache && modelCache.key === key && Date.now() - modelCache.at < 600_000) return modelCache.ids;
+  try {
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?pageSize=200&key=${encodeURIComponent(key)}`);
+    const body = (await res.json()) as any;
+    const ids: string[] = (body.models ?? [])
+      .filter((m: any) => (m.supportedGenerationMethods ?? []).includes("generateContent"))
+      .map((m: any) => String(m.name).replace(/^models\//, ""))
+      .filter((id: string) => id.startsWith("gemini-") && !/image|tts|audio|live|embedding|robotics|computer|native/i.test(id));
+    const ver = (id: string) => parseFloat(id.match(/gemini-(\d+(?:\.\d+)?)/)?.[1] ?? "0");
+    ids.sort((a, b) => ver(b) - ver(a) || Number(/preview|exp/.test(a)) - Number(/preview|exp/.test(b)));
+    if (ids.length) modelCache = { key, at: Date.now(), ids };
+    return ids;
+  } catch {
+    return [];
+  }
+}
+
+function tierOf(id: string) {
+  return /lite/.test(id) ? "lite" : /pro/.test(id) ? "pro" : "flash";
+}
+
+/** Keep the wanted model if Google still offers it; otherwise use the newest model of the same tier. */
+export function pickAvailable(wanted: string, available: string[]): string {
+  if (!available.length || available.includes(wanted)) return wanted;
+  const t = tierOf(wanted);
+  return available.find((id) => tierOf(id) === t) ?? available.find((id) => tierOf(id) === "flash") ?? available[0];
 }
 
 /** When Google says a model is busy (503/429/overloaded), quietly try the next Gemini model. */
@@ -155,10 +188,11 @@ const BUSY_FALLBACKS = ["gemini-2.5-flash", "gemini-2.5-flash-lite", "gemini-2.5
 function isBusy(err: unknown) {
   const status = (err as any)?.statusCode ?? (err as any)?.status;
   const text = String((err as any)?.message ?? err);
-  return status === 503 || status === 429 || status === 500 || /unavailable|overloaded|high demand|resource.?exhausted/i.test(text);
+  return status === 503 || status === 429 || status === 500 || status === 404 || /no longer available|not found/i.test(text) || /unavailable|overloaded|high demand|resource.?exhausted/i.test(text);
 }
-function withBusyFallback(provider: (id: string) => any, primary: string) {
-  const chain = [primary, ...BUSY_FALLBACKS.filter((m) => m !== primary)];
+function withBusyFallback(provider: (id: string) => any, primary: string, available: string[] = []) {
+  const others = available.length ? available.slice(0, 6) : BUSY_FALLBACKS;
+  const chain = [primary, ...others.filter((m) => m !== primary)];
   const base = provider(primary);
   const attempt = async (method: "doGenerate" | "doStream", options: any) => {
     let last: unknown;
