@@ -3,6 +3,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { FALLBACK_PRODUCTS } from "@/lib/fallback-content";
 import { useState } from "react";
 import { SiteLayout } from "@/components/SiteLayout";
+import { FlagshipWithCompanions, FLAGSHIP_SLUG, productImage } from "@/components/site/ProductFamily";
 import {
   listPublishedProducts,
   listCategories,
@@ -40,6 +41,9 @@ function ShopPage() {
     if (sort === "price_desc") return b.price_cents - a.price_cents;
     return 0;
   });
+  const companionSlugs = new Set(["meal-prep-system", "planning-kit"]);
+  const flagship = products.find((p) => p.slug === FLAGSHIP_SLUG);
+  const others = filtered.filter((p) => (cat ? true : p.slug !== FLAGSHIP_SLUG) && !companionSlugs.has(p.slug));
 
   return (
     <SiteLayout>
@@ -91,38 +95,28 @@ function ShopPage() {
           </div>
         </div>
 
-        {filtered.length === 0 ? (
-          <div className="mt-16 rounded-2xl border border-forest/10 bg-white p-12 text-center">
-            <p className="font-display text-xl italic text-forest-deep">
-              New products coming soon.
-            </p>
-            <p className="mt-2 text-sm text-charcoal/60">
-              We're cooking up more premium guides. Check back shortly.
-            </p>
+        {flagship && !cat ? (
+          <div className="mt-10">
+            <FlagshipWithCompanions product={flagship} />
           </div>
-        ) : (
-          <div className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {filtered.map((p) => (
-              <ProductCard key={p.id} p={p} />
-            ))}
-          </div>
-        )}
+        ) : null}
 
-        <h2 className="mt-16 font-display text-3xl italic text-forest-deep">Planners &amp; systems</h2>
-        <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2">
-          <Link to="/prep" className="group rounded-2xl border border-forest/10 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-xl">
-            <p className="font-mono text-[11px] font-semibold uppercase tracking-widest text-sage">Interactive app</p>
-            <h3 className="mt-2 font-display text-2xl italic text-forest-deep">Meal Prep &amp; Kitchen System</h3>
-            <p className="mt-2 text-sm text-charcoal/70">Planner, smart grocery list and kitchen mode.</p>
-            <p className="mt-4 font-semibold text-forest-deep">$27 <span className="text-sm font-normal text-charcoal/40 line-through">$54</span></p>
-          </Link>
-          <Link to="/planning-kit" className="group rounded-2xl border border-forest/10 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-xl">
-            <p className="font-mono text-[11px] font-semibold uppercase tracking-widest text-sage">Printable PDF</p>
-            <h3 className="mt-2 font-display text-2xl italic text-forest-deep">Weekly Meal Planning Kit</h3>
-            <p className="mt-2 text-sm text-charcoal/70">12 printable pages to plan, shop and prep.</p>
-            <p className="mt-4 font-semibold text-forest-deep">$4.99 <span className="text-sm font-normal text-charcoal/40 line-through">$14.99</span></p>
-          </Link>
-        </div>
+        {others.length === 0 ? (
+          flagship && !cat ? null : (
+            <div className="mt-16 rounded-2xl border border-forest/10 bg-white p-12 text-center">
+              <p className="font-display text-xl italic text-forest-deep">New products coming soon.</p>
+            </div>
+          )
+        ) : (
+          <>
+            <h2 className="mt-16 font-display text-3xl italic text-forest-deep">More from the shop</h2>
+            <div className="mt-6 grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-3">
+              {others.map((p) => (
+                <ProductCard key={p.id} p={p} />
+              ))}
+            </div>
+          </>
+        )}
       </section>
     </SiteLayout>
   );
@@ -136,9 +130,9 @@ function ProductCard({ p }: { p: PublicProduct }) {
       className="group flex flex-col overflow-hidden rounded-2xl border border-forest/10 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-xl"
     >
       <div className="aspect-[4/5] w-full overflow-hidden bg-sage/10">
-        {p.cover_image_url ? (
+        {productImage(p) ? (
           <img
-            src={p.cover_image_url}
+            src={productImage(p) ?? undefined}
             alt={p.title}
             loading="lazy"
             className="h-full w-full object-cover transition group-hover:scale-105"
