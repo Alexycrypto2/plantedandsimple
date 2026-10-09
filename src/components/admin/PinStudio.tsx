@@ -15,7 +15,7 @@ import freePhoto from '@/assets/hero-editorial.jpg';
 const field = 'w-full rounded-md border border-input bg-card px-3 py-2.5 text-sm text-foreground outline-none focus:ring-2 focus:ring-ring';
 const TYPES = [{ id: 'recipe', title: 'Recipes', icon: ChefHat }, { id: 'blog', title: 'Articles', icon: Newspaper }, { id: 'product', title: 'Products', icon: BookOpen }, { id: 'free', title: 'Free cookbook', icon: Gift }, { id: 'custom', title: 'Custom', icon: Sparkles }] as const;
 const preview: PinArtwork = { style: 'top-banner', title: 'Sesame tofu bowls', overlay_text: 'Sesame tofu bowls', description: '', alt: 'Sesame tofu bowl template sample', hashtags: [], primary_keyword: '', board_suggestion: '', why_it_works: '', image_prompt: '', image_url: samplePhoto, palette: 'brand' };
-type Provider = 'magic-hour' | 'pixazo' | 'gemini';
+type Provider = 'magic-hour' | 'pixazo';
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 const toBase64 = (blob: Blob): Promise<string> => new Promise((resolve, reject) => { const reader = new FileReader(); reader.onload = () => resolve(String(reader.result).split(',')[1] ?? ''); reader.onerror = reject; reader.readAsDataURL(blob); });
 

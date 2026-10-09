@@ -79,18 +79,7 @@ export async function advancePinImageJob(id: string, userId: string) {
       if (result.status !== 'COMPLETED') return update({});
       image = result.output?.media_url?.[0];
     } else {
-      const key = await getConfig('GEMINI_API_KEY');
-      const model = await getConfig('GEMINI_IMAGE_MODEL');
-      if (!key || !model) throw new ProviderError('Select an available Gemini image model in Settings.', 400);
-      const result = await providerJson(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model.replace(/^google\//, ''))}:generateContent`, { method: 'POST', headers: { 'x-goog-api-key': key, 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: job.prompt }] }], generationConfig: { responseModalities: ['IMAGE', 'TEXT'] } }) });
-      if (result.promptFeedback?.blockReason || ['SAFETY', 'IMAGE_SAFETY', 'PROHIBITED_CONTENT'].includes(result.candidates?.[0]?.finishReason)) throw new ProviderError('Gemini declined this image request.', 200, true);
-      const inline = result.candidates?.[0]?.content?.parts?.find((part: any) => part.inlineData?.data)?.inlineData;
-      if (!inline) throw new ProviderError('Gemini returned no image.');
-      const decoded = decodeMediaUpload(inline.data, inline.mimeType || 'image/png');
-      const path = `pinterest/photos/${crypto.randomUUID()}.${decoded.ext}`;
-      const uploaded = await supabaseAdmin.storage.from('ai-images').upload(path, decoded.bytes, { contentType: decoded.type });
-      if (uploaded.error) throw new Error('Could not store the generated photograph.');
-      return update({ status: 'complete', image_url: `/api/public/img/ai-images/${path}`, storage_path: path });
+      throw new ProviderError('Gemini photos are switched off. Use Magic Hour.', 400);
     }
     if (!image || !image.startsWith('https://')) throw new ProviderError('The image provider completed without an image.');
     const response = await fetch(image);

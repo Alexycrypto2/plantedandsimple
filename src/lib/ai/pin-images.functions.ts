@@ -8,7 +8,7 @@ export const getPinProviders = createServerFn({ method: 'GET' }).middleware([req
   const { pinProviderStatus } = await import('./pin-images.server'); return pinProviderStatus();
 });
 export const startPinPhoto = createServerFn({ method: 'POST' }).middleware([requireSupabaseAuth])
-  .inputValidator((data: { prompt: string; provider?: 'magic-hour' | 'pixazo' | 'gemini' }) => z.object({ prompt: z.string().min(5).max(5000), provider: z.enum(['magic-hour', 'pixazo', 'gemini']).optional() }).parse(data))
+  .inputValidator((data: { prompt: string; provider?: 'magic-hour' | 'pixazo' }) => z.object({ prompt: z.string().min(5).max(5000), provider: z.enum(['magic-hour', 'pixazo']).optional() }).parse(data))
   .handler(async ({ data, context }) => {
     await boss(context.supabase, context.userId);
     const { createPinImageJob } = await import('./pin-images.server');
