@@ -36,9 +36,9 @@ const STAGES = [
   "Writing SEO & Pinterest copy…",
 ];
 
-function AiRecipeModal({ onClose, onDone }: { onClose: () => void; onDone: () => void }) {
+function AiRecipeModal({ onClose, onDone, initialIdea = "" }: { onClose: () => void; onDone: () => void; initialIdea?: string }) {
   const [brief, setBrief] = useState({
-    idea: "", cuisine: "", diet: "plant-based / vegan", mealType: "Dinner",
+    idea: initialIdea, cuisine: "", diet: "plant-based / vegan", mealType: "Dinner",
     difficulty: "easy", servings: "4", maxMinutes: 45, withImages: true,
   });
   const [busy, setBusy] = useState(false);
@@ -148,6 +148,19 @@ export function RecipesSection() {
   const [linkable, setLinkable] = useState<any>(null);
   const [busy, setBusy] = useState(false);
   const [aiOpen, setAiOpen] = useState(false);
+  const [aiSeed, setAiSeed] = useState("");
+
+  // A topic handed over from the Research Engine opens the AI recipe writer pre-filled.
+  useEffect(() => {
+    const raw = sessionStorage.getItem("ps_ai_recipe_seed");
+    if (!raw) return;
+    sessionStorage.removeItem("ps_ai_recipe_seed");
+    try {
+      const seed = JSON.parse(raw);
+      setAiSeed([seed.topic, seed.keywords].filter(Boolean).join(" — ").slice(0, 240));
+      setAiOpen(true);
+    } catch { /* ignore malformed handoff */ }
+  }, []);
 
   const load = () => adminListEntity({ data: { entity: "recipes" } }).then((r) => setRows(r as Recipe[]));
   useEffect(() => { load(); adminLinkableItems().then(setLinkable).catch(() => {}); }, []);
@@ -320,7 +333,7 @@ export function RecipesSection() {
 
   return (
     <>
-    {aiOpen && <AiRecipeModal onClose={() => setAiOpen(false)} onDone={load} />}
+    {aiOpen && <AiRecipeModal initialIdea={aiSeed} onClose={() => { setAiOpen(false); setAiSeed(""); }} onDone={load} />}
     <PanelCard
       title="Recipe CMS"
       icon={ChefHat}

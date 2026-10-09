@@ -3,6 +3,7 @@ import { z } from "zod";
 import { textModel, describeAiError, DEFAULT_CHAT_MODEL, DEFAULT_IMAGE_MODEL } from "./gateway.server";
 import { assembleArticleHtml, FRAMING, renderImageSafe } from "./studio.server";
 import { scoreArticle, QUALITY_THRESHOLD } from "./quality.server";
+import { offerCardHtml, pickOffer } from "@/lib/content/product-bridge";
 
 export const ArticleSchema = z.object({
   slug: z.string(),
@@ -125,6 +126,12 @@ IMAGERY (strict — spamming images is a failure):
 - The photo must show what the surrounding paragraphs are literally describing. Never a generic bowl of food. Never text, labels, packaging, logos, brands or faces.
 - image_caption: a short editorial caption (max 12 words) that adds information, not a repeat of the heading.
 
+VOICE — "no-BS home cook" (this is what makes people actually read):
+- Write like an experienced home cook talking to a friend in their kitchen: warm, practical, opinionated. Share real kitchen realities ("press the tofu or it turns into a soggy sponge", "the sauce tastes better on day two").
+- Sensory, mouthwatering specifics: crisp edges, toasted sesame aroma, creamy garlic drizzle — tied to technique, never decoration.
+- Practical extras readers love: pantry swaps, make-ahead and storage notes, how to hit the protein number.
+- Recipe posts: make the recipe easy to find quickly (say early that the full recipe card is below).
+
 WRITING STANDARD:
 - Specific detail everywhere: grams, temperatures, timings, textures, costs, equipment. Explain the WHY behind each technique.
 - At least one honest trade-off or common mistake. Second person, warm and confident, never breathless.
@@ -222,7 +229,9 @@ export async function buildAndStoreArticle(opts: {
         }
       : null,
     faqs: output.faqs,
-    productHtml: output.related_product_html,
+    productHtml: brief.includeProduct === false
+      ? output.related_product_html
+      : offerCardHtml(pickOffer(`${brief.topic} ${output.h1} ${output.tags.join(" ")}`), "blog"),
     conclusion: output.conclusion_html,
     cta: output.cta,
   });

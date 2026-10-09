@@ -13,3 +13,6 @@
 - [x] Prep Cookbooks admin: multiple cookbooks + Gemini recipe importer feeding /prep-app
 
 - [x] Refresh whole-site search/social metadata, public content sitemap and recipe/blog/product structured data; verify rendered results.
+- [x] Research Engine: competitor gap, search trend, one-click blog or recipe handoff
+- [x] AI writer: home-cook voice, auto product offer (cookbook / prep / free), 3 pins + schema
+- [x] SEO Doctor in blog editor: score, auto-fix weak spots, mobile/desktop preview; drafts never auto-publish
