@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { z } from "zod";
 
 async function requireStaff(supabase: any, userId: string) {
   const { data } = await supabase.from("user_roles").select("role").eq("user_id", userId);
@@ -27,15 +28,15 @@ export const adminListMedia = createServerFn({ method: "GET" })
 
 export const adminUploadMedia = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { fileName: string; contentType: string; base64: string; alt?: string; tags?: string[] }) => d)
+  .inputValidator((d) => z.object({ fileName: z.string().min(1).max(255), contentType: z.enum(["image/jpeg", "image/png", "image/webp", "image/gif", "application/pdf"]), base64: z.string().max(27_962_132), alt: z.string().max(500).optional(), tags: z.array(z.string().max(80)).max(30).optional() }).parse(d))
   .handler(async ({ data, context }) => {
     await requireStaff(context.supabase, context.userId);
+    const { decodeMediaUpload } = await import("./media-upload.server");
+    const { bytes, ext, type } = decodeMediaUpload(data.base64, data.contentType);
     const sb = await admin();
-    const ext = (data.fileName.split(".").pop() || "jpg").toLowerCase().slice(0, 5);
-    const path = `library/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
-    const bytes = Buffer.from(data.base64.replace(/^data:[^;]+;base64,/, ""), "base64");
+    const path = `library/${crypto.randomUUID()}.${ext}`;
     const { error } = await sb.storage.from("media").upload(path, bytes, {
-      contentType: data.contentType || "image/jpeg",
+      contentType: type,
       upsert: false,
     });
     if (error) throw new Error(error.message);
@@ -46,7 +47,7 @@ export const adminUploadMedia = createServerFn({ method: "POST" })
         public_url: `/api/public/img/media/${path}`,
         alt: data.alt ?? "",
         title: data.fileName,
-        mime_type: data.contentType,
+        mime_type: type,
         tags: data.tags ?? [],
         created_by: context.userId,
       })

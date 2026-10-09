@@ -257,6 +257,10 @@ export function MediaLibrary() {
   };
 
   const upload = async (file: File) => {
+    if (file.size > 20 * 1024 * 1024 || !["image/jpeg", "image/png", "image/webp", "image/gif", "application/pdf"].includes(file.type)) {
+      window.alert("Choose a JPG, PNG, WebP, GIF or PDF file no larger than 20 MB.");
+      return;
+    }
     setBusy(true);
     try {
       const base64: string = await new Promise((res, rej) => {
@@ -292,7 +296,7 @@ export function MediaLibrary() {
           <Plus className="size-3.5" /> Upload
           <input
             type="file"
-            accept="image/*"
+            accept="image/jpeg,image/png,image/webp,image/gif,application/pdf"
             className="hidden"
             onChange={(e) => { const f = e.target.files?.[0]; if (f) upload(f); }}
           />

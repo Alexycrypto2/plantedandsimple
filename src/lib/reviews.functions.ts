@@ -20,6 +20,7 @@ export const listApprovedReviews = createServerFn({ method: "GET" }).handler(
       .from("reviews")
       .select("id, name, location, rating, quote, created_at, photo_url")
       .eq("approved", true)
+      .eq("consent", true)
       .order("created_at", { ascending: false })
       .limit(9);
     if (error) return [];
@@ -91,7 +92,14 @@ export const submitReview = createServerFn({ method: "POST" })
       "@/integrations/supabase/client.server"
     );
 
-    // Verify the buyer actually paid via Paddle before accepting the review.
+    // Do not use server credentials to look up arbitrary caller-selected transactions.
+    const { data: purchase, error: purchaseError } = await supabaseAdmin
+      .from("cookbook_downloads").select("id")
+      .eq("stripe_session_id", data.transactionId).maybeSingle();
+    if (purchaseError || !purchase) {
+      throw new Error("A recorded cookbook purchase is required to leave a review.");
+    }
+    // Verify the recorded buyer actually paid via Paddle before accepting the review.
     const txRes = await gatewayFetch(
       data.environment,
       `/transactions/${encodeURIComponent(data.transactionId)}`,
