@@ -43,7 +43,7 @@ export function FlagshipWithCompanions({ product }: { product: PublicProduct }) 
         </div>
         <div className="px-1 pb-2">
           <p className="inline-block rounded-full bg-forest px-3 py-1 font-mono text-[10px] font-semibold uppercase tracking-[0.24em] text-cream">
-            📌 Bestseller · Main cookbook
+            Bestseller · Main cookbook
           </p>
           <h3 className="mt-4 font-display text-3xl italic leading-tight text-forest-deep sm:text-4xl">{product.title}</h3>
           {product.subtitle ? <p className="mt-3 text-charcoal/65">{product.subtitle}</p> : null}
