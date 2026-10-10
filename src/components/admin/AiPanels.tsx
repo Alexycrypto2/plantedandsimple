@@ -23,7 +23,7 @@ import {
   pinterestBoards,
   type PinterestStatus,
 } from "@/lib/pinterest.functions";
-import { publishPinNow } from "@/lib/pinterest-publish.functions";
+import { publishPinNow, schedulePinPost } from "@/lib/pinterest-publish.functions";
 
 const card = "rounded-2xl border border-forest/10 bg-white p-5 shadow-sm";
 const input =
