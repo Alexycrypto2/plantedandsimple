@@ -5,6 +5,7 @@ import { z } from "zod";
 import { SITE_URL } from "../seo";
 import { fallbackLayout, photoPrompts, validLayout } from "./pin-design";
 import { textModel, describeAiError, DEFAULT_CHAT_MODEL, DEFAULT_IMAGE_MODEL } from "./gateway.server";
+import { alignPinDescription, alignPinTitle, primaryKeyword } from "./pin-seo";
 import { FRAMING, PIN_STYLES, renderImage, renderImageSafe, requireBossFactory } from "./studio.server";
 
 const requireBoss = requireBossFactory();
@@ -378,6 +379,7 @@ export const generatePinsFromSource = createServerFn({ method: "POST" })
     let link: string | null = null;
     let sourceTitle = data.subject;
     let sourceImage: string | null = null;
+    let seoKeyword: string | null = null;
 
     if (data.type === "free") {
       sourceTitle = "Free plant-based cookbook"; link = `${SITE}/free`;
@@ -386,22 +388,28 @@ export const generatePinsFromSource = createServerFn({ method: "POST" })
       if (data.type === "recipe") {
         const { data: r } = await db
           .from("recipes")
-          .select("title, slug, subtitle, description, ingredients, instructions, prep_minutes, cook_minutes, servings, tags, hero_image_id")
+          .select("title, slug, subtitle, description, ingredients, instructions, prep_minutes, cook_minutes, servings, tags, hero_image_id, seo_title, seo_description, pinterest_description, nutrition")
           .eq("id", data.id)
           .maybeSingle();
         if (!r) throw new Error("Recipe not found");
         sourceTitle = r.title;
+        seoKeyword = primaryKeyword(r.seo_title, r.title);
         if (r.hero_image_id) {
           const { data: photo } = await db.from("media").select("public_url").eq("id", r.hero_image_id).maybeSingle();
           sourceImage = photo?.public_url ?? null;
         }
         link = `${SITE}/recipes/${r.slug}`;
+        const nutrition = r.nutrition && typeof r.nutrition === "object" ? JSON.stringify(r.nutrition).slice(0, 300) : "";
         brief = [
           `Recipe: ${r.title}`,
+          `PRIMARY SEARCH KEYWORD (must appear in title, headline and first sentence of description): ${seoKeyword}`,
+          Array.isArray(r.tags) && r.tags.length ? `Related search terms (use 2-3 in hook/description): ${r.tags.join(", ")}` : "",
+          r.seo_description ? `SEO meta description: ${r.seo_description}` : "",
+          r.pinterest_description ? `Existing Pinterest description: ${r.pinterest_description}` : "",
           r.description ? `About: ${r.description}` : "",
           (r.prep_minutes || r.cook_minutes) ? `Total time: ${(r.prep_minutes ?? 0) + (r.cook_minutes ?? 0)} minutes` : "",
           r.servings ? `Serves: ${r.servings}` : "",
-          Array.isArray(r.tags) && r.tags.length ? `Tags: ${r.tags.join(", ")}` : "",
+          nutrition ? `Nutrition facts (pill badge may only use these numbers): ${nutrition}` : "",
           `Key ingredients: ${JSON.stringify(r.ingredients ?? []).slice(0, 900)}`,
         ]
           .filter(Boolean)
@@ -489,9 +497,11 @@ Return JSON with why_it_works explaining the chosen layout and hook.`,
       throw describeAiError(err);
     }
     if (output.pins.length !== data.count) throw new Error("The writer returned an incomplete pin set. Start a new request.");
-    const pins = output.pins.map((pin, index) => {
+    const pins = output.pins.map((p, index) => {
+      let pin = p;
       const style = data.automaticStyle ? validLayout(pin.style) : data.layouts[index % Math.max(1, data.layouts.length)] ?? fallbackLayout(data.type, index);
       const prompts = photoPrompts(style, pin.scene || pin.image_prompt);
+      if (seoKeyword) { pin = { ...pin, title: alignPinTitle(pin.title, seoKeyword), description: alignPinDescription(pin.description, seoKeyword, link) }; }
       return { ...pin, style, image_prompt: prompts[0] ?? pin.image_prompt, photo_prompts: prompts, image_url: sourceImage, storage_path: null };
     });
 
