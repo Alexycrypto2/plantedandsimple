@@ -386,22 +386,28 @@ export const generatePinsFromSource = createServerFn({ method: "POST" })
       if (data.type === "recipe") {
         const { data: r } = await db
           .from("recipes")
-          .select("title, slug, subtitle, description, ingredients, instructions, prep_minutes, cook_minutes, servings, tags, hero_image_id")
+          .select("title, slug, subtitle, description, ingredients, instructions, prep_minutes, cook_minutes, servings, tags, hero_image_id, seo_title, seo_description, pinterest_description, nutrition")
           .eq("id", data.id)
           .maybeSingle();
         if (!r) throw new Error("Recipe not found");
         sourceTitle = r.title;
+        seoKeyword = primaryKeyword(r.seo_title, r.title);
         if (r.hero_image_id) {
           const { data: photo } = await db.from("media").select("public_url").eq("id", r.hero_image_id).maybeSingle();
           sourceImage = photo?.public_url ?? null;
         }
         link = `${SITE}/recipes/${r.slug}`;
+        const nutrition = r.nutrition && typeof r.nutrition === "object" ? JSON.stringify(r.nutrition).slice(0, 300) : "";
         brief = [
           `Recipe: ${r.title}`,
+          `PRIMARY SEARCH KEYWORD (must appear in title, headline and first sentence of description): ${seoKeyword}`,
+          Array.isArray(r.tags) && r.tags.length ? `Related search terms (use 2-3 in hook/description): ${r.tags.join(", ")}` : "",
+          r.seo_description ? `SEO meta description: ${r.seo_description}` : "",
+          r.pinterest_description ? `Existing Pinterest description: ${r.pinterest_description}` : "",
           r.description ? `About: ${r.description}` : "",
           (r.prep_minutes || r.cook_minutes) ? `Total time: ${(r.prep_minutes ?? 0) + (r.cook_minutes ?? 0)} minutes` : "",
           r.servings ? `Serves: ${r.servings}` : "",
-          Array.isArray(r.tags) && r.tags.length ? `Tags: ${r.tags.join(", ")}` : "",
+          nutrition ? `Nutrition facts (pill badge may only use these numbers): ${nutrition}` : "",
           `Key ingredients: ${JSON.stringify(r.ingredients ?? []).slice(0, 900)}`,
         ]
           .filter(Boolean)
