@@ -24,6 +24,7 @@ import {
   type PinterestStatus,
 } from "@/lib/pinterest.functions";
 import { publishPinNow, schedulePinPost } from "@/lib/pinterest-publish.functions";
+import { dripTimes, matchBoard } from "@/lib/ai/pin-design";
 
 const card = "rounded-2xl border border-forest/10 bg-white p-5 shadow-sm";
 const input =
@@ -255,7 +256,7 @@ export function ApprovalQueuePanel() {
 
   useEffect(() => {
     pinterestBoards()
-      .then((b: any) => { setBoards(b ?? []); if (b?.[0]) setBoard(b[0].id); })
+      .then((b: any) => { setBoards(b ?? []); if (b?.[0]) setBoard("auto"); })
       .catch(() => {});
   }, []);
 
@@ -264,6 +265,17 @@ export function ApprovalQueuePanel() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [kind, status]);
 
+  const boardFor = (g: Generation) => board === "auto" ? matchBoard(boards, g.payload?.board_suggestion) : boards.find((b) => b.id === board);
+  const drip = () => act(async () => {
+    const pins = rows.filter((g) => g.kind === "pinterest_pin" && g.status !== "published" && g.status !== "rejected");
+    if (!pins.length) throw new Error("No pins waiting to schedule.");
+    const times = dripTimes(pins.length, new Date());
+    for (const [i, g] of pins.entries()) {
+      const target = boardFor(g); if (!target) throw new Error("Connect Pinterest and pick a board first.");
+      if (g.status !== "approved") await setGenerationStatus({ data: { id: g.id, status: "approved" } });
+      await schedulePinPost({ data: { generationId: g.id, boardId: target.id, boardName: target.name, scheduledFor: times[i]!.toISOString() } });
+    }
+  }, "Pins scheduled one per day at 7 PM.");
   const act = async (fn: () => Promise<any>, done: string) => {
     try {
       await fn();
@@ -298,8 +310,12 @@ export function ApprovalQueuePanel() {
         <span className="text-sm font-semibold text-forest-deep">Pinterest board</span>
         {boards.length ? (
           <select className={`${input} max-w-xs py-2`} value={board} onChange={(e) => setBoard(e.target.value)}>
+            <option value="auto">Smart match per pin</option>
             {boards.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
           </select>
+        ) : null}
+        {boards.length ? (
+          <button className={btn} onClick={drip}>Drip schedule · 1 per day</button>
         ) : (
           <span className="text-xs text-charcoal/60">Connect Pinterest in Settings to post pins directly.</span>
         )}
@@ -343,7 +359,8 @@ export function ApprovalQueuePanel() {
                   disabled={!board}
                   onClick={() => act(async () => {
                     if (g.status !== "approved") await setGenerationStatus({ data: { id: g.id, status: "approved" } });
-                    await publishPinNow({ data: { generationId: g.id, boardId: board, boardName: boards.find((b) => b.id === board)?.name ?? null } });
+                    const target = boardFor(g); if (!target) throw new Error("Pick a Pinterest board first.");
+                    await publishPinNow({ data: { generationId: g.id, boardId: target.id, boardName: target.name } });
                   }, "Posted to Pinterest.")}
                 >
                   Approve & post to Pinterest
@@ -389,13 +406,13 @@ export function ApprovalQueuePanel() {
                     act(async () => {
                       const value = e.target.value || null;
                       if (g.kind === "pinterest_pin" && value) {
-                        if (!board) throw new Error("Pick a Pinterest board first.");
+                        const target = boardFor(g); if (!target) throw new Error("Pick a Pinterest board first.");
                         if (g.status !== "approved") await setGenerationStatus({ data: { id: g.id, status: "approved" } });
                         await schedulePinPost({
                           data: {
                             generationId: g.id,
-                            boardId: board,
-                            boardName: boards.find((b) => b.id === board)?.name ?? null,
+                            boardId: target.id,
+                            boardName: target.name,
                             scheduledFor: new Date(value).toISOString(),
                           },
                         });
