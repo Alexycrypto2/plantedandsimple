@@ -189,7 +189,7 @@ export const checkGenerationQuality = createServerFn({ method: "POST" })
         payload: { ...p, quality },
         quality_score: quality.overall,
         seo_score: quality.seo,
-        status: quality.passed ? "pending" : "needs_review",
+        status: "pending",
         notes: quality.passed ? null : `Quality gate: ${quality.overall}/100 — ${quality.verdict}`.slice(0, 500),
       })
       .eq("id", data.id);
