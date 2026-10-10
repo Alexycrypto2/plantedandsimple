@@ -145,7 +145,7 @@ export const publishBlogGeneration = createServerFn({ method: "POST" })
       title: p.title,
       excerpt: p.excerpt ?? null,
       content: p.content ?? "",
-      featured_image_url: p.featured_image_url ?? null,
+      featured_image_url: p.cover_image_url ?? p.featured_image_url ?? null,
       category: p.category ?? null,
       tags: p.tags ?? [],
       seo_title: p.seo_title ?? null,
