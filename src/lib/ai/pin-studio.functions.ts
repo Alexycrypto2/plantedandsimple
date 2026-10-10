@@ -5,6 +5,7 @@ import { z } from "zod";
 import { SITE_URL } from "../seo";
 import { fallbackLayout, photoPrompts, validLayout } from "./pin-design";
 import { textModel, describeAiError, DEFAULT_CHAT_MODEL, DEFAULT_IMAGE_MODEL } from "./gateway.server";
+import { alignPinDescription, alignPinTitle, primaryKeyword } from "./pin-seo";
 import { FRAMING, PIN_STYLES, renderImage, renderImageSafe, requireBossFactory } from "./studio.server";
 
 const requireBoss = requireBossFactory();
@@ -378,6 +379,7 @@ export const generatePinsFromSource = createServerFn({ method: "POST" })
     let link: string | null = null;
     let sourceTitle = data.subject;
     let sourceImage: string | null = null;
+    let seoKeyword: string | null = null;
 
     if (data.type === "free") {
       sourceTitle = "Free plant-based cookbook"; link = `${SITE}/free`;
@@ -495,9 +497,11 @@ Return JSON with why_it_works explaining the chosen layout and hook.`,
       throw describeAiError(err);
     }
     if (output.pins.length !== data.count) throw new Error("The writer returned an incomplete pin set. Start a new request.");
-    const pins = output.pins.map((pin, index) => {
+    const pins = output.pins.map((p, index) => {
+      let pin = p;
       const style = data.automaticStyle ? validLayout(pin.style) : data.layouts[index % Math.max(1, data.layouts.length)] ?? fallbackLayout(data.type, index);
       const prompts = photoPrompts(style, pin.scene || pin.image_prompt);
+      if (seoKeyword) { pin = { ...pin, title: alignPinTitle(pin.title, seoKeyword), description: alignPinDescription(pin.description, seoKeyword, link) }; }
       return { ...pin, style, image_prompt: prompts[0] ?? pin.image_prompt, photo_prompts: prompts, image_url: sourceImage, storage_path: null };
     });
 
