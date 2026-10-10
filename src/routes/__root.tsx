@@ -80,6 +80,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { name: "author", content: "PlantedAndSimple" },
       { name: "p:domain_verify", content: "1a837ba5f0252ca8dff4b14b8d6447e6" },
+      ...(import.meta.env.VITE_GOOGLE_SITE_VERIFICATION ? [{ name: "google-site-verification", content: String(import.meta.env.VITE_GOOGLE_SITE_VERIFICATION) }] : []),
       { name: "theme-color", content: "#2E5E3B" },
       { property: "og:site_name", content: "PlantedAndSimple" },
       { property: "og:type", content: "website" },
