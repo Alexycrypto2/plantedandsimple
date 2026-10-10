@@ -577,9 +577,9 @@
 
 /* Fixed artwork colours are print/output tokens, independent of admin theme. */
 .pin-artwork {
-  --pin-paper: #fffdf8;
+  --pin-paper: #ffffff;
   --pin-ink: #192820;
-  --pin-green: #2e5e3b;
+  --pin-green: #2a5f3a;
   --pin-berry: #8d3248;
 }
 .pin-swatch-brand { background: var(--forest); }

@@ -1,4 +1,4 @@
-import { validLayout, type PinArtwork } from './pin-design';
+import { PIN_H, PIN_W, validLayout, type PinArtwork } from './pin-design';
 
 async function loadPhoto(url: string) {
   const image = new Image();
@@ -12,7 +12,7 @@ function photo(ctx: CanvasRenderingContext2D, image: HTMLImageElement, x: number
   const sw = w / scale, sh = h / scale;
   ctx.drawImage(image, (image.naturalWidth - sw) / 2, (image.naturalHeight - sh) / 2, sw, sh, x, y, w, h);
 }
-function lines(ctx: CanvasRenderingContext2D, text: string, width: number) {
+function wrap(ctx: CanvasRenderingContext2D, text: string, width: number) {
   const result: string[] = []; let line = '';
   for (const word of text.trim().split(/\s+/)) {
     if (line && ctx.measureText(`${line} ${word}`).width > width) { result.push(line); line = word; }
@@ -21,50 +21,111 @@ function lines(ctx: CanvasRenderingContext2D, text: string, width: number) {
   if (line) result.push(line);
   return result;
 }
+const F = (weight: number, size: number, italic = false) => `${italic ? 'italic ' : ''}${weight} ${size}px Poppins, Arial, sans-serif`;
+
+/** Fits an uppercase headline in at most `maxLines` lines and returns its height. */
+function headline(ctx: CanvasRenderingContext2D, text: string, cx: number, top: number, width: number, maxLines: number, color: string, maxSize = 84) {
+  let size = maxSize; let lines: string[] = [];
+  while (size > 30) { ctx.font = F(800, size); lines = wrap(ctx, text.toUpperCase(), width); if (lines.length <= maxLines) break; size -= 3; }
+  ctx.fillStyle = color; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+  lines.forEach((l, i) => ctx.fillText(l, cx, top + i * size * 1.05, width));
+  return lines.length * size * 1.05;
+}
+function pill(ctx: CanvasRenderingContext2D, text: string, cx: number, top: number, bg: string, fg: string, size = 32) {
+  ctx.font = F(600, size);
+  const w = Math.min(ctx.measureText(text.toUpperCase()).width + size * 1.6, PIN_W - 120); const h = size * 1.8;
+  ctx.fillStyle = bg; ctx.beginPath(); ctx.roundRect(cx - w / 2, top, w, h, h / 2); ctx.fill();
+  ctx.fillStyle = fg; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText(text.toUpperCase(), cx, top + h / 2 + 1, w - size);
+  return h;
+}
+/** White band: italic hook, uppercase title, pill — vertically centred in the band. */
+function band(ctx: CanvasRenderingContext2D, pin: PinArtwork, y: number, h: number, c: Colors, x = 0, w = PIN_W) {
+  ctx.fillStyle = c.paper; ctx.fillRect(x, y, w, h);
+  ctx.fillStyle = c.accent; ctx.fillRect(x, y, w, 7); ctx.fillRect(x, y + h - 7, w, 7);
+  const cx = x + w / 2; const title = pin.overlay_text.trim() || pin.title;
+  // Measure first so the block is centred.
+  const measure = document.createElement('canvas').getContext('2d')!;
+  let size = 84; let lines: string[] = [];
+  while (size > 30) { measure.font = F(800, size); lines = wrap(measure, title.toUpperCase(), w - 110); if (lines.length <= 2) break; size -= 3; }
+  const hookH = pin.hook?.trim() ? 52 : 0; const pillH = pin.pill?.trim() ? 58 + 24 : 0;
+  let top = y + (h - (hookH + lines.length * size * 1.05 + pillH)) / 2;
+  if (hookH) { ctx.font = F(400, 38, true); ctx.fillStyle = c.ink; ctx.textAlign = 'center'; ctx.textBaseline = 'top'; ctx.fillText(pin.hook!.trim(), cx, top, w - 110); top += hookH; }
+  top += headline(ctx, title, cx, top, w - 110, 2, c.accent, size);
+  if (pillH) pill(ctx, pin.pill!.trim(), cx, top + 24, c.accent, c.paper);
+}
+function brand(ctx: CanvasRenderingContext2D, c: Colors, onPhoto = true) {
+  ctx.save();
+  if (onPhoto) { ctx.shadowColor = 'rgba(0,0,0,0.55)'; ctx.shadowBlur = 14; }
+  ctx.fillStyle = onPhoto ? c.paper : c.accent; ctx.textAlign = 'right'; ctx.textBaseline = 'alphabetic';
+  ctx.font = F(700, 52); ctx.fillText('PLANTED', PIN_W - 80, PIN_H - 205); ctx.fillText('& SIMPLE', PIN_W - 80, PIN_H - 150);
+  ctx.font = F(500, 30); ctx.textAlign = 'center'; ctx.fillText('plantedandsimple.store', PIN_W / 2, PIN_H - 145 + 60);
+  ctx.restore();
+}
+type Colors = { paper: string; ink: string; accent: string };
+
 export async function drawPin(canvas: HTMLCanvasElement, pin: PinArtwork) {
   if (!pin.image_url) throw new Error('Choose a photograph first.');
-  await document.fonts.ready;
-  const image = await loadPhoto(pin.image_url);
-  const secondary = pin.secondary_image_url ? await loadPhoto(pin.secondary_image_url) : null;
-  const ctx = canvas.getContext('2d'); if (!ctx) throw new Error('Image export is unavailable.');
-  canvas.width = 1000; canvas.height = 1500;
-  const tokens = getComputedStyle(canvas);
-  const ink = tokens.getPropertyValue('--pin-ink').trim();
-  const paper = tokens.getPropertyValue('--pin-paper').trim();
-  const accent = tokens.getPropertyValue(`--pin-${pin.palette === 'berry' ? 'berry' : pin.palette === 'paper' ? 'ink' : 'green'}`).trim();
-  ctx.fillStyle = paper; ctx.fillRect(0, 0, 1000, 1500);
+  await document.fonts.load(F(800, 40)); await document.fonts.load(F(400, 30, true)); await document.fonts.ready;
   const layout = validLayout(pin.style);
-  let box = { x: 0, y: 0, w: 1000, h: 340 };
-  if (layout === 'top-banner') photo(ctx, image, 0, 340, 1000, 1160);
-  else if (layout === 'bottom-card') { photo(ctx, image, 0, 0, 1000, 1110); box = { x: 0, y: 1110, w: 1000, h: 390 }; }
-  else {
-    photo(ctx, image, 0, 0, 1000, 1500);
-    if (layout === 'split-collage' && secondary) { photo(ctx, image, 0, 0, 1000, 650); photo(ctx, secondary, 0, 850, 1000, 650); }
-    if (layout === 'split-collage' || layout === 'middle-band') box = { x: 0, y: 590, w: 1000, h: 320 };
-    if (layout === 'center-card') box = { x: 85, y: 530, w: 830, h: 430 };
-    if (layout === 'minimal-label') box = { x: 55, y: 1050, w: 890, h: 335 };
-  }
-  const colored = layout === 'middle-band' || layout === 'top-banner' || layout === 'split-collage';
-  ctx.fillStyle = colored ? accent : paper; ctx.fillRect(box.x, box.y, box.w, box.h);
-  ctx.fillStyle = colored ? paper : ink;
+  const one = await loadPhoto(pin.image_url);
+  const two = pin.secondary_image_url ? await loadPhoto(pin.secondary_image_url) : one;
+  const three = pin.tertiary_image_url ? await loadPhoto(pin.tertiary_image_url) : two;
+  const ctx = canvas.getContext('2d'); if (!ctx) throw new Error('Image export is unavailable.');
+  canvas.width = PIN_W; canvas.height = PIN_H;
+  const t = getComputedStyle(canvas);
+  const c: Colors = {
+    paper: t.getPropertyValue('--pin-paper').trim() || '#ffffff',
+    ink: t.getPropertyValue('--pin-ink').trim() || '#192820',
+    accent: t.getPropertyValue(`--pin-${pin.palette === 'berry' ? 'berry' : pin.palette === 'paper' ? 'ink' : 'green'}`).trim() || '#2a5f3a',
+  };
+  ctx.fillStyle = c.paper; ctx.fillRect(0, 0, PIN_W, PIN_H);
   const title = pin.overlay_text.trim() || pin.title;
-  let size = 76; let wrapped: string[] = [];
-  while (size >= 24) {
-    ctx.font = `600 ${size}px Georgia, serif`;
-    wrapped = lines(ctx, title, box.w - 100);
-    if (wrapped.length * size * 1.12 <= box.h - 100 && wrapped.every(line => ctx.measureText(line).width <= box.w - 100)) break;
-    size -= 2;
-  }
-  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-  wrapped.forEach((line, index) => ctx.fillText(line, box.x + box.w / 2, box.y + box.h / 2 + (index - (wrapped.length - 1) / 2) * size * 1.12 - 8));
-  ctx.font = '500 21px Arial, sans-serif';
-  ctx.fillText('PLANTED & SIMPLE', box.x + box.w / 2, box.y + box.h - 32);
-  if (pin.badge?.trim()) {
-    ctx.font = '600 27px Arial, sans-serif';
-    const width = Math.min(ctx.measureText(pin.badge).width + 50, 850);
-    const y = layout === 'top-banner' ? 380 : 45;
-    ctx.fillStyle = paper; ctx.fillRect(45, y, width, 65);
-    ctx.fillStyle = ink; ctx.textAlign = 'left'; ctx.fillText(pin.badge, 70, y + 33, width - 45);
+
+  if (layout === 'double-split') {
+    const top = Math.round(PIN_H * 0.42), mid = Math.round(PIN_H * 0.16);
+    photo(ctx, one, 0, 0, PIN_W, top);
+    photo(ctx, two, 0, top + mid, PIN_W, PIN_H - top - mid);
+    band(ctx, pin, top, mid + 40, c);
+    brand(ctx, c);
+  } else if (layout === 'hero-card') {
+    const h = Math.round(PIN_H * 0.63);
+    photo(ctx, one, 0, 0, PIN_W, h);
+    band(ctx, pin, h, PIN_H - h - 140, c);
+    ctx.fillStyle = c.ink; ctx.font = F(600, 34); ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText('PLANTED & SIMPLE · plantedandsimple.store', PIN_W / 2, PIN_H - 80, PIN_W - 120);
+  } else if (layout === 'step-collage') {
+    const head = Math.round(PIN_H * 0.22); const each = Math.round((PIN_H - head) / 3);
+    [one, two, three].forEach((img, i) => {
+      photo(ctx, img, 0, head + i * each, PIN_W, each - (i < 2 ? 8 : 0));
+      ctx.fillStyle = c.accent; ctx.beginPath(); ctx.arc(95, head + i * each + 95, 50, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = c.paper; ctx.font = F(800, 52); ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(String(i + 1), 95, head + i * each + 98);
+    });
+    band(ctx, pin, 0, head, c);
+    brand(ctx, c);
+  } else if (layout === 'checklist') {
+    const h = Math.round(PIN_H * 0.44);
+    photo(ctx, one, 0, 0, PIN_W, h);
+    ctx.fillStyle = c.accent; ctx.fillRect(0, h, PIN_W, 7);
+    let y = h + 70;
+    if (pin.hook?.trim()) { ctx.font = F(400, 38, true); ctx.fillStyle = c.ink; ctx.textAlign = 'center'; ctx.textBaseline = 'top'; ctx.fillText(pin.hook.trim(), PIN_W / 2, y, PIN_W - 120); y += 62; }
+    y += headline(ctx, title, PIN_W / 2, y, PIN_W - 120, 2, c.accent, 78) + 40;
+    for (const item of (pin.bullets ?? []).filter(Boolean).slice(0, 3)) {
+      ctx.fillStyle = c.accent; ctx.beginPath(); ctx.arc(130, y + 26, 26, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = c.paper; ctx.lineWidth = 6; ctx.beginPath(); ctx.moveTo(117, y + 27); ctx.lineTo(127, y + 37); ctx.lineTo(144, y + 16); ctx.stroke();
+      ctx.fillStyle = c.ink; ctx.font = F(500, 38); ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.fillText(item, 185, y + 27, PIN_W - 260);
+      y += 92;
+    }
+    if (pin.pill?.trim()) pill(ctx, pin.pill.trim(), PIN_W / 2, Math.min(y + 20, PIN_H - 230), c.accent, c.paper);
+    ctx.fillStyle = c.ink; ctx.font = F(600, 30); ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText('PLANTED & SIMPLE · plantedandsimple.store', PIN_W / 2, PIN_H - 80, PIN_W - 120);
+  } else {
+    photo(ctx, one, 0, 0, PIN_W, PIN_H);
+    const w = 820, h = 520, x = (PIN_W - w) / 2, y = (PIN_H - h) / 2 - 60;
+    ctx.save(); ctx.shadowColor = 'rgba(0,0,0,0.3)'; ctx.shadowBlur = 40; ctx.fillStyle = c.paper; ctx.fillRect(x, y, w, h); ctx.restore();
+    ctx.strokeStyle = c.accent; ctx.lineWidth = 4; ctx.strokeRect(x + 18, y + 18, w - 36, h - 36);
+    band(ctx, pin, y + 30, h - 60, c, x + 30, w - 60);
+    brand(ctx, c);
   }
 }
 export function pinBlob(canvas: HTMLCanvasElement): Promise<Blob> {
