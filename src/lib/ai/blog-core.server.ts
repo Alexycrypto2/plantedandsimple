@@ -287,7 +287,7 @@ export async function buildAndStoreArticle(opts: {
       seo_score: quality.seo,
       quality_score: quality.overall,
       created_by: opts.userId,
-      status: quality.passed ? "pending" : "needs_review",
+      status: "pending",
       notes: quality.passed ? null : `Quality gate: ${quality.overall}/100 — ${quality.verdict}`.slice(0, 500),
     })
     .select("id")
