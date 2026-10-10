@@ -313,7 +313,7 @@ export function ApprovalQueuePanel() {
                 <img
                   src={g.payload?.image_url || g.preview_url!}
                   alt={g.title}
-                  className={g.kind === "pinterest_pin" ? "aspect-[2/3] w-28 rounded-xl object-cover" : "h-24 w-24 rounded-xl object-cover"}
+                  className={g.kind === "pinterest_pin" ? "aspect-[9/16] w-28 rounded-xl object-cover" : "h-24 w-24 rounded-xl object-cover"}
                 />
               )}
               <div className="min-w-[200px] flex-1">
