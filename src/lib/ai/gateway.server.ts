@@ -78,8 +78,8 @@ export function aiRecommendationSummary(input: { mode?: string | null; budget?: 
       images: "Selected Gemini model, then the configured fallback chain",
     },
     alternatives: [
-      { label: "Best quality", model: "gemini-2.5-pro", use: "Long-form blogs and complex campaigns" },
-      { label: "Best value", model: "gemini-2.5-flash", use: "Blogs, recipes, SEO and Pinterest copy" },
+      { label: "Best quality", model: "gemini-3.1-pro", use: "Long-form blogs and complex campaigns" },
+      { label: "Best value", model: "gemini-3.8-flash", use: "Blogs, recipes, SEO and Pinterest copy" },
       { label: "Fallback", model: "Gateway Gemini image models", use: "Continues pin previews when direct image quota is blocked" },
     ],
   };
