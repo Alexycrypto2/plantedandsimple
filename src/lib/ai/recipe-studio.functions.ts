@@ -17,7 +17,9 @@ const RecipeSchema = z.object({
   cook_minutes: z.number(),
   servings: z.string(),
   ingredients: z.array(z.string()),
-  instructions: z.array(z.string()),
+  instructions: z.array(z.object({ title: z.string(), body: z.string() })),
+  cuisine: z.string(),
+  category: z.string(),
   nutrition: z.array(z.object({ label: z.string(), value: z.string() })),
   tips: z.array(z.string()),
   tags: z.array(z.string()),
@@ -71,6 +73,9 @@ Diet: ${data.diet}. ${data.cuisine ? `Cuisine: ${data.cuisine}. ` : ""}${data.me
 Non-negotiable rules:
 - Ingredients: exact quantities in both metric and cups (e.g. "200 g (1 cup) dried red lentils, rinsed"), listed in order of use, with prep state included. 8-16 items, no vague "some" or "to taste" alone.
 - Instructions: 6-12 numbered steps. Each step names the pan, the heat level, the time, and the sensory cue ("until the edges turn deep gold, about 4 minutes"). No step repeats another.
+- Each instruction has a short action title (2-5 words, e.g. "Sear the tofu") and a body. Never leave a title empty.
+- cuisine: one word or phrase (e.g. Mediterranean, Thai, Mexican). category: one of Breakfast, Lunch, Dinner, Meal Prep, Snack, Dessert, Soup, Salad.
+- tags must include the cuisine and category in lowercase plus the main search keyword (Google recipe SEO).
 - nutrition: realistic per-serving values — Calories, Protein, Carbs, Fat, Fibre, Sugar, Sodium.
 - tips: 3-5 genuinely useful notes (make-ahead, swaps, storage, why a technique works).
 - description: 2-3 sentences, warm and specific, written like a food magazine intro. No "delicious and easy" filler, no AI cliches.
@@ -148,7 +153,7 @@ Non-negotiable rules:
         cook_minutes: Math.max(0, Math.round(out.cook_minutes)),
         servings: out.servings || data.servings,
         difficulty: ["easy", "medium", "advanced"].includes(out.difficulty) ? out.difficulty : data.difficulty,
-        tags: out.tags,
+        tags: Array.from(new Set([...out.tags, out.cuisine, out.category].map((t) => t.toLowerCase().trim()).filter(Boolean))),
         seo_title: out.seo_title,
         seo_description: out.seo_description,
         pinterest_description: out.pinterest_description,

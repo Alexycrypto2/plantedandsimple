@@ -32,20 +32,7 @@ export const Route = createFileRoute("/recipes/$slug")({
     return {
       ...head,
       meta: [...head.meta, ...(image ? [{ property: "og:image", content: image }, { name: "twitter:image", content: image }] : [])],
-      scripts: [jsonLd({
-        "@context": "https://schema.org", "@type": "Recipe",
-        name: recipe.title, description: recipe.description, image: image ? [image] : undefined,
-        url: pageUrl(path), datePublished: recipe.published_at || undefined,
-        recipeYield: recipe.servings ? `${recipe.servings} servings` : undefined,
-        prepTime: recipe.prep_minutes ? `PT${recipe.prep_minutes}M` : undefined,
-        cookTime: recipe.cook_minutes ? `PT${recipe.cook_minutes}M` : undefined,
-        totalTime: total ? `PT${total}M` : undefined,
-        recipeIngredient: recipe.ingredients.flatMap(group => group.items),
-        recipeInstructions: recipe.instructions.map((step, index) => ({
-          "@type": "HowToStep", position: index + 1, name: step.title || undefined, text: step.body,
-        })),
-        keywords: recipe.tags.join(", "),
-      }), breadcrumbs("Recipes", "/recipes", recipe.title, path)],
+      scripts: [jsonLd(recipeJsonLd(recipe, pageUrl(path), image)), breadcrumbs("Recipes", "/recipes", recipe.title, path)],
     };
   },
   notFoundComponent: RecipeMissing,
@@ -134,7 +121,7 @@ function RecipeDetail() {
             <h2 className="font-display text-3xl italic text-forest-deep">Method</h2>
             <ol className="mt-6 space-y-6">
               {(r.instructions ?? []).map((s, i) => (
-                <li key={i} className="grid grid-cols-[auto_minmax(0,1fr)] gap-4">
+                <li key={i} id={`step-${i + 1}`} className="grid scroll-mt-24 grid-cols-[auto_minmax(0,1fr)] gap-4">
                   <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-forest text-xs font-bold text-cream">
                     {i + 1}
                   </span>
