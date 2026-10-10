@@ -1,7 +1,7 @@
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 
 export const GEMINI_OPENAI_URL = "https://generativelanguage.googleapis.com/v1beta/openai";
-export const DEFAULT_GEMINI_TEXT_MODEL = "gemini-2.5-flash";
+export const DEFAULT_GEMINI_TEXT_MODEL = "gemini-3.8-flash";
 export const DEFAULT_GEMINI_IMAGE_MODEL = "gemini-2.5-flash-image";
 export const DEFAULT_CHAT_MODEL = DEFAULT_GEMINI_TEXT_MODEL;
 export const DEFAULT_IMAGE_MODEL = DEFAULT_GEMINI_IMAGE_MODEL;
@@ -55,11 +55,11 @@ function normalizeBudget(raw?: string | null): AiBudgetMode {
 }
 
 function automaticTextModel(feature: string, budget: AiBudgetMode): string {
-  if (budget === "economy") return "gemini-2.5-flash-lite";
-  if (budget === "quality") return COMPLEX_FEATURES.has(feature) ? "gemini-2.5-pro" : "gemini-2.5-flash";
-  if (FAST_FEATURES.has(feature)) return "gemini-2.5-flash";
-  if (COMPLEX_FEATURES.has(feature)) return budget === "balanced" ? "gemini-2.5-flash" : "gemini-2.5-pro";
-  return "gemini-2.5-flash";
+  if (budget === "economy") return "gemini-3.8-flash-lite";
+  if (budget === "quality") return COMPLEX_FEATURES.has(feature) ? "gemini-3.1-pro" : "gemini-3.8-flash";
+  if (FAST_FEATURES.has(feature)) return "gemini-3.8-flash";
+  if (COMPLEX_FEATURES.has(feature)) return budget === "balanced" ? "gemini-3.8-flash" : "gemini-3.1-pro";
+  return "gemini-3.8-flash";
 }
 
 export function aiRecommendationSummary(input: { mode?: string | null; budget?: string | null }) {
@@ -184,7 +184,7 @@ export function pickAvailable(wanted: string, available: string[]): string {
 }
 
 /** When Google says a model is busy (503/429/overloaded), quietly try the next Gemini model. */
-const BUSY_FALLBACKS = ["gemini-2.5-flash", "gemini-2.5-flash-lite", "gemini-2.5-pro"];
+const BUSY_FALLBACKS = ["gemini-3.8-flash", "gemini-3.1-flash", "gemini-3-pro"];
 function isBusy(err: unknown) {
   const status = (err as any)?.statusCode ?? (err as any)?.status;
   const text = String((err as any)?.message ?? err);
