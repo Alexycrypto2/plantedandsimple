@@ -234,6 +234,7 @@ export const generatePinPreviewPack = createServerFn({ method: "POST" })
       prompt: `${memory}
 
 ${PIN_BRIEF}
+${PUBLISHER_BRIEF}
 
 Create exactly 5 pin variants, each a different visual style from: ${PIN_STYLES.join(", ")}.
 Subject: "${data.subject}"
