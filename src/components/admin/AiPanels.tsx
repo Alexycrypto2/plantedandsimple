@@ -23,7 +23,7 @@ import {
   pinterestBoards,
   type PinterestStatus,
 } from "@/lib/pinterest.functions";
-import { publishPinNow } from "@/lib/pinterest-publish.functions";
+import { publishPinNow, schedulePinPost } from "@/lib/pinterest-publish.functions";
 
 const card = "rounded-2xl border border-forest/10 bg-white p-5 shadow-sm";
 const input =
@@ -385,7 +385,25 @@ export function ApprovalQueuePanel() {
                 <input
                   type="datetime-local"
                   defaultValue={g.scheduled_for ? g.scheduled_for.slice(0, 16) : ""}
-                  onChange={(e) => act(() => scheduleGeneration({ data: { id: g.id, scheduledFor: e.target.value || null } }), "Schedule updated.")}
+                  onChange={(e) =>
+                    act(async () => {
+                      const value = e.target.value || null;
+                      if (g.kind === "pinterest_pin" && value) {
+                        if (!board) throw new Error("Pick a Pinterest board first.");
+                        if (g.status !== "approved") await setGenerationStatus({ data: { id: g.id, status: "approved" } });
+                        await schedulePinPost({
+                          data: {
+                            generationId: g.id,
+                            boardId: board,
+                            boardName: boards.find((b) => b.id === board)?.name ?? null,
+                            scheduledFor: new Date(value).toISOString(),
+                          },
+                        });
+                      } else {
+                        await scheduleGeneration({ data: { id: g.id, scheduledFor: value } });
+                      }
+                    }, g.kind === "pinterest_pin" ? "Pin scheduled — it will post automatically at that time." : "Schedule updated.")
+                  }
                   className="rounded-lg border border-forest/20 bg-cream/40 px-2 py-1"
                 />
               </label>
