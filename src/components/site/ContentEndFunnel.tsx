@@ -24,7 +24,7 @@ export function ContentEndFunnel({ source }: { source: "recipe" | "blog" }) {
     try {
       await subscribeFreeGuide({ data: { email, source: `${source}_end_block` } });
       markSubscribed();
-      trackEvent?.("free_guide_signup", { source: `${source}_end_block` } as never);
+      trackEvent("cta_click", { metadata: { action: "free_guide_signup", source: `${source}_end_block` } });
       await navigate({ to: "/free-cookbook" });
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "We couldn't send the guide. Please try again.");
@@ -72,7 +72,7 @@ export function ContentEndFunnel({ source }: { source: "recipe" | "blog" }) {
             ))}
           </ul>
           <div className="mt-5 flex flex-wrap items-center gap-3">
-            <Button asChild size="lg" onClick={() => trackEvent?.("content_cookbook_click", { source } as never)}>
+            <Button asChild size="lg" onClick={() => trackEvent("cta_click", { metadata: { action: "content_cookbook_click", source } })}>
               <Link to="/shop/$slug" params={{ slug: "high-protein-cookbook" }}>Get the cookbook — $14.99</Link>
             </Button>
             <span className="text-xs text-charcoal/50 line-through">$29.99</span>
