@@ -9,23 +9,33 @@ interface Props {
 const FreeCookbookEmail = ({ downloadUrl = "https://primedownloads.store/free-cookbook" }: Props) => (
   <Html lang="en" dir="ltr">
     <Head />
-    <Preview>Your free PlantedAndSimple cookbook is ready</Preview>
+    <Preview>Real ingredients, 25g+ protein, and why I stopped eating boring salads.</Preview>
     <Body style={main}>
       <Container style={container}>
         <Text style={eyebrow}>PLANTED &amp; SIMPLE</Text>
         <Heading style={heading}>Your free cookbook is ready.</Heading>
         <Text style={text}>
-          Welcome to <strong>20-Minute Plant Protein Kitchen</strong>—a practical collection of quick,
-          nourishing meals designed for real weeknights.
+          Your copy of <strong>20-Minute Plant Protein Kitchen</strong> is waiting for you:
         </Text>
-        <Button style={button} href={downloadUrl}>Open your free cookbook page</Button>
+        <Button style={button} href={downloadUrl}>Open my free cookbook</Button>
+        <Text style={text}>Before you dive in, a quick confession.</Text>
         <Text style={text}>
-          The page lets you read about what’s inside before you choose to open and download the PDF.
-          Keep this email so the recipes are always easy to find.
+          When I first started eating more plant-based meals, I did it all wrong. I spent an hour
+          chopping vegetables I’d never heard of, choked down chalky protein powders, and ate plain
+          bowls of lettuce and chickpeas — then was starving 90 minutes later.
+        </Text>
+        <Text style={text}>
+          I almost gave up. Then I realised: high-protein plant meals don’t need expensive specialty
+          foods or hours at the stove. They need a few simple building blocks you can put together
+          in 20 minutes. That’s why I created PlantedAndSimple.
+        </Text>
+        <Text style={text}>
+          <strong>Your challenge for tonight:</strong> pick just one recipe from your free guide and
+          cook it. Keep this email so your cookbook is always one click away.
         </Text>
         <Hr style={rule} />
         <Text style={footer}>Simple plant-based meals. Powerful nutrition.</Text>
-        <Text style={footer}>— The PlantedAndSimple team</Text>
+        <Text style={footer}>— Kamil &amp; the PlantedAndSimple team</Text>
       </Container>
     </Body>
   </Html>
@@ -33,7 +43,7 @@ const FreeCookbookEmail = ({ downloadUrl = "https://primedownloads.store/free-co
 
 export const template = {
   component: FreeCookbookEmail,
-  subject: "Your free 20-minute plant protein cookbook",
+  subject: "Your free 20-minute cookbook is inside (+ a quick confession)",
   displayName: "Free cookbook delivery",
   previewData: { downloadUrl: "https://primedownloads.store/free-cookbook" },
 } satisfies TemplateEntry;
