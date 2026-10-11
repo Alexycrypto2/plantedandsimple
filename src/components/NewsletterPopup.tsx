@@ -6,7 +6,20 @@ import { subscribeFreeGuide } from "@/lib/free-guide.functions";
 import cover from "@/assets/cookbook-mockup.jpg";
 
 const STORAGE_KEY = "planted-newsletter-closed";
-const EXCLUDED = ["/checkout", "/thank-you", "/auth", "/admin", "/free", "/free-cookbook"];
+const SUBSCRIBED_KEY = "planted-subscribed";
+const DISMISS_DAYS = 14;
+const INCLUDED = ["/recipes/", "/blog/"];
+
+export function isSubscribed() {
+  try {
+    return window.localStorage.getItem(SUBSCRIBED_KEY) === "1" || window.localStorage.getItem(STORAGE_KEY) === "subscribed";
+  } catch {
+    return false;
+  }
+}
+export function markSubscribed() {
+  try { window.localStorage.setItem(SUBSCRIBED_KEY, "1"); } catch { /* ignore */ }
+}
 
 export function NewsletterPopup() {
   const navigate = useNavigate();
@@ -14,17 +27,27 @@ export function NewsletterPopup() {
   const [email, setEmail] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [complete, setComplete] = useState(false);
+  const [complete] = useState(false);
 
   useEffect(() => {
-    if (EXCLUDED.some((path) => window.location.pathname.startsWith(path))) return;
-    if (window.localStorage.getItem(STORAGE_KEY)) return;
-    const timer = window.setTimeout(() => setOpen(true), 9000);
-    return () => window.clearTimeout(timer);
+    if (!INCLUDED.some((path) => window.location.pathname.startsWith(path))) return;
+    if (isSubscribed()) return;
+    const dismissed = Number(window.localStorage.getItem(STORAGE_KEY) || 0);
+    if (dismissed && Date.now() - dismissed < DISMISS_DAYS * 86400000) return;
+    let shown = false;
+    const show = () => { if (!shown && !isSubscribed()) { shown = true; setOpen(true); cleanup(); } };
+    const onScroll = () => {
+      const h = document.documentElement;
+      if (h.scrollTop / Math.max(1, h.scrollHeight - h.clientHeight) > 0.5) show();
+    };
+    const timer = window.setTimeout(show, 12000);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    const cleanup = () => { window.clearTimeout(timer); window.removeEventListener("scroll", onScroll); };
+    return cleanup;
   }, []);
 
   const close = () => {
-    window.localStorage.setItem(STORAGE_KEY, "1");
+    window.localStorage.setItem(STORAGE_KEY, String(Date.now()));
     setOpen(false);
   };
 
@@ -34,7 +57,7 @@ export function NewsletterPopup() {
     setError(null);
     try {
       await subscribeFreeGuide({ data: { email, source: "newsletter_popup" } });
-      window.localStorage.setItem(STORAGE_KEY, "subscribed");
+      markSubscribed();
       await navigate({ to: "/free-cookbook" });
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "We couldn't send the guide. Please try again.");

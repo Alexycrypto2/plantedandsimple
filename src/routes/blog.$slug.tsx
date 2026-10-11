@@ -1,6 +1,8 @@
 import { pageHead, pageUrl, plainDescription, jsonLd, breadcrumbs } from "@/lib/seo";
 import { createFileRoute, Link, notFound, useRouter } from "@tanstack/react-router";
 import { SiteLayout } from "@/components/SiteLayout";
+import { ContentEndFunnel } from "@/components/site/ContentEndFunnel";
+import { NewsletterPopup } from "@/components/NewsletterPopup";
 import { fallbackPost } from "@/lib/fallback-content";
 import { getPublishedPostBySlug, type PublicPost } from "@/lib/blog.functions";
 
@@ -101,12 +103,8 @@ function PostPage() {
             ))}
           </div>
         )}
-        <div className="mt-16 rounded-[2rem] bg-cream-warm/60 p-8 text-center">
-          <p className="font-display text-xl italic text-forest-deep">Loved this? Our cookbooks go deeper.</p>
-          <Link to="/shop" className="mt-4 inline-flex rounded-full bg-forest px-6 py-3 text-xs font-bold uppercase tracking-[0.2em] text-cream hover:bg-forest-deep">
-            Browse Cookbooks
-          </Link>
-        </div>
+        <ContentEndFunnel source="blog" />
+        <NewsletterPopup />
       </article>
     </SiteLayout>
   );
