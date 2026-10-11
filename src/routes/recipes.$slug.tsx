@@ -3,6 +3,8 @@ import { recipeJsonLd } from "@/lib/recipe-schema";
 import { createFileRoute, Link, notFound, useRouter } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { SiteLayout } from "@/components/SiteLayout";
+import { ContentEndFunnel } from "@/components/site/ContentEndFunnel";
+import { NewsletterPopup } from "@/components/NewsletterPopup";
 import { fallbackRecipe } from "@/lib/fallback-content";
 import { MediaImage, Pill } from "@/components/site/primitives";
 import { getRecipeBySlug } from "@/lib/library/library.functions";
@@ -198,6 +200,8 @@ function RecipeDetail() {
             </div>
           </section>
         ) : null}
+        <ContentEndFunnel source="recipe" />
+        <NewsletterPopup />
       </article>
     </SiteLayout>
   );

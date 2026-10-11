@@ -57,7 +57,7 @@ export function NewsletterPopup() {
     setError(null);
     try {
       await subscribeFreeGuide({ data: { email, source: "newsletter_popup" } });
-      window.localStorage.setItem(STORAGE_KEY, "subscribed");
+      markSubscribed();
       await navigate({ to: "/free-cookbook" });
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "We couldn't send the guide. Please try again.");
