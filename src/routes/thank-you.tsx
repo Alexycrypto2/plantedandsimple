@@ -19,8 +19,12 @@ export const Route = createFileRoute("/thank-you")({
   ssr: false,
   validateSearch: (
     search: Record<string, unknown>,
-  ): { _ptxn?: string } => ({
+  ): { _ptxn?: string; demo?: "cookbook" | "prep" | "kit" } => ({
     _ptxn: typeof search._ptxn === "string" ? search._ptxn : undefined,
+    demo:
+      search.demo === "cookbook" || search.demo === "prep" || search.demo === "kit"
+        ? search.demo
+        : undefined,
   }),
   head: () => ({
     meta: [
@@ -52,13 +56,18 @@ type State =
   | { status: "no_session" };
 
 function ThankYou() {
-  const { _ptxn: transactionId } = Route.useSearch();
+  const { _ptxn: transactionId, demo } = Route.useSearch();
+  // Preview-only layout: download links still verify a real payment server-side.
   const [state, setState] = useState<State>(
-    transactionId ? { status: "checking" } : { status: "no_session" },
+    demo
+      ? { status: "paid", email: null, transactionId: "demo_preview", product: demo }
+      : transactionId
+        ? { status: "checking" }
+        : { status: "no_session" },
   );
 
   useEffect(() => {
-    if (!transactionId) return;
+    if (!transactionId || demo) return;
     let cancelled = false;
     (async () => {
       try {

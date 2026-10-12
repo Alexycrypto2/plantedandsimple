@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState } from "react";
-import { initializePaddle, getPaddlePriceId, getPaddleEnvironment } from "@/lib/paddle";
+import { initializePaddle, getPaddlePriceId, getPaddleEnvironment, redirectOnPaddleComplete } from "@/lib/paddle";
 
 export type CheckoutError = { title: string; message: string; code: string };
 
@@ -75,6 +75,7 @@ export function usePaddleCheckout() {
               `${window.location.origin}/thank-you`,
             allowLogout: false,
           },
+          eventCallback: redirectOnPaddleComplete,
         });
       } catch {
         setError(GENERIC);

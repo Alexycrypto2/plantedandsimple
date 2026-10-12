@@ -51,3 +51,11 @@ export async function getPaddlePriceId(priceId: string): Promise<string> {
   const environment = getPaddleEnvironment();
   return resolvePaddlePrice({ data: { priceId, environment } });
 }
+
+/** Paddle event hook: on completion, go to the thank-you page with the transaction id. */
+export function redirectOnPaddleComplete(event: any): void {
+  if (event?.name !== "checkout.completed") return;
+  const txn: string | undefined = event?.data?.transaction_id ?? event?.data?.id;
+  if (!txn || typeof window === "undefined") return;
+  window.location.href = `${window.location.origin}/thank-you?_ptxn=${encodeURIComponent(txn)}`;
+}

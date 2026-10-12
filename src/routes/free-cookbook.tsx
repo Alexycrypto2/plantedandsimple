@@ -80,17 +80,19 @@ function FreeCookbookPage() {
             Your free cookbook is here whenever you’re ready to read, save, or cook from it.
           </p>
           <Button asChild size="lg" className="mt-7">
+            <a href="/api/public/download/free-cookbook" download onClick={download}>
+              Download free cookbook (PDF)
+            </a>
+          </Button>
+          <p className="mt-4 text-sm text-charcoal/55">
             <a
               href={freeCookbookAsset.url}
               target="_blank"
               rel="noreferrer"
-              onClick={download}
+              className="font-semibold text-forest underline-offset-4 hover:underline"
             >
-              Read &amp; download the free cookbook
+              Or read it online in a new tab
             </a>
-          </Button>
-          <p className="mt-4 text-sm text-charcoal/55">
-            This page will stay open while your cookbook opens in a new tab.
           </p>
           <Link to="/shop" className="mt-5 inline-flex text-sm font-semibold text-forest underline-offset-4 hover:underline">
             Explore the full cookbook collection

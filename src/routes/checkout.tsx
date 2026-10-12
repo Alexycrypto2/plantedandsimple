@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { SiteLayout } from "@/components/SiteLayout";
-import { initializePaddle, getPaddlePriceId, getPaddleEnvironment } from "@/lib/paddle";
+import { initializePaddle, getPaddlePriceId, getPaddleEnvironment, redirectOnPaddleComplete } from "@/lib/paddle";
 import { trackEvent } from "@/lib/analytics";
 
 type Search = { price?: string; slug?: string; ref?: string };
@@ -91,6 +91,7 @@ function CheckoutPage() {
             successUrl: `${window.location.origin}/thank-you`,
             allowLogout: false,
           },
+          eventCallback: redirectOnPaddleComplete,
         });
         setPhase("ready");
         void trackEvent("checkout_start", { refSlug: slug ?? null, metadata: { price, surface: "checkout_page" } });
