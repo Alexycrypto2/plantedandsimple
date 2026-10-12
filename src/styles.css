@@ -585,3 +585,6 @@
 .pin-swatch-brand { background: var(--forest); }
 .pin-swatch-paper { background: var(--card); border: 1px solid var(--border); }
 .pin-swatch-berry { background: var(--pin-berry, #8d3248); }
+
+/* Article-end funnel replaces mid-article offer cards */
+.article-body .ps-product-bridge { display: none; }
