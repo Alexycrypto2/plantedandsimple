@@ -297,6 +297,32 @@ export const adminUpsertProduct = createServerFn({ method: "POST" })
       if (error) throw new Error(error.message);
       row = r;
     }
+    // Keep the cookbook's site-wide price banner in step with its product row.
+    if (data.slug === "high-protein-cookbook") {
+      await supabaseAdmin.from("pricing_settings").upsert(
+        { id: true, price_cents: data.price_cents, compare_at_cents: data.compare_at_cents, currency: data.currency, updated_at: new Date().toISOString() },
+        { onConflict: "id" },
+      );
+    }
+    // Push the new amount to Paddle (test + live) so checkout charges the same price.
+    const ext = data.paddle_price_external_id;
+    if (ext && data.price_cents >= 70) {
+      const { gatewayFetch } = await import("@/lib/paddle.server");
+      for (const env of ["sandbox", "live"] as const) {
+        try {
+          const look = await gatewayFetch(env, `/prices?external_id=${encodeURIComponent(ext)}`);
+          const id = (await look.json())?.data?.[0]?.id;
+          if (!id) continue;
+          const patch = await gatewayFetch(env, `/prices/${id}`, {
+            method: "PATCH",
+            body: JSON.stringify({ unit_price: { amount: String(data.price_cents), currency_code: data.currency } }),
+          });
+          if (!patch.ok) console.error(`[products] Paddle ${env} price sync failed`, patch.status, (await patch.text()).slice(0, 200));
+        } catch (e) {
+          console.error(`[products] Paddle ${env} price sync error`, e);
+        }
+      }
+    }
     return mapAdmin(row);
   });
 
