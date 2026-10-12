@@ -54,6 +54,7 @@ import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/em
 import { Route as AuthenticatedPrepAppRecipesIndexRouteImport } from './routes/_authenticated/prep-app.recipes.index'
 import { Route as AuthenticatedPrepAppRecipesIdRouteImport } from './routes/_authenticated/prep-app.recipes.$id'
 import { Route as ApiPublicDownloadCookbookRouteImport } from './routes/api/public/download/cookbook'
+import { Route as ApiPublicDownloadFreeCookbookRouteImport } from './routes/api/public/download/free-cookbook'
 import { Route as ApiPublicDownloadPlanningKitRouteImport } from './routes/api/public/download/planning-kit'
 import { Route as ApiPublicImgSplatRouteImport } from './routes/api/public/img/$'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
@@ -301,6 +302,12 @@ const ApiPublicDownloadCookbookRoute =
     path: '/api/public/download/cookbook',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicDownloadFreeCookbookRoute =
+  ApiPublicDownloadFreeCookbookRouteImport.update({
+    id: '/api/public/download/free-cookbook',
+    path: '/api/public/download/free-cookbook',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicDownloadPlanningKitRoute =
   ApiPublicDownloadPlanningKitRouteImport.update({
     id: '/api/public/download/planning-kit',
@@ -403,6 +410,7 @@ export interface FileRoutesByFullPath {
   '/prep-app/': typeof AuthenticatedPrepAppIndexRoute
   '/prep-app/recipes/$id': typeof AuthenticatedPrepAppRecipesIdRoute
   '/api/public/download/cookbook': typeof ApiPublicDownloadCookbookRoute
+  '/api/public/download/free-cookbook': typeof ApiPublicDownloadFreeCookbookRoute
   '/api/public/download/planning-kit': typeof ApiPublicDownloadPlanningKitRoute
   '/api/public/img/$': typeof ApiPublicImgSplatRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
@@ -455,6 +463,7 @@ export interface FileRoutesByTo {
   '/prep-app': typeof AuthenticatedPrepAppIndexRoute
   '/prep-app/recipes/$id': typeof AuthenticatedPrepAppRecipesIdRoute
   '/api/public/download/cookbook': typeof ApiPublicDownloadCookbookRoute
+  '/api/public/download/free-cookbook': typeof ApiPublicDownloadFreeCookbookRoute
   '/api/public/download/planning-kit': typeof ApiPublicDownloadPlanningKitRoute
   '/api/public/img/$': typeof ApiPublicImgSplatRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
@@ -513,6 +522,7 @@ export interface FileRoutesById {
   '/_authenticated/prep-app/': typeof AuthenticatedPrepAppIndexRoute
   '/_authenticated/prep-app/recipes/$id': typeof AuthenticatedPrepAppRecipesIdRoute
   '/api/public/download/cookbook': typeof ApiPublicDownloadCookbookRoute
+  '/api/public/download/free-cookbook': typeof ApiPublicDownloadFreeCookbookRoute
   '/api/public/download/planning-kit': typeof ApiPublicDownloadPlanningKitRoute
   '/api/public/img/$': typeof ApiPublicImgSplatRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
@@ -571,6 +581,7 @@ export interface FileRouteTypes {
     | '/prep-app/'
     | '/prep-app/recipes/$id'
     | '/api/public/download/cookbook'
+    | '/api/public/download/free-cookbook'
     | '/api/public/download/planning-kit'
     | '/api/public/img/$'
     | '/api/public/payments/webhook'
@@ -623,6 +634,7 @@ export interface FileRouteTypes {
     | '/prep-app'
     | '/prep-app/recipes/$id'
     | '/api/public/download/cookbook'
+    | '/api/public/download/free-cookbook'
     | '/api/public/download/planning-kit'
     | '/api/public/img/$'
     | '/api/public/payments/webhook'
@@ -680,6 +692,7 @@ export interface FileRouteTypes {
     | '/_authenticated/prep-app/'
     | '/_authenticated/prep-app/recipes/$id'
     | '/api/public/download/cookbook'
+    | '/api/public/download/free-cookbook'
     | '/api/public/download/planning-kit'
     | '/api/public/img/$'
     | '/api/public/payments/webhook'
@@ -719,6 +732,7 @@ export interface RootRouteChildren {
   PSlugRoute: typeof PSlugRoute
   LovableEmailSuppressionRoute: typeof LovableEmailSuppressionRoute
   ApiPublicDownloadCookbookRoute: typeof ApiPublicDownloadCookbookRoute
+  ApiPublicDownloadFreeCookbookRoute: typeof ApiPublicDownloadFreeCookbookRoute
   ApiPublicDownloadPlanningKitRoute: typeof ApiPublicDownloadPlanningKitRoute
   ApiPublicImgSplatRoute: typeof ApiPublicImgSplatRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
@@ -1048,6 +1062,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicDownloadCookbookRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/download/free-cookbook': {
+      id: '/api/public/download/free-cookbook'
+      path: '/api/public/download/free-cookbook'
+      fullPath: '/api/public/download/free-cookbook'
+      preLoaderRoute: typeof ApiPublicDownloadFreeCookbookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/download/planning-kit': {
       id: '/api/public/download/planning-kit'
       path: '/api/public/download/planning-kit'
@@ -1230,6 +1251,7 @@ const rootRouteChildren: RootRouteChildren = {
   PSlugRoute: PSlugRoute,
   LovableEmailSuppressionRoute: LovableEmailSuppressionRoute,
   ApiPublicDownloadCookbookRoute: ApiPublicDownloadCookbookRoute,
+  ApiPublicDownloadFreeCookbookRoute: ApiPublicDownloadFreeCookbookRoute,
   ApiPublicDownloadPlanningKitRoute: ApiPublicDownloadPlanningKitRoute,
   ApiPublicImgSplatRoute: ApiPublicImgSplatRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
