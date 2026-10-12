@@ -97,7 +97,7 @@ function ThankYou() {
     return () => {
       cancelled = true;
     };
-  }, [transactionId]);
+  }, [transactionId, demo]);
 
   return (
     <div className="min-h-screen bg-cream font-sans text-charcoal">
