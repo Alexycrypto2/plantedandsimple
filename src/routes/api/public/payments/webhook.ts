@@ -238,6 +238,7 @@ async function handlePrepPurchase(
   }
 
   await attributeAffiliate(supabase, tx, transactionId, "prep-system");
+  if (email) await syncBuyer(email, "meal-prep-system");
 
   if (!email) {
     console.warn("Prep purchase without email", { transactionId });
@@ -322,7 +323,7 @@ export const Route = createFileRoute("/api/public/payments/webhook")({
         // instead of a cookbook download.
         // Planning Kit downloads are verified live against Paddle; nothing to record.
         if (productSlugOf(tx) === "planning-kit") {
-          return Response.json({ ok: true, product: "planning-kit" });
+          return handleKitPurchase(supabaseAdmin, transactionId, email);
         }
         if (productSlugOf(tx) === "meal-prep-system") {
           return handlePrepPurchase(
@@ -381,6 +382,7 @@ export const Route = createFileRoute("/api/public/payments/webhook")({
           );
 
         await attributeAffiliate(supabaseAdmin, tx, transactionId, "cookbook");
+        await syncBuyer(email, "cookbook");
 
         const unsubscribeToken = await emailGuard(supabaseAdmin, email);
         if (!unsubscribeToken) {
