@@ -6,7 +6,7 @@ interface Props {
   downloadUrl?: string;
 }
 
-const FreeCookbookEmail = ({ downloadUrl = "https://primedownloads.store/free-cookbook" }: Props) => (
+const FreeCookbookEmail = ({ downloadUrl = "https://plantedandsimple.com/free-cookbook" }: Props) => (
   <Html lang="en" dir="ltr">
     <Head />
     <Preview>Real ingredients, 25g+ protein, and why I stopped eating boring salads.</Preview>
@@ -45,7 +45,7 @@ export const template = {
   component: FreeCookbookEmail,
   subject: "Your free 20-minute cookbook is inside (+ a quick confession)",
   displayName: "Free cookbook delivery",
-  previewData: { downloadUrl: "https://primedownloads.store/free-cookbook" },
+  previewData: { downloadUrl: "https://plantedandsimple.com/free-cookbook" },
 } satisfies TemplateEntry;
 
 const main = { backgroundColor: "#ffffff", fontFamily: "Arial, sans-serif" };

@@ -211,7 +211,7 @@ export function AdminShell({
           <Sparkles className="size-5" />
         </div>
         <div className="min-w-0">
-          <p className="truncate font-display text-xl italic leading-tight text-forest-deep">PrimeDownloads</p>
+          <p className="truncate font-display text-xl italic leading-tight text-forest-deep">Planted &amp; Simple</p>
           <p className="truncate font-mono text-[9px] uppercase tracking-[0.28em] text-charcoal/40">Operating System</p>
         </div>
         <button

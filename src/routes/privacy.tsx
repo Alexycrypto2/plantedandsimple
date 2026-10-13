@@ -113,8 +113,8 @@ function PrivacyPage() {
         delete, restrict, or object to processing of your personal data, to
         data portability, and to withdraw consent. To exercise these rights,
         email{" "}
-        <a href="mailto:support@primedownloads.store">
-          support@primedownloads.store
+        <a href="mailto:support@plantedandsimple.com">
+          support@plantedandsimple.com
         </a>
         . You also have the right to lodge a complaint with your local data
         protection authority.
@@ -143,8 +143,8 @@ function PrivacyPage() {
       <h2>10. Contact</h2>
       <p>
         Plantedandsimple —{" "}
-        <a href="mailto:support@primedownloads.store">
-          support@primedownloads.store
+        <a href="mailto:support@plantedandsimple.com">
+          support@plantedandsimple.com
         </a>
       </p>
 

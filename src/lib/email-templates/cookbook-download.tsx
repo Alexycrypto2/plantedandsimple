@@ -41,7 +41,7 @@ const CookbookDownloadEmail = ({ downloadUrl = '#', orderId = '' }: Props) => (
         <Hr style={hr} />
         <Text style={footer}>
           Questions? Just reply to this email or write to
-          support@primedownloads.store.
+          support@plantedandsimple.com.
         </Text>
         <Text style={footer}>— The PlantedAndSimple team</Text>
       </Container>
@@ -54,7 +54,7 @@ export const template = {
   subject: 'Your PlantedAndSimple cookbook — download inside 🌱',
   displayName: 'Cookbook download link',
   previewData: {
-    downloadUrl: 'https://primedownloads.store/thank-you?_ptxn=txn_example',
+    downloadUrl: 'https://plantedandsimple.com/thank-you?_ptxn=txn_example',
     orderId: 'txn_example',
   },
 } satisfies TemplateEntry

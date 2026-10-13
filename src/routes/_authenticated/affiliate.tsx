@@ -7,7 +7,7 @@ export const Route = createFileRoute("/_authenticated/affiliate")({
   component: AffiliatePage,
   head: () => ({
     meta: [
-      { title: "Affiliate dashboard · PrimeDownloads" },
+      { title: "Affiliate dashboard · Planted & Simple" },
       { name: "robots", content: "noindex,nofollow" },
     ],
   }),
@@ -48,7 +48,7 @@ function AffiliatePage() {
     );
   }
 
-  const link = `https://primedownloads.store/?ref=${row.code}`;
+  const link = `https://plantedandsimple.com/?ref=${row.code}`;
   const copy = async () => {
     await navigator.clipboard.writeText(link);
     setCopied(true);
@@ -61,7 +61,7 @@ function AffiliatePage() {
         <div className="mx-auto flex max-w-4xl flex-wrap items-center justify-between gap-3 px-6 py-4">
           <div>
             <p className="font-mono text-[11px] font-semibold uppercase tracking-widest text-sage">
-              PrimeDownloads
+              Planted & Simple
             </p>
             <h1 className="font-display text-2xl italic text-forest-deep">
               Affiliate dashboard

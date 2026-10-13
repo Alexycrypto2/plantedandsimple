@@ -49,7 +49,7 @@ const PrepAccessEmail = ({ accessUrl = '#', orderId = '' }: Props) => (
         <Hr style={hr} />
         <Text style={footer}>
           Questions? Just reply to this email or write to
-          support@primedownloads.store.
+          support@plantedandsimple.com.
         </Text>
         <Text style={footer}>— The PlantedAndSimple team</Text>
       </Container>
@@ -62,7 +62,7 @@ export const template = {
   subject: 'Your Meal Prep System — access confirmed 🌱',
   displayName: 'Meal Prep System access',
   previewData: {
-    accessUrl: 'https://primedownloads.store/prep',
+    accessUrl: 'https://plantedandsimple.com/prep',
     orderId: 'txn_example',
   },
 } satisfies TemplateEntry

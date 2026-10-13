@@ -983,7 +983,7 @@ function AffiliatesPanel() {
   };
 
   const copyLink = async (code: string) => {
-    await navigator.clipboard.writeText(`https://primedownloads.store/?ref=${code}`);
+    await navigator.clipboard.writeText(`https://plantedandsimple.com/?ref=${code}`);
   };
 
   if (err) return <p className="text-red-600">{err}</p>;
@@ -1121,7 +1121,7 @@ function AffiliateCard({
     }
   };
 
-  const link = `https://primedownloads.store/?ref=${row.code}`;
+  const link = `https://plantedandsimple.com/?ref=${row.code}`;
 
   return (
     <div className="rounded-2xl border border-forest/10 bg-white shadow-sm">

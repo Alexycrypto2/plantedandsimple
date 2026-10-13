@@ -34,7 +34,7 @@ function ContactPage() {
           </form>
         )}
         <p className="mt-10 text-sm text-charcoal/60">
-          Or email us at <a href="mailto:hello@primedownloads.store" className="text-forest underline">hello@primedownloads.store</a>
+          Or email us at <a href="mailto:support@plantedandsimple.com" className="text-forest underline">support@plantedandsimple.com</a>
         </p>
       </section>
     </SiteLayout>

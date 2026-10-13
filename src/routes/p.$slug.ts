@@ -12,7 +12,7 @@ export const Route = createFileRoute("/p/$slug")({
           .eq("slug", slug)
           .maybeSingle();
 
-        const target = data?.destination_url ?? "https://primedownloads.store/recipes";
+        const target = data?.destination_url ?? "https://plantedandsimple.com/recipes";
 
         if (data) {
           try {

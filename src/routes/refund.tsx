@@ -43,8 +43,8 @@ function RefundPage() {
         </li>
         <li>
           Or email us at{" "}
-          <a href="mailto:support@primedownloads.store">
-            support@primedownloads.store
+          <a href="mailto:support@plantedandsimple.com">
+            support@plantedandsimple.com
           </a>{" "}
           with your order email and transaction reference, and we will forward
           your request to Paddle.
@@ -73,8 +73,8 @@ function RefundPage() {
       <h2>5. Contact</h2>
       <p>
         Plantedandsimple —{" "}
-        <a href="mailto:support@primedownloads.store">
-          support@primedownloads.store
+        <a href="mailto:support@plantedandsimple.com">
+          support@plantedandsimple.com
         </a>
       </p>
 
