@@ -1,8 +1,9 @@
-export const SITE_URL = "https://www.plantedandsimple.store";
+export const SITE_URL = "https://plantedandsimple.com";
 export const SITE_NAME = "PlantedAndSimple";
 
 export function pageUrl(path: string) {
-  return `${SITE_URL}${path === "/" ? "/" : path.replace(/\/$/, "")}`;
+  if (!path || path === "/") return SITE_URL;
+  return `${SITE_URL}${path.replace(/\/+$/, "")}`;
 }
 
 export function plainDescription(value: string) {

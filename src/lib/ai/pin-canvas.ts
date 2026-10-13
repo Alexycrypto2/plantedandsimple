@@ -59,7 +59,7 @@ function brand(ctx: CanvasRenderingContext2D, c: Colors, onPhoto = true) {
   if (onPhoto) { ctx.shadowColor = 'rgba(0,0,0,0.55)'; ctx.shadowBlur = 14; }
   ctx.fillStyle = onPhoto ? c.paper : c.accent; ctx.textAlign = 'right'; ctx.textBaseline = 'alphabetic';
   ctx.font = F(700, 52); ctx.fillText('PLANTED', PIN_W - 80, PIN_H - 205); ctx.fillText('& SIMPLE', PIN_W - 80, PIN_H - 150);
-  ctx.font = F(500, 30); ctx.textAlign = 'center'; ctx.fillText('plantedandsimple.store', PIN_W / 2, PIN_H - 145 + 60);
+  ctx.font = F(500, 30); ctx.textAlign = 'center'; ctx.fillText('plantedandsimple.com', PIN_W / 2, PIN_H - 145 + 60);
   ctx.restore();
 }
 type Colors = { paper: string; ink: string; accent: string };
@@ -93,7 +93,7 @@ export async function drawPin(canvas: HTMLCanvasElement, pin: PinArtwork) {
     photo(ctx, one, 0, 0, PIN_W, h);
     band(ctx, pin, h, PIN_H - h - 140, c);
     ctx.fillStyle = c.ink; ctx.font = F(600, 34); ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.fillText('PLANTED & SIMPLE · plantedandsimple.store', PIN_W / 2, PIN_H - 80, PIN_W - 120);
+    ctx.fillText('PLANTED & SIMPLE · plantedandsimple.com', PIN_W / 2, PIN_H - 80, PIN_W - 120);
   } else if (layout === 'step-collage') {
     const head = Math.round(PIN_H * 0.22); const each = Math.round((PIN_H - head) / 3);
     [one, two, three].forEach((img, i) => {
@@ -118,7 +118,7 @@ export async function drawPin(canvas: HTMLCanvasElement, pin: PinArtwork) {
     }
     if (pin.pill?.trim()) pill(ctx, pin.pill.trim(), PIN_W / 2, Math.min(y + 20, PIN_H - 230), c.accent, c.paper);
     ctx.fillStyle = c.ink; ctx.font = F(600, 30); ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.fillText('PLANTED & SIMPLE · plantedandsimple.store', PIN_W / 2, PIN_H - 80, PIN_W - 120);
+    ctx.fillText('PLANTED & SIMPLE · plantedandsimple.com', PIN_W / 2, PIN_H - 80, PIN_W - 120);
   } else {
     photo(ctx, one, 0, 0, PIN_W, PIN_H);
     const w = 820, h = 520, x = (PIN_W - w) / 2, y = (PIN_H - h) / 2 - 60;

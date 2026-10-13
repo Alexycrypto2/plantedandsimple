@@ -36,7 +36,7 @@ export function recipeCategory(r: Pick<Recipe, "tags" | "title" | "categories">)
   return CATEGORIES.find(([k]) => hay.includes(k))?.[1] ?? "Main Course";
 }
 
-export function recipeJsonLd(r: Recipe, url: string, image?: string, siteUrl = "https://www.plantedandsimple.store") {
+export function recipeJsonLd(r: Recipe, url: string, image?: string, siteUrl = "https://plantedandsimple.com") {
   const total = (r.prep_minutes ?? 0) + (r.cook_minutes ?? 0);
   const brand = { "@type": "Organization", name: "PlantedAndSimple", url: siteUrl };
   const keywords = Array.from(new Set([...r.tags, "plant-based", "vegan"])).join(", ");
