@@ -40,6 +40,8 @@ export const subscribeFreeGuide = createServerFn({ method: "POST" })
     try {
       const { syncSubscriber } = await import("@/lib/email-sync.server");
       await syncSubscriber(data.email, data.source ?? "free_guide");
+      const { brevoAddContact } = await import("@/lib/brevo.server");
+      await brevoAddContact(data.email, "free", { SOURCE: data.source ?? "free_guide" });
     } catch {
       // List sync is best-effort; the subscriber is already saved.
     }

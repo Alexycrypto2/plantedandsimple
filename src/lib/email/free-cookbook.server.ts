@@ -68,6 +68,18 @@ export async function enqueueFreeCookbookEmail(email: string) {
   // narrowing a `satisfies TemplateEntry` literal through an impossible branch.
   const subject: string = template.subject;
 
+  const { brevoSendEmail } = await import("@/lib/brevo.server");
+  if (await brevoSendEmail({ to: normalizedEmail, subject, html, text, tags: ["free-cookbook"] })) {
+    await supabaseAdmin.from("email_send_log").insert({
+      message_id: messageId,
+      template_name: "free-cookbook",
+      recipient_email: normalizedEmail,
+      status: "sent",
+    });
+    return { queued: true, reason: "sent" as const };
+  }
+
+
   const { error: logError } = await supabaseAdmin.from("email_send_log").insert({
     message_id: messageId,
     template_name: "free-cookbook",
