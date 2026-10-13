@@ -11,9 +11,9 @@ import { template as cookbookTemplate } from "@/lib/email-templates/cookbook-dow
 import { template as prepTemplate } from "@/lib/email-templates/prep-access";
 
 const SITE_NAME = "PlantedAndSimple";
-const SENDER_DOMAIN = "notify.primedownloads.store";
-const FROM_DOMAIN = "notify.primedownloads.store";
-const PUBLIC_ORIGIN = "https://primedownloads.store";
+const SENDER_DOMAIN = "notify.plantedandsimple.com";
+const FROM_DOMAIN = "notify.plantedandsimple.com";
+const PUBLIC_ORIGIN = "https://plantedandsimple.com";
 
 type SupabaseAdminClient = any;
 
