@@ -269,6 +269,56 @@ async function handlePrepPurchase(
   });
 }
 
+async function syncBuyer(email: string, product: string) {
+  try {
+    const { brevoAddContact } = await import("@/lib/brevo.server");
+    await brevoAddContact(email.toLowerCase(), "buyer", { PRODUCT: product, CUSTOMER_TYPE: "paid_buyer" });
+  } catch (e) {
+    console.error("Brevo buyer sync failed", e);
+  }
+}
+
+/** Planning Kit — no gate table; send the download link once per transaction. */
+async function handleKitPurchase(
+  supabase: SupabaseAdminClient,
+  transactionId: string,
+  email: string | null,
+): Promise<Response> {
+  if (!email) return Response.json({ ok: true, skipped: "no_email" });
+  const templateName = "planning-kit-download";
+  const { data: sent } = await supabase
+    .from("email_send_log")
+    .select("id")
+    .eq("template_name", templateName)
+    .eq("recipient_email", email)
+    .eq("status", "sent")
+    .limit(1)
+    .maybeSingle();
+  await syncBuyer(email, "planning-kit");
+  if (sent) return Response.json({ ok: true, already_sent: true });
+  const unsubscribeToken = await emailGuard(supabase, email);
+  if (!unsubscribeToken) return Response.json({ ok: true, suppressed: true });
+  const url = `${PUBLIC_ORIGIN}/thank-you?_ptxn=${encodeURIComponent(transactionId)}`;
+  const html = `<div style="font-family:Arial,sans-serif;max-width:560px;padding:32px 24px;color:#2b2b2b">
+<p style="color:#7FA77A;font-size:11px;letter-spacing:2px;font-weight:bold">PLANTED &amp; SIMPLE</p>
+<h1 style="color:#2E5E3B;font-family:Georgia,serif">Your Weekly Meal Planning Kit is ready 🌱</h1>
+<p style="line-height:1.6">Thank you for your order! Your 12-page Planning Kit is waiting on your private download page.</p>
+<p><a href="${url}" style="background:#2E5E3B;color:#FAF8F3;padding:14px 22px;border-radius:8px;text-decoration:none;font-weight:bold;display:inline-block">Download my Planning Kit</a></p>
+<p style="color:#7d7d7d;font-size:12px">Order reference: ${transactionId}<br/>Questions? Reply or write to support@plantedandsimple.com.</p></div>`;
+  const text = `Your Weekly Meal Planning Kit is ready. Download: ${url}\nOrder: ${transactionId}`;
+  const ok = await deliver(supabase, {
+    email,
+    unsubscribeToken,
+    templateName,
+    idempotencyKey: `kit-${transactionId}`,
+    subject: "Your Weekly Meal Planning Kit is ready 🌱",
+    html,
+    text,
+    messageId: crypto.randomUUID(),
+  });
+  return Response.json({ ok: true, queued: ok });
+}
+
 export const Route = createFileRoute("/api/public/payments/webhook")({
   server: {
     handlers: {
