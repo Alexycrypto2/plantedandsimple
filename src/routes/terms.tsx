@@ -135,8 +135,8 @@ function TermsPage() {
       <h2>14. Contact</h2>
       <p>
         Plantedandsimple —{" "}
-        <a href="mailto:support@primedownloads.store">
-          support@primedownloads.store
+        <a href="mailto:support@plantedandsimple.com">
+          support@plantedandsimple.com
         </a>
       </p>
 

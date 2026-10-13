@@ -60,10 +60,11 @@ export function SiteNav() {
             />
           </form>
           <Link
-            to="/auth"
-            className="hidden rounded-full border border-forest/20 px-4 py-2 text-xs font-semibold uppercase tracking-widest text-charcoal/70 transition hover:border-forest hover:text-forest sm:inline-flex"
+            to="/shop/$slug"
+            params={{ slug: "high-protein-cookbook" }}
+            className="hidden whitespace-nowrap rounded-full bg-forest px-4 py-2 text-xs font-bold uppercase tracking-widest text-cream transition hover:bg-forest-deep sm:inline-flex"
           >
-            Sign in
+            Get Cookbook — $14.99
           </Link>
           <button
             aria-label="Menu"

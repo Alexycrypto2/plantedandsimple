@@ -378,7 +378,7 @@ function PrepPaidView({ email }: { email: string | null }) {
         Revisit the Meal Prep System →
       </a>
       <p className="mt-4 font-mono text-[11px] uppercase tracking-widest text-charcoal/50">
-        Questions? Reply to your receipt email — support@primedownloads.store
+        Questions? Reply to your receipt email — support@plantedandsimple.com
       </p>
 
       <a

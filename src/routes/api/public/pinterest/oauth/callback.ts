@@ -122,7 +122,7 @@ export const Route = createFileRoute("/api/public/pinterest/oauth/callback")({
           pinLog("callback:connected", { uid: storedState.userId, username, finalConnectionStatus: "connected" });
           return html(
             "Pinterest connected",
-            `Your account${username ? ` @${username}` : ""} is now linked to PrimeDownloads.`,
+            `Your account${username ? ` @${username}` : ""} is now linked to Planted & Simple.`,
           );
         } catch (e: any) {
           pinLog("callback:exchange-failed", { error: String(e?.message ?? e).slice(0, 300) });
