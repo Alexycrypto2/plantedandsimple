@@ -9,9 +9,9 @@ describe("pin SEO wiring", () => {
     expect(primaryKeyword(null, "Harissa Chickpea Bowl")).toBe("Harissa Chickpea Bowl");
   });
   it("front-loads the keyword and links to the real recipe", () => {
-    const out = alignPinDescription("Quick dinner for busy weeks.", "Harissa Chickpea Bowl", "https://www.plantedandsimple.store/recipes/harissa");
+    const out = alignPinDescription("Quick dinner for busy weeks.", "Harissa Chickpea Bowl", "https://plantedandsimple.com/recipes/harissa");
     expect(out.startsWith("Harissa Chickpea Bowl")).toBe(true);
-    expect(out).toContain("https://www.plantedandsimple.store/recipes/harissa");
+    expect(out).toContain("https://plantedandsimple.com/recipes/harissa");
   });
   it("adds the keyword to titles missing it", () => {
     expect(alignPinTitle("Easy weeknight dinner", "Tofu Noodles")).toBe("Tofu Noodles | Easy weeknight dinner");

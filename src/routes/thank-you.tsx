@@ -40,7 +40,7 @@ export const Route = createFileRoute("/thank-you")({
       },
       { name: "robots", content: "noindex" },
     ],
-    links: [{ rel: "canonical", href: "https://www.plantedandsimple.store/thank-you" }],
+    links: [{ rel: "canonical", href: "https://plantedandsimple.com/thank-you" }],
   }),
 });
 

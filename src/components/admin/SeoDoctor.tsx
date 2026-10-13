@@ -70,7 +70,7 @@ export function SeoDoctor({ value, onApply, kind = "blog" }: { value: Fields; on
           <div className={`mx-auto max-h-[70vh] overflow-y-auto rounded-2xl border border-forest/15 bg-white p-5 shadow-sm ${view === "mobile" ? "w-[390px]" : "w-full max-w-3xl"}`}>
             <div className="mb-4 rounded-xl border border-forest/10 p-3">
               <p className="truncate text-sm text-blue-700">{value.seo_title || value.title}</p>
-              <p className="text-[11px] text-green-700">plantedandsimple.store › {kind === "recipe" ? "recipes" : "blog"}</p>
+              <p className="text-[11px] text-green-700">plantedandsimple.com › {kind === "recipe" ? "recipes" : "blog"}</p>
               <p className="line-clamp-2 text-xs text-charcoal/70">{value.seo_description}</p>
             </div>
             <h1 className="font-display text-3xl italic text-forest-deep">{value.title}</h1>
