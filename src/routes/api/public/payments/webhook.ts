@@ -143,6 +143,26 @@ async function queueEmail(
     | ((data: Record<string, any>) => string);
   const subject =
     typeof rawSubject === "function" ? rawSubject(subjectData) : rawSubject;
+  return deliver(supabase, { email, unsubscribeToken, templateName, idempotencyKey, subject, html, text, messageId });
+}
+
+/** Sends via Brevo first; falls back to the built-in email queue. */
+async function deliver(
+  supabase: SupabaseAdminClient,
+  o: { email: string; unsubscribeToken: string; templateName: string; idempotencyKey: string; subject: string; html: string; text: string; messageId: string },
+): Promise<boolean> {
+  const { email, unsubscribeToken, templateName, idempotencyKey, subject, html, text, messageId } = o;
+  const { brevoSendEmail } = await import("@/lib/brevo.server");
+  if (await brevoSendEmail({ to: email, subject, html, text, tags: [templateName] })) {
+    await supabase.from("email_send_log").insert({
+      message_id: messageId,
+      template_name: templateName,
+      recipient_email: email,
+      status: "sent",
+    });
+    return true;
+  }
+
 
   await supabase.from("email_send_log").insert({
     message_id: messageId,
