@@ -8,7 +8,7 @@ import { trackEvent } from "@/lib/analytics";
 
 export const Route = createFileRoute("/free")({
   component: FreePage,
-  head: () => pageHead("/free", "Free Plant-Based Cookbook | PlantedAndSimple", "Get the free 20-Minute Plant Protein Kitchen cookbook. Discover quick plant-based recipes and download your PDF for easy weeknight cooking."),
+  head: () => pageHead("/free", "Free Plant-Based Cookbook | PlantedAndSimple", "Get the free 20-Minute Plant Protein Kitchen cookbook. Get 12 fast high-protein plant-based meals and download your PDF for easy weeknight cooking."),
 });
 
 function FreePage() {
@@ -42,12 +42,12 @@ function FreePage() {
               Your free plant-based recipe guide.
             </h1>
             <p className="mt-5 max-w-md text-lg text-charcoal/70">
-              20-Minute Plant Protein Kitchen: five quick high-protein recipes and a pantry essentials list — delivered instantly.
+              20-Minute Plant Protein Kitchen: 12 fast, high-protein meals (20g+ protein, ready in 20 minutes, no powders) — delivered instantly.
             </p>
             <ul className="mt-8 space-y-3 text-sm text-charcoal/80">
-              <li>✅ 10 tested plant-based recipes</li>
+              <li>✅ 12 fast high-protein recipes</li>
               <li>✅ Pantry essentials PDF</li>
-              <li>✅ Weekly meal-prep template</li>
+              <li>✅ 20g+ protein, no powders</li>
             </ul>
             <form onSubmit={submit} className="mt-8 flex max-w-md flex-col gap-2 sm:flex-row">
                 <input
