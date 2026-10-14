@@ -42,7 +42,7 @@ function FreePage() {
               Your free plant-based recipe guide.
             </h1>
             <p className="mt-5 max-w-md text-lg text-charcoal/70">
-              Ten of our most-loved recipes, a pantry essentials checklist, and a printable weekly prep sheet — delivered instantly.
+              20-Minute Plant Protein Kitchen: five quick high-protein recipes and a pantry essentials list — delivered instantly.
             </p>
             <ul className="mt-8 space-y-3 text-sm text-charcoal/80">
               <li>✅ 10 tested plant-based recipes</li>
