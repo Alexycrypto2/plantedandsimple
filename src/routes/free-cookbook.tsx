@@ -8,7 +8,7 @@ import freeCookbookAsset from "@/assets/free-cookbook.pdf.asset.json";
 import { trackEvent } from "@/lib/analytics";
 
 export const Route = createFileRoute("/free-cookbook")({
-  head: () => pageHead("/free-cookbook", "20-Minute Plant Protein Kitchen \u2014 Free Cookbook | PlantedAndSimple", "Read and download your free 20-Minute Plant Protein Kitchen cookbook, then explore our full collection of high-protein plant-based meals."),
+  head: () => pageHead("/free-cookbook", "20-Minute Plant Protein Kitchen \u2014 Free Cookbook | PlantedAndSimple", "Read and download your free 20-Minute Plant Protein Kitchen cookbook: 12 fast high-protein meals, then explore our full collection of high-protein plant-based meals."),
   component: FreeCookbookPage,
 });
 
@@ -117,7 +117,7 @@ function FreeCookbookPage() {
             <div className="grid grid-cols-[1fr_auto_1fr] items-start gap-4 text-sm">
               <div>
                 <p className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-sage">Free guide</p>
-                <ul className="mt-5 space-y-3 text-charcoal/70"><li>5 quick recipes</li><li>Starter pantry list</li><li>Instant PDF download</li></ul>
+                <ul className="mt-5 space-y-3 text-charcoal/70"><li>12 fast high-protein recipes</li><li>Starter pantry list</li><li>Instant PDF download</li></ul>
               </div>
               <div className="h-full w-px bg-forest/15" />
               <div>
