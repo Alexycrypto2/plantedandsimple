@@ -1,4 +1,4 @@
-import { pageHead, pageUrl, plainDescription, jsonLd, breadcrumbs } from "@/lib/seo";
+import { pageHead, pageUrl, plainDescription, jsonLd, breadcrumbs, absoluteImage } from "@/lib/seo";
 import { recipeJsonLd } from "@/lib/recipe-schema";
 import { createFileRoute, Link, notFound, useRouter } from "@tanstack/react-router";
 import { useEffect } from "react";
