@@ -33,7 +33,7 @@ export const Route = createFileRoute("/blog/$slug")({
     const description = plainDescription(post?.seo_description?.trim() || post?.excerpt || "Plant-based cooking inspiration from PlantedAndSimple.");
     const head = pageHead(path, title, description, "article");
     if (!post) return { ...head, meta: [...head.meta, { name: "robots", content: "noindex" }] };
-    const image = post.featured_image_url?.startsWith("https://") ? post.featured_image_url : undefined;
+    const image = absoluteImage(post.featured_image_url);
     return {
       ...head,
       meta: [...head.meta, ...(image ? [{ property: "og:image", content: image }, { name: "twitter:image", content: image }] : [])],

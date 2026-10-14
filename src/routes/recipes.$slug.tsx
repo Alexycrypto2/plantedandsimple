@@ -29,7 +29,7 @@ export const Route = createFileRoute("/recipes/$slug")({
     const description = plainDescription(recipe?.seo_description?.trim() || recipe?.description || "Explore plant-based recipes from PlantedAndSimple.");
     const head = pageHead(path, title, description, "article");
     if (!recipe) return { ...head, meta: [...head.meta, { name: "robots", content: "noindex" }] };
-    const image = recipe.hero_image_url?.startsWith("https://") ? recipe.hero_image_url : undefined;
+    const image = absoluteImage(recipe.hero_image_url);
     const total = (recipe.prep_minutes ?? 0) + (recipe.cook_minutes ?? 0);
     return {
       ...head,

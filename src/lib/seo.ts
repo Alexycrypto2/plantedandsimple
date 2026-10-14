@@ -64,3 +64,10 @@ export function productSchema(product: {
     } : undefined,
   });
 }
+/** Turns a relative image path into an absolute https URL for social share tags. */
+export function absoluteImage(src?: string | null) {
+  if (!src) return undefined;
+  if (src.startsWith("https://")) return src;
+  if (src.startsWith("/")) return pageUrl(src);
+  return undefined;
+}
