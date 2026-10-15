@@ -1,5 +1,6 @@
 import { pageHead, pageUrl, plainDescription, jsonLd, breadcrumbs, absoluteImage } from "@/lib/seo";
 import { recipeJsonLd } from "@/lib/recipe-schema";
+import { cleanStep, cleanStepText, cleanTip, cleanServings, usNutritionLabel } from "@/lib/recipe-clean";
 import { createFileRoute, Link, notFound, useRouter } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { SiteLayout } from "@/components/SiteLayout";
@@ -91,7 +92,7 @@ function RecipeDetail() {
             {r.prep_minutes ? <Pill>{r.prep_minutes} min prep</Pill> : null}
             {r.cook_minutes ? <Pill>{r.cook_minutes} min cook</Pill> : null}
             {total ? <Pill>{total} min total</Pill> : null}
-            {r.servings ? <Pill>Serves {r.servings}</Pill> : null}
+            {cleanServings(r.servings) ? <Pill>Serves {cleanServings(r.servings)}</Pill> : null}
             <Pill>{r.difficulty}</Pill>
           </div>
         </header>
@@ -121,15 +122,15 @@ function RecipeDetail() {
 
           <section>
             <h2 className="font-display text-3xl italic text-forest-deep">Method</h2>
-            <ol className="mt-6 space-y-6">
+            <ol className="mt-6 list-none space-y-6 p-0">
               {(r.instructions ?? []).map((s, i) => (
                 <li key={i} id={`step-${i + 1}`} className="grid scroll-mt-24 grid-cols-[auto_minmax(0,1fr)] gap-4">
                   <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-forest text-xs font-bold text-cream">
                     {i + 1}
                   </span>
                   <div className="min-w-0">
-                    {s.title ? <p className="font-semibold text-forest-deep">{s.title}</p> : null}
-                    <p className="text-sm leading-relaxed text-charcoal/75">{s.body}</p>
+                    {s.title ? <p className="font-semibold text-forest-deep">{cleanStepText(s.title)}</p> : null}
+                    <p className="text-sm leading-relaxed text-charcoal/75">{cleanStep(s.body)}</p>
                   </div>
                 </li>
               ))}
@@ -143,7 +144,7 @@ function RecipeDetail() {
             <div className="mt-5 grid grid-cols-2 gap-4 sm:grid-cols-4">
               {(r.nutrition ?? []).map((n) => (
                 <div key={n.label}>
-                  <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-charcoal/50">{n.label}</p>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-charcoal/50">{usNutritionLabel(n.label)}</p>
                   <p className="mt-1 font-display text-2xl italic text-forest-deep">{n.value}</p>
                 </div>
               ))}
@@ -156,7 +157,7 @@ function RecipeDetail() {
             <h2 className="font-display text-2xl italic text-forest-deep">Cooking tips</h2>
             <ul className="mt-4 space-y-3 text-sm leading-relaxed text-charcoal/75">
               {(r.tips ?? []).map((t, i) => (
-                <li key={i}>— {t}</li>
+                <li key={i} className="flex gap-3"><span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-sage" /><span>{cleanTip(t)}</span></li>
               ))}
             </ul>
           </section>
