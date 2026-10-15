@@ -67,7 +67,7 @@ export const Route = createFileRoute("/")({
       reviews,
     };
   },
-  head: () => pageHead("/", "PlantedAndSimple | High-Protein Plant-Based Recipes & Cookbooks", "Simple Plant-Based Meals. Powerful Nutrition. Explore vegan recipes, digital cookbooks, meal planning guides and our interactive Meal Prep System."),
+  head: () => pageHead("/", "Easy High Protein Vegan Meals & Recipes | Planted & Simple", "Easy high protein vegan meals ready in 20–30 minutes: tofu, tempeh, lentil and chickpea recipes with 20g+ protein, a free 12-recipe guide and meal prep cookbooks."),
 });
 
 const ICONS: Record<string, string> = {
@@ -295,7 +295,7 @@ function HeroSection({ section }: { section: HomepageSection }) {
       <div className="mx-auto flex min-h-[calc(100svh-5rem)] max-w-7xl flex-col items-start justify-end px-6 pb-20 pt-32 text-left md:justify-center md:pb-16">
         <Reveal>
           <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.35em] text-cream/70">
-            Simple plant-based meals · powerful nutrition
+            Easy high protein vegan meals · simple plant-based recipes
           </p>
         </Reveal>
         <Reveal delay={120}>
