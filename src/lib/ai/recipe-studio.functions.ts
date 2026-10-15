@@ -4,6 +4,7 @@ import { generateText, NoObjectGeneratedError, Output } from "ai";
 import { z } from "zod";
 import { textModel, describeAiError } from "./gateway.server";
 import { FRAMING, renderImageSafe, requireBossFactory } from "./studio.server";
+import { cleanStep, cleanStepText, cleanTip, cleanServings, usNutritionLabel } from "@/lib/recipe-clean";
 
 const requireBoss = requireBossFactory();
 
@@ -76,10 +77,13 @@ Non-negotiable rules:
 - Each instruction has a short action title (2-5 words, e.g. "Sear the tofu") and a body. Never leave a title empty.
 - cuisine: one word or phrase (e.g. Mediterranean, Thai, Mexican). category: one of Breakfast, Lunch, Dinner, Meal Prep, Snack, Dessert, Soup, Salad.
 - tags must include the cuisine and category in lowercase plus the main search keyword (Google recipe SEO).
-- nutrition: realistic per-serving values — Calories, Protein, Carbs, Fat, Fibre, Sugar, Sodium.
-- tips: 3-5 genuinely useful notes (make-ahead, swaps, storage, why a technique works).
+- nutrition: realistic per-serving values — Calories, Protein, Carbs, Fat, Fiber, Sugar, Sodium.
+- tips: 3-5 genuinely useful notes (make-ahead, swaps, storage, why a technique works). Never start a tip with a dash, bullet or number.
 - description: 2-3 sentences, warm and specific, written like a food magazine intro. No "delicious and easy" filler, no AI cliches.
-- seo_title <= 60 chars, seo_description <= 155 chars, pinterest_description <= 480 chars with 4 hashtags, tags 5-8 lowercase.
+- seo_title <= 60 chars and must match the recipe title (never prepend a cuisine word like "American"). seo_description <= 155 chars, natural US English, no "x-style" filler. pinterest_description <= 480 chars with 4 hashtags, tags 5-8 lowercase.
+- Use American English throughout (fiber, color, flavor, skillet, cilantro).
+- servings: the number only, e.g. "4" (never "4 servings").
+- Step titles and bodies must NOT start with a number, "Step", or a dash. Every step body ends with exactly one period — never a comma or ".,".
 - Image prompts must describe THIS exact dish in concrete detail — the real ingredients, colours, textures, props and plating — so no two photos look alike. Never mention text, labels, logos, hands holding phones, or brand names.
 - step_image_prompts: 2-3 of the most visually instructive steps only, each alt describing the step.`;
 
@@ -146,16 +150,16 @@ Non-negotiable rules:
         subtitle: out.subtitle,
         description: out.description,
         ingredients: out.ingredients,
-        instructions: out.instructions,
-        nutrition: out.nutrition,
-        tips: out.tips,
+        instructions: out.instructions.map((s) => ({ title: cleanStepText(s.title), body: cleanStep(s.body) })),
+        nutrition: out.nutrition.map((n) => ({ ...n, label: usNutritionLabel(n.label) })),
+        tips: out.tips.map(cleanTip).filter(Boolean),
         prep_minutes: Math.max(0, Math.round(out.prep_minutes)),
         cook_minutes: Math.max(0, Math.round(out.cook_minutes)),
-        servings: out.servings || data.servings,
+        servings: cleanServings(out.servings) || cleanServings(data.servings),
         difficulty: ["easy", "medium", "advanced"].includes(out.difficulty) ? out.difficulty : data.difficulty,
         tags: Array.from(new Set([...out.tags, out.cuisine, out.category].map((t) => t.toLowerCase().trim()).filter(Boolean))),
-        seo_title: out.seo_title,
-        seo_description: out.seo_description,
+        seo_title: out.seo_title?.trim() || out.title,
+        seo_description: out.seo_description.replace(/\b([a-z]+)-style\b/gi, (m) => m.charAt(0).toUpperCase() + m.slice(1)),
         pinterest_description: out.pinterest_description,
         hero_image_id: heroId,
         gallery_ids: gallery,
