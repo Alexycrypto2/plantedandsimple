@@ -120,8 +120,41 @@ function HomePage() {
         {rest.slice(insertAt).map((section) => (
           <Section key={section.id} section={section} data={data} />
         ))}
+        <HighProteinGuide />
       </main>
     </SiteLayout>
+  );
+}
+
+const FAQ = [
+  ["What are easy high protein vegan meals?", "Meals built around tofu, tempeh, lentils, chickpeas, black beans or edamame that deliver 20g+ protein per serving with simple steps and everyday ingredients."],
+  ["How fast are these recipes?", "Most of our weeknight recipes take 20–30 minutes, and many can be batch-cooked on Sunday for quick lunches all week."],
+  ["Do I need protein powder?", "No. Every recipe in our free guide hits its protein from whole foods — no powders required."],
+  ["Where should I start?", "Grab the free 12-recipe guide, then move to the 30-meal cookbook when you want a full plan."],
+];
+
+function HighProteinGuide() {
+  return (
+    <section aria-labelledby="hp-guide" className="bg-cream px-6 py-16">
+      <div className="mx-auto max-w-3xl">
+        <h2 id="hp-guide" className="font-display text-3xl italic text-forest-deep md:text-4xl">Easy high protein vegan meals, without the guesswork</h2>
+        <p className="mt-5 leading-relaxed text-charcoal/75">
+          Eating plant-based and getting enough protein is simpler than it sounds. Our recipes lean on protein-rich staples — crispy tofu, smoky tempeh,
+          red lentils, chickpeas and black beans — paired with whole grains and vegetables, so every plate is filling, balanced and ready in about 20 minutes.
+          Try the <Link to="/recipes/harissa-chickpea-power-bowl" className="text-forest underline underline-offset-4">Harissa Chickpea Power Bowl</Link>,
+          {" "}<Link to="/recipes/creamy-red-lentil-dahl" className="text-forest underline underline-offset-4">Creamy Red Lentil Dahl</Link> or browse
+          {" "}<Link to="/recipes" className="text-forest underline underline-offset-4">all recipes</Link>.
+        </p>
+        <dl className="mt-10 space-y-6">
+          {FAQ.map(([q, a]) => (
+            <div key={q}>
+              <dt className="font-semibold text-forest-deep">{q}</dt>
+              <dd className="mt-1 text-charcoal/70">{a}</dd>
+            </div>
+          ))}
+        </dl>
+      </div>
+    </section>
   );
 }
 
