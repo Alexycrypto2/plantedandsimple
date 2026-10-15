@@ -37,6 +37,7 @@ import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as CollectionsSlugRouteImport } from './routes/collections.$slug'
 import { Route as EmailUnsubscribeRouteImport } from './routes/email/unsubscribe'
 import { Route as PSlugRouteImport } from './routes/p.$slug'
+import { Route as ProductsSplatRouteImport } from './routes/products.$'
 import { Route as RecipesIndexRouteImport } from './routes/recipes.index'
 import { Route as RecipesSlugRouteImport } from './routes/recipes.$slug'
 import { Route as ShopIndexRouteImport } from './routes/shop.index'
@@ -203,6 +204,11 @@ const EmailUnsubscribeRoute = EmailUnsubscribeRouteImport.update({
 const PSlugRoute = PSlugRouteImport.update({
   id: '/p/$slug',
   path: '/p/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProductsSplatRoute = ProductsSplatRouteImport.update({
+  id: '/products/$',
+  path: '/products/$',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RecipesIndexRoute = RecipesIndexRouteImport.update({
@@ -393,6 +399,7 @@ export interface FileRoutesByFullPath {
   '/collections/$slug': typeof CollectionsSlugRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/p/$slug': typeof PSlugRoute
+  '/products/$': typeof ProductsSplatRoute
   '/recipes/$slug': typeof RecipesSlugRoute
   '/shop/$slug': typeof ShopSlugRoute
   '/blog/': typeof BlogIndexRoute
@@ -446,6 +453,7 @@ export interface FileRoutesByTo {
   '/collections/$slug': typeof CollectionsSlugRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/p/$slug': typeof PSlugRoute
+  '/products/$': typeof ProductsSplatRoute
   '/recipes/$slug': typeof RecipesSlugRoute
   '/shop/$slug': typeof ShopSlugRoute
   '/blog': typeof BlogIndexRoute
@@ -505,6 +513,7 @@ export interface FileRoutesById {
   '/collections/$slug': typeof CollectionsSlugRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/p/$slug': typeof PSlugRoute
+  '/products/$': typeof ProductsSplatRoute
   '/recipes/$slug': typeof RecipesSlugRoute
   '/shop/$slug': typeof ShopSlugRoute
   '/blog/': typeof BlogIndexRoute
@@ -564,6 +573,7 @@ export interface FileRouteTypes {
     | '/collections/$slug'
     | '/email/unsubscribe'
     | '/p/$slug'
+    | '/products/$'
     | '/recipes/$slug'
     | '/shop/$slug'
     | '/blog/'
@@ -617,6 +627,7 @@ export interface FileRouteTypes {
     | '/collections/$slug'
     | '/email/unsubscribe'
     | '/p/$slug'
+    | '/products/$'
     | '/recipes/$slug'
     | '/shop/$slug'
     | '/blog'
@@ -675,6 +686,7 @@ export interface FileRouteTypes {
     | '/collections/$slug'
     | '/email/unsubscribe'
     | '/p/$slug'
+    | '/products/$'
     | '/recipes/$slug'
     | '/shop/$slug'
     | '/blog/'
@@ -730,6 +742,7 @@ export interface RootRouteChildren {
   CollectionsSlugRoute: typeof CollectionsSlugRoute
   EmailUnsubscribeRoute: typeof EmailUnsubscribeRoute
   PSlugRoute: typeof PSlugRoute
+  ProductsSplatRoute: typeof ProductsSplatRoute
   LovableEmailSuppressionRoute: typeof LovableEmailSuppressionRoute
   ApiPublicDownloadCookbookRoute: typeof ApiPublicDownloadCookbookRoute
   ApiPublicDownloadFreeCookbookRoute: typeof ApiPublicDownloadFreeCookbookRoute
@@ -941,6 +954,13 @@ declare module '@tanstack/react-router' {
       path: '/p/$slug'
       fullPath: '/p/$slug'
       preLoaderRoute: typeof PSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/products/$': {
+      id: '/products/$'
+      path: '/products/$'
+      fullPath: '/products/$'
+      preLoaderRoute: typeof ProductsSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/recipes/': {
@@ -1249,6 +1269,7 @@ const rootRouteChildren: RootRouteChildren = {
   CollectionsSlugRoute: CollectionsSlugRoute,
   EmailUnsubscribeRoute: EmailUnsubscribeRoute,
   PSlugRoute: PSlugRoute,
+  ProductsSplatRoute: ProductsSplatRoute,
   LovableEmailSuppressionRoute: LovableEmailSuppressionRoute,
   ApiPublicDownloadCookbookRoute: ApiPublicDownloadCookbookRoute,
   ApiPublicDownloadFreeCookbookRoute: ApiPublicDownloadFreeCookbookRoute,
