@@ -90,7 +90,7 @@ function PlanningKitPage() {
             </p>
           </div>
           <div className="relative mx-auto w-full max-w-sm">
-            <img src={kitWeek} alt="Weekly planner page" className="absolute -right-6 top-10 w-3/4 rotate-6 rounded-xl shadow-xl ring-1 ring-forest/10" loading="lazy" />
+            <img src={kitWeek} alt="Weekly planner page" className="absolute right-0 md:-right-6 top-10 w-3/4 rotate-6 rounded-xl shadow-xl ring-1 ring-forest/10" loading="lazy" />
             <img src={kitCover} alt="Plant & Simple Weekly Meal Planning Kit cover" className="relative w-full -rotate-2 rounded-xl shadow-2xl ring-1 ring-forest/10" fetchPriority="high" />
           </div>
         </section>
