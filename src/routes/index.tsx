@@ -141,8 +141,8 @@ function HighProteinGuide() {
         <p className="mt-5 leading-relaxed text-charcoal/75">
           Eating plant-based and getting enough protein is simpler than it sounds. Our recipes lean on protein-rich staples — crispy tofu, smoky tempeh,
           red lentils, chickpeas and black beans — paired with whole grains and vegetables, so every plate is filling, balanced and ready in about 20 minutes.
-          Try the <Link to="/recipes/harissa-chickpea-power-bowl" className="text-forest underline underline-offset-4">Harissa Chickpea Power Bowl</Link>,
-          {" "}<Link to="/recipes/creamy-red-lentil-dahl" className="text-forest underline underline-offset-4">Creamy Red Lentil Dahl</Link> or browse
+          Try the <Link to="/recipes/$slug" params={{ slug: "harissa-chickpea-power-bowl" }} className="text-forest underline underline-offset-4">Harissa Chickpea Power Bowl</Link>,
+          {" "}<Link to="/recipes/$slug" params={{ slug: "creamy-red-lentil-dahl" }} className="text-forest underline underline-offset-4">Creamy Red Lentil Dahl</Link> or browse
           {" "}<Link to="/recipes" className="text-forest underline underline-offset-4">all recipes</Link>.
         </p>
         <dl className="mt-10 space-y-6">
