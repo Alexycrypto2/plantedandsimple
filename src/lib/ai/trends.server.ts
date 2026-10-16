@@ -61,7 +61,43 @@ export async function redditFoodTrends(): Promise<TrendSignal> {
   return { source: "Reddit food communities", items: items.slice(0, 40) };
 }
 
-export async function collectTrendSignals(userId: string): Promise<TrendSignal[]> {
-  const [g, p, r] = await Promise.all([googleTrends(), pinterestTrends(userId), redditFoodTrends()]);
-  return [g, p, r].filter((s) => s.items.length > 0);
+/** Real Google Autocomplete suggestions — phrases people actually type. Free, no key. */
+export async function googleAutocomplete(seeds: string[]): Promise<TrendSignal> {
+  const out = new Set<string>();
+  const expanded = seeds.flatMap((s) => [s, `${s} for`, `${s} without`, `easy ${s}`]).slice(0, 16);
+  await Promise.all(
+    expanded.map(async (q) => {
+      try {
+        const res = await fetch(
+          `https://suggestqueries.google.com/complete/search?client=firefox&hl=en&gl=us&q=${encodeURIComponent(q)}`,
+          { headers: { "User-Agent": "Mozilla/5.0 (compatible; PlantedAndSimple/1.0)" } },
+        );
+        if (!res.ok) return;
+        const json: any = await res.json();
+        for (const s of (json?.[1] ?? []) as string[]) if (s && s.length < 90) out.add(s.toLowerCase());
+      } catch {
+        /* best effort */
+      }
+    }),
+  );
+  return { source: "Google Autocomplete (real searches)", items: Array.from(out).slice(0, 60) };
+}
+
+export function seedsFromNiche(niche: string): string[] {
+  const base = niche
+    .split(/[,;]/)
+    .map((s) => s.trim().toLowerCase())
+    .filter((s) => s.length > 2)
+    .slice(0, 4);
+  return base.length ? base : ["high protein vegan meals", "vegan meal prep"];
+}
+
+export async function collectTrendSignals(userId: string, niche = ""): Promise<TrendSignal[]> {
+  const [a, g, p, r] = await Promise.all([
+    googleAutocomplete(seedsFromNiche(niche)),
+    googleTrends(),
+    pinterestTrends(userId),
+    redditFoodTrends(),
+  ]);
+  return [a, g, p, r].filter((s) => s.items.length > 0);
 }

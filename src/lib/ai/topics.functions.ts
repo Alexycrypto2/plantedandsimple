@@ -109,6 +109,13 @@ const TrendsSchema = z.object({
       seasonality: z.string(),
       competitor_gap: z.string(),
       growth: z.string(),
+      rankability: z.number(),
+      buyer_intent: z.number(),
+      intent: z.enum(["buyer", "commercial", "informational"]),
+      missing_h2s: z.array(z.string()),
+      offer: z.enum(["free_guide", "cookbook", "meal_prep", "planning_kit"]),
+      cluster: z.string(),
+      real_query: z.boolean(),
     }),
   ),
 });
