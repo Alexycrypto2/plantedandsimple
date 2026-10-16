@@ -129,7 +129,7 @@ export const scanTrends = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await requireBoss(context.supabase, context.userId);
     const { collectTrendSignals } = await import("./trends.server");
-    const signals = await collectTrendSignals(context.userId);
+    const signals = await collectTrendSignals(context.userId, data.niche);
     const signalText = signals
       .map((s) => `${s.source}:\n- ${s.items.join("\n- ")}`)
       .join("\n\n")
@@ -157,6 +157,13 @@ Rules:
 - competitor_gap: 1-2 sentences on what the current top Google results get wrong (too slow, no macros, outdated, thin, no meal-prep angle) and exactly how our version wins.
 - growth: short label of search momentum, e.g. "Rising (+120% in 30 days)", "Seasonal peak in 3 weeks", "Steady evergreen". Be honest; estimates are fine but never invent precision you lack — prefer words like "approx".
 - Mix formats: include both blog-worthy topics and specific recipe ideas.
+- Prefer exact phrases from "Google Autocomplete (real searches)" as primary_keyword; set real_query=true only when the primary_keyword appears verbatim in that list.
+- Underdog rule: we are a young, low-authority domain. Favour long-tail keywords with 3+ modifiers (time + diet + format/goal, e.g. "20-minute high protein vegan meal prep"). rankability 0-100 = realistic chance a new site reaches page 1. Broad head terms ("vegan dinner") must score under 30.
+- buyer_intent 0-100 = how likely a reader buys a cookbook or meal-prep plan. intent: buyer (wants a plan/collection), commercial (comparing/collections), informational (single fact).
+- missing_h2s: exactly 3 H2 subheadings the current top results lack.
+- offer: the best product to attach — free_guide (12 fast high-protein recipes), cookbook ($14.99, 30 recipes), meal_prep ($27 weekly system), planning_kit ($4.99).
+- cluster: a short 2-4 word topic group, e.g. "High-Protein Dinners", "Meal Prep", "20-Minute Meals".
+- rating should weight rankability and buyer_intent heavily.
 - Order by rating, highest first. No duplicates.`,
       });
 
@@ -181,6 +188,13 @@ Rules:
           google_score: Math.round(t.google_score),
           competitor_gap: t.competitor_gap,
           growth: t.growth,
+          rankability: Math.round(t.rankability),
+          buyer_intent: Math.round(t.buyer_intent),
+          intent: t.intent,
+          missing_h2s: t.missing_h2s,
+          offer: t.offer,
+          cluster: t.cluster,
+          real_query: t.real_query,
         }),
       }));
       const { error } = await (supabaseAdmin as any).from("ai_topics").insert(rows);
