@@ -5,6 +5,8 @@ import {
   adminGetLinks, adminSetLinks, adminLinkableItems,
 } from "@/lib/library/admin.functions";
 import { generateStudioRecipe } from "@/lib/ai/recipe-studio.functions";
+import { generateStudioImage } from "@/lib/ai/image-studio.functions";
+import { adminListMedia, adminUploadMedia, adminAddMediaByUrl } from "@/lib/library/admin.functions";
 import { EmptyState, PanelCard, SkeletonList } from "./AdminShell";
 import { SeoDoctor } from "./SeoDoctor";
 import { recipeToHtml } from "@/lib/content/seo-doctor";
@@ -20,7 +22,40 @@ const blank = () => ({
   ingredientsText: "", instructionsText: "", nutritionText: "", tipsText: "",
   prep_minutes: 10, cook_minutes: 20, servings: "4", difficulty: "easy",
   tagsText: "", pinterest_description: "", seo_title: "", seo_description: "",
-  status: "draft", is_featured: false,
+  status: "draft", is_featured: false, hero_image_id: null as string | null,
+  calories: "", protein: "", carbs: "", fat: "", fiber: "",
+});
+
+const MACROS = [["calories", "Calories", ""], ["protein", "Protein", "g"], ["carbs", "Carbs", "g"], ["fat", "Fat", "g"], ["fiber", "Fiber", "g"]] as const;
+const macroKey = (label: string) => {
+  const l = label.toLowerCase();
+  if (l.includes("calor")) return "calories";
+  if (l.includes("protein")) return "protein";
+  if (l.includes("carb")) return "carbs";
+  if (l.includes("fib")) return "fiber";
+  if (l.includes("fat") && !l.includes("saturated")) return "fat";
+  return null;
+};
+/** Ingredients: "## Group" header lines followed by items. */
+const ingredientsToText = (v: any): string =>
+  Array.isArray(v) ? v.map((g) => (typeof g === "string" ? g : `## ${g?.group ?? "Ingredients"}\n${(g?.items ?? []).join("\n")}`)).join("\n") : "";
+const textToIngredients = (t: string) => {
+  const out: { group: string; items: string[] }[] = [];
+  for (const l of lines(t)) {
+    if (l.startsWith("## ")) out.push({ group: l.slice(3).trim() || "Ingredients", items: [] });
+    else { if (!out.length) out.push({ group: "Ingredients", items: [] }); out[out.length - 1].items.push(l); }
+  }
+  return out.filter((g) => g.items.length);
+};
+const instructionsToText = (v: any): string =>
+  Array.isArray(v) ? v.map((s) => (typeof s === "string" ? s : s?.title ? `${s.title} :: ${s.body ?? ""}` : s?.body ?? "")).join("\n") : "";
+const textToInstructions = (t: string) => lines(t).map((l) => {
+  const clean = l.replace(/^\s*(step\s*)?\d+[.):-]\s*/i, "");
+  const [a, ...b] = clean.split(" :: ");
+  return b.length ? { title: a.trim(), body: b.join(" :: ").trim() } : { title: "", body: clean };
+});
+const toFile64 = (f: File) => new Promise<string>((res, rej) => {
+  const r = new FileReader(); r.onload = () => res(String(r.result).split(",")[1] ?? ""); r.onerror = rej; r.readAsDataURL(f);
 });
 
 const lines = (s: string) => s.split("\n").map((l) => l.trim()).filter(Boolean);
@@ -170,10 +205,12 @@ export function RecipesSection() {
   const openNew = () => { setForm(blank()); setLinks([]); setEditing("new"); };
 
   const openEdit = async (r: Recipe) => {
-    setForm({
+    setForm({ ...blank(),
       slug: r.slug ?? "", title: r.title ?? "", subtitle: r.subtitle ?? "", description: r.description ?? "",
-      ingredientsText: toText(r.ingredients), instructionsText: toText(r.instructions),
-      nutritionText: toText(r.nutrition), tipsText: toText(r.tips),
+      ingredientsText: ingredientsToText(r.ingredients), instructionsText: instructionsToText(r.instructions),
+      nutritionText: toText((r.nutrition ?? []).filter((n: any) => !macroKey(n?.label ?? ""))), tipsText: toText(r.tips),
+      ...Object.fromEntries(MACROS.map(([k]) => [k, String((r.nutrition ?? []).find((n: any) => macroKey(n?.label ?? "") === k)?.value ?? "").replace(/[^\d.]/g, "")])),
+      hero_image_id: r.hero_image_id ?? null,
       prep_minutes: r.prep_minutes ?? 0, cook_minutes: r.cook_minutes ?? 0,
       servings: r.servings ?? "", difficulty: r.difficulty ?? "easy",
       tagsText: (r.tags ?? []).join(", "), pinterest_description: r.pinterest_description ?? "",
@@ -194,13 +231,17 @@ export function RecipesSection() {
         title: form.title,
         subtitle: form.subtitle || null,
         description: form.description,
-        ingredients: lines(form.ingredientsText),
-        instructions: lines(form.instructionsText),
-        nutrition: lines(form.nutritionText).map((l) => {
-          const [label, ...rest] = l.split(":");
-          return { label: (label ?? "").trim(), value: rest.join(":").trim() };
-        }),
-        tips: lines(form.tipsText),
+        ingredients: textToIngredients(form.ingredientsText),
+        instructions: textToInstructions(form.instructionsText),
+        nutrition: [
+          ...MACROS.filter(([k]) => String((form as any)[k]).trim()).map(([k, label, unit]) => ({ label, value: `${String((form as any)[k]).trim()}${unit}` })),
+          ...lines(form.nutritionText).map((l) => {
+            const [label, ...rest] = l.split(":");
+            return { label: (label ?? "").trim(), value: rest.join(":").trim() };
+          }),
+        ],
+        tips: lines(form.tipsText).map((t) => t.replace(/^[-•*]\s*/, "")),
+        hero_image_id: form.hero_image_id,
         prep_minutes: Number(form.prep_minutes) || 0,
         cook_minutes: Number(form.cook_minutes) || 0,
         servings: form.servings,
@@ -244,42 +285,63 @@ export function RecipesSection() {
           </div>
         </div>
 
+        <HeroImageCard
+          heroId={form.hero_image_id}
+          title={form.title}
+          onChange={(id) => setForm({ ...form, hero_image_id: id })}
+        />
+
         <PanelCard title="Essentials" icon={ChefHat}>
           <div className="grid gap-3 sm:grid-cols-2">
-            <input className={inputCls} placeholder="Recipe title" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
-            <input className={inputCls} placeholder="slug (auto)" value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value })} />
-            <input className={`${inputCls} sm:col-span-2`} placeholder="Subtitle" value={form.subtitle} onChange={(e) => setForm({ ...form, subtitle: e.target.value })} />
-            <textarea className={`${inputCls} sm:col-span-2`} rows={3} placeholder="Description" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
+            <Field label="Recipe title"><input className={inputCls} value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} /></Field>
+            <Field label="Web address (slug)"><input className={inputCls} placeholder="auto from title" value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value })} /></Field>
+            <Field label="Subtitle" wide><input className={inputCls} value={form.subtitle} onChange={(e) => setForm({ ...form, subtitle: e.target.value })} /></Field>
+            <Field label="Description" wide><textarea className={inputCls} rows={3} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /></Field>
           </div>
-          <div className="mt-3 grid gap-3 sm:grid-cols-4">
-            <input className={inputCls} type="number" placeholder="Prep min" value={form.prep_minutes} onChange={(e) => setForm({ ...form, prep_minutes: Number(e.target.value) })} />
-            <input className={inputCls} type="number" placeholder="Cook min" value={form.cook_minutes} onChange={(e) => setForm({ ...form, cook_minutes: Number(e.target.value) })} />
-            <input className={inputCls} placeholder="Servings" value={form.servings} onChange={(e) => setForm({ ...form, servings: e.target.value })} />
-            <select className={inputCls} value={form.difficulty} onChange={(e) => setForm({ ...form, difficulty: e.target.value })}>
-              {DIFFICULTY.map((d) => <option key={d} value={d}>{d}</option>)}
-            </select>
+          <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <Field label="Prep (minutes)"><input className={inputCls} type="number" value={form.prep_minutes} onChange={(e) => setForm({ ...form, prep_minutes: Number(e.target.value) })} /></Field>
+            <Field label="Cook (minutes)"><input className={inputCls} type="number" value={form.cook_minutes} onChange={(e) => setForm({ ...form, cook_minutes: Number(e.target.value) })} /></Field>
+            <Field label="Serves"><input className={inputCls} placeholder="4" value={form.servings} onChange={(e) => setForm({ ...form, servings: e.target.value.replace(/\s*servings?$/i, "") })} /></Field>
+            <Field label="Difficulty">
+              <select className={inputCls} value={form.difficulty} onChange={(e) => setForm({ ...form, difficulty: e.target.value })}>
+                {DIFFICULTY.map((d) => <option key={d} value={d}>{d}</option>)}
+              </select>
+            </Field>
           </div>
+        </PanelCard>
+
+        <PanelCard title="Nutrition (per serving)">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
+            {MACROS.map(([k, label, unit]) => (
+              <Field key={k} label={`${label}${unit ? ` (${unit})` : ""}`}>
+                <input className={inputCls} inputMode="decimal" value={(form as any)[k]} onChange={(e) => setForm({ ...form, [k]: e.target.value.replace(/[^\d.]/g, "") })} />
+              </Field>
+            ))}
+          </div>
+          <Field label="Other nutrition — “Sodium: 420mg” per line (optional)" wide>
+            <textarea className={`${inputCls} mt-3`} rows={2} value={form.nutritionText} onChange={(e) => setForm({ ...form, nutritionText: e.target.value })} />
+          </Field>
+          <p className="mt-2 text-[11px] text-charcoal/50">Enter values you have verified. Leave blank rather than guessing.</p>
         </PanelCard>
 
         <PanelCard title="The method">
           <div className="grid gap-3 sm:grid-cols-2">
             <label className="text-xs font-semibold text-charcoal/60">
-              Ingredients — one per line
-              <textarea className={`${inputCls} mt-1.5`} rows={8} value={form.ingredientsText} onChange={(e) => setForm({ ...form, ingredientsText: e.target.value })} />
+              Ingredients — one per line. Start a line with “## ” for a group (e.g. “## Dressing”)
+              <textarea className={`${inputCls} mt-1.5`} rows={10} value={form.ingredientsText} onChange={(e) => setForm({ ...form, ingredientsText: e.target.value })} />
             </label>
             <label className="text-xs font-semibold text-charcoal/60">
-              Instructions — one step per line
-              <textarea className={`${inputCls} mt-1.5`} rows={8} value={form.instructionsText} onChange={(e) => setForm({ ...form, instructionsText: e.target.value })} />
+              Steps — one per line, no numbers needed. Optional title: “Roast the veg :: Spread on a tray…”
+              <textarea className={`${inputCls} mt-1.5`} rows={10} value={form.instructionsText} onChange={(e) => setForm({ ...form, instructionsText: e.target.value })} />
             </label>
-            <label className="text-xs font-semibold text-charcoal/60">
-              Nutrition — “Calories: 420” per line
-              <textarea className={`${inputCls} mt-1.5`} rows={5} value={form.nutritionText} onChange={(e) => setForm({ ...form, nutritionText: e.target.value })} />
-            </label>
-            <label className="text-xs font-semibold text-charcoal/60">
-              Tips — one per line
+            <label className="text-xs font-semibold text-charcoal/60 sm:col-span-2">
+              Tips, storage & swaps — one per line
               <textarea className={`${inputCls} mt-1.5`} rows={5} value={form.tipsText} onChange={(e) => setForm({ ...form, tipsText: e.target.value })} />
             </label>
           </div>
+          {form.slug && editing !== "new" && (
+            <a href={`/recipes/${form.slug}`} target="_blank" rel="noreferrer" className="mt-3 inline-block text-xs font-semibold text-forest underline">Open live recipe page ↗</a>
+          )}
         </PanelCard>
 
         <PanelCard title="Connections" icon={Link2}>
@@ -395,5 +457,77 @@ export function RecipesSection() {
       )}
     </PanelCard>
     </>
+  );
+}
+function Field({ label, wide, children }: { label: string; wide?: boolean; children: React.ReactNode }) {
+  return (
+    <label className={`block text-[11px] font-semibold uppercase tracking-wide text-charcoal/55 ${wide ? "sm:col-span-2" : ""}`}>
+      {label}
+      <div className="mt-1 normal-case tracking-normal">{children}</div>
+    </label>
+  );
+}
+
+function HeroImageCard({ heroId, title, onChange }: { heroId: string | null; title: string; onChange: (id: string | null) => void }) {
+  const [media, setMedia] = useState<any[]>([]);
+  const [prompt, setPrompt] = useState("");
+  const [busy, setBusy] = useState<string | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+  const [pick, setPick] = useState(false);
+  useEffect(() => { adminListMedia().then((m) => setMedia(m as any[])).catch(() => {}); }, []);
+  useEffect(() => { if (!prompt && title) setPrompt(`${title}, plated plant-based dish, overhead natural light food photography`); }, [title]);
+  const current = media.find((m) => m.id === heroId);
+
+  const regenerate = async () => {
+    if (!prompt.trim()) return;
+    setBusy("Creating a new photo… (about 30–60s)"); setErr(null);
+    try {
+      const g: any = await generateStudioImage({ data: { preset: "blog_hero", subject: prompt, title } });
+      const row: any = await adminAddMediaByUrl({ data: { url: g.preview_url, alt: title, title, tags: ["recipe"] } });
+      setMedia((m) => [row, ...m]); onChange(row.id);
+    } catch (e: any) { setErr(e?.message ?? "Photo generation failed"); } finally { setBusy(null); }
+  };
+  const upload = async (f?: File) => {
+    if (!f) return;
+    setBusy("Uploading…"); setErr(null);
+    try {
+      const row: any = await adminUploadMedia({ data: { fileName: f.name, contentType: f.type as any, base64: await toFile64(f), alt: title, tags: ["recipe"] } });
+      setMedia((m) => [row, ...m]); onChange(row.id);
+    } catch (e: any) { setErr(e?.message ?? "Upload failed"); } finally { setBusy(null); }
+  };
+
+  return (
+    <PanelCard title="Main photo" icon={Wand2}>
+      <div className="grid gap-4 sm:grid-cols-[220px_1fr]">
+        <div className="aspect-[4/3] overflow-hidden rounded-xl bg-forest/5">
+          {current?.public_url ? <img src={current.public_url} alt={current.alt ?? ""} className="size-full object-cover" /> : <div className="grid size-full place-items-center text-xs text-charcoal/40">No photo yet</div>}
+        </div>
+        <div className="space-y-2">
+          <Field label="Describe the photo for AI">
+            <textarea className={inputCls} rows={3} value={prompt} onChange={(e) => setPrompt(e.target.value)} />
+          </Field>
+          <div className="flex flex-wrap gap-2">
+            <button type="button" onClick={regenerate} disabled={!!busy} className={btnCls}><Sparkles className="size-3.5" /> Regenerate with AI</button>
+            <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-xl border border-forest/15 px-4 py-2.5 text-xs font-semibold text-charcoal/70 hover:bg-forest/5">
+              <Plus className="size-3.5" /> Upload photo
+              <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={(e) => upload(e.target.files?.[0])} />
+            </label>
+            <button type="button" onClick={() => setPick((p) => !p)} className="rounded-xl border border-forest/15 px-4 py-2.5 text-xs font-semibold text-charcoal/70 hover:bg-forest/5">Choose from library</button>
+          </div>
+          {busy && <p className="text-xs text-forest">{busy}</p>}
+          {err && <p className="text-xs text-destructive">{err}</p>}
+          <p className="text-[11px] text-charcoal/50">The new photo is used after you press Save recipe.</p>
+        </div>
+      </div>
+      {pick && (
+        <div className="mt-3 grid max-h-72 grid-cols-4 gap-2 overflow-y-auto sm:grid-cols-6">
+          {media.filter((m) => (m.mime_type ?? "image").startsWith("image") && m.public_url).slice(0, 120).map((m) => (
+            <button type="button" key={m.id} onClick={() => { onChange(m.id); setPick(false); }} className={`aspect-square overflow-hidden rounded-lg border-2 ${m.id === heroId ? "border-forest" : "border-transparent"}`}>
+              <img src={m.public_url} alt={m.alt ?? ""} loading="lazy" className="size-full object-cover" />
+            </button>
+          ))}
+        </div>
+      )}
+    </PanelCard>
   );
 }

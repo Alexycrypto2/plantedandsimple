@@ -45,7 +45,7 @@ export function recipeJsonLd(r: Recipe, url: string, image?: string, siteUrl = "
     name: r.title, description: r.description, image: image ? [image] : undefined, url,
     author: brand, publisher: brand,
     datePublished: r.published_at || undefined,
-    recipeYield: r.servings ? `${r.servings} servings` : undefined,
+    recipeYield: r.servings ? `${String(r.servings).replace(/\s*servings?$/i, "")} servings` : undefined,
     prepTime: r.prep_minutes ? `PT${r.prep_minutes}M` : undefined,
     cookTime: r.cook_minutes ? `PT${r.cook_minutes}M` : undefined,
     totalTime: total ? `PT${total}M` : undefined,
@@ -54,11 +54,16 @@ export function recipeJsonLd(r: Recipe, url: string, image?: string, siteUrl = "
     suitableForDiet: "https://schema.org/VeganDiet",
     keywords,
     nutrition: nutritionSchema(r.nutrition),
-    recipeIngredient: r.ingredients.flatMap((g) => g.items),
-    recipeInstructions: r.instructions.map((s, i) => ({
-      "@type": "HowToStep", position: i + 1,
-      name: s.title?.trim() || s.body.split(/[.,;]/)[0].slice(0, 80),
-      text: s.body, url: `${url}#step-${i + 1}`, image: image || undefined,
-    })),
+    recipeIngredient: (r.ingredients ?? []).flatMap((g: unknown) =>
+      typeof g === "string" ? [g] : Array.isArray((g as { items?: unknown })?.items) ? ((g as { items: string[] }).items) : []),
+    recipeInstructions: (r.instructions ?? []).map((raw: unknown, i) => {
+      const s = typeof raw === "string" ? { title: "", body: raw } : ((raw ?? {}) as { title?: string; body?: string });
+      const body = String(s.body ?? "");
+      return {
+        "@type": "HowToStep", position: i + 1,
+        name: s.title?.trim() || body.split(/[.,;]/)[0].slice(0, 80) || `Step ${i + 1}`,
+        text: body, url: `${url}#step-${i + 1}`, image: image || undefined,
+      };
+    }),
   };
 }
