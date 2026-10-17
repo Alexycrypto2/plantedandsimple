@@ -205,7 +205,7 @@ export function RecipesSection() {
   const openNew = () => { setForm(blank()); setLinks([]); setEditing("new"); };
 
   const openEdit = async (r: Recipe) => {
-    setForm({
+    setForm({ ...blank(),
       slug: r.slug ?? "", title: r.title ?? "", subtitle: r.subtitle ?? "", description: r.description ?? "",
       ingredientsText: ingredientsToText(r.ingredients), instructionsText: instructionsToText(r.instructions),
       nutritionText: toText((r.nutrition ?? []).filter((n: any) => !macroKey(n?.label ?? ""))), tipsText: toText(r.tips),
