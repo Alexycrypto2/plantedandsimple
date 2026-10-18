@@ -290,7 +290,7 @@ export function BlogEditor({
         </Label>
         <div className="rounded-xl bg-cream/50 p-3 sm:col-span-2">
           <p className="text-[11px] text-charcoal/50">Google preview</p>
-          <p className="truncate text-[15px] text-[#1a0dab]">{value.seo_title || value.title || "Title"}</p>
+          <p className="truncate text-[15px] text-forest-deep">{value.seo_title || value.title || "Title"}</p>
           <p className="text-[11px] text-forest">plantedandsimple.com/blog/{value.slug}</p>
           <p className="line-clamp-2 text-xs text-charcoal/70">{value.seo_description || value.excerpt}</p>
         </div>
