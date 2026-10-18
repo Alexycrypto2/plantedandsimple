@@ -1,4 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { BlogEditor } from "@/components/admin/BlogEditor";
 import { useEffect, useState } from "react";
 import { csvCell } from "@/lib/csv";
 import { supabase } from "@/integrations/supabase/client";
@@ -2405,117 +2406,7 @@ function BlogPanel() {
       />
 
       {editing && (
-        <div className="rounded-2xl border border-forest/15 bg-white p-6 shadow-card">
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <Field label="Title">
-              <input
-                className="input"
-                value={editing.title}
-                onChange={(e) => setEditing({ ...editing, title: e.target.value })}
-              />
-            </Field>
-            <Field label="Slug">
-              <input
-                className="input"
-                value={editing.slug}
-                onChange={(e) => setEditing({ ...editing, slug: e.target.value })}
-              />
-            </Field>
-            <Field label="Category">
-              <input
-                className="input"
-                value={editing.category}
-                onChange={(e) =>
-                  setEditing({ ...editing, category: e.target.value })
-                }
-              />
-            </Field>
-            <Field label="Featured image URL">
-              <input
-                className="input"
-                value={editing.featured_image_url}
-                onChange={(e) =>
-                  setEditing({ ...editing, featured_image_url: e.target.value })
-                }
-              />
-            </Field>
-            <Field label="Tags (comma-separated)">
-              <input
-                className="input"
-                value={editing.tags}
-                onChange={(e) => setEditing({ ...editing, tags: e.target.value })}
-              />
-            </Field>
-            <Field label="Status">
-              <select
-                className="input"
-                value={editing.status}
-                onChange={(e) =>
-                  setEditing({
-                    ...editing,
-                    status: e.target.value as "draft" | "published",
-                  })
-                }
-              >
-                <option value="draft">Draft</option>
-                <option value="published">Published</option>
-              </select>
-            </Field>
-          </div>
-          <Field label="Excerpt" className="mt-4">
-            <textarea
-              className="input h-20"
-              value={editing.excerpt}
-              onChange={(e) => setEditing({ ...editing, excerpt: e.target.value })}
-            />
-          </Field>
-          <Field label="Content (HTML supported)" className="mt-4">
-            <textarea
-              className="input h-64 font-mono text-sm"
-              value={editing.content}
-              onChange={(e) => setEditing({ ...editing, content: e.target.value })}
-            />
-          </Field>
-          <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
-            <Field label="SEO title">
-              <input
-                className="input"
-                value={editing.seo_title}
-                onChange={(e) =>
-                  setEditing({ ...editing, seo_title: e.target.value })
-                }
-              />
-            </Field>
-            <Field label="SEO description">
-              <input
-                className="input"
-                value={editing.seo_description}
-                onChange={(e) =>
-                  setEditing({ ...editing, seo_description: e.target.value })
-                }
-              />
-            </Field>
-          </div>
-          <SeoDoctor
-            value={editing}
-            onApply={(patch) => setEditing({ ...editing, ...patch })}
-          />
-          <div className="mt-6 flex justify-end gap-3">
-            <button
-              onClick={() => setEditing(null)}
-              className="rounded-full border border-forest/20 px-5 py-2 text-xs font-bold uppercase tracking-[0.2em] text-charcoal/70"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={save}
-              disabled={busy}
-              className="rounded-full bg-forest px-6 py-2 text-xs font-bold uppercase tracking-[0.2em] text-cream hover:bg-forest-deep disabled:opacity-60"
-            >
-              {busy ? "Saving…" : "Save post"}
-            </button>
-          </div>
-        </div>
+        <BlogEditor value={editing as any} onChange={(v) => setEditing(v as any)} onSave={save} onCancel={() => setEditing(null)} busy={busy} />
       )}
 
       <div className="overflow-hidden rounded-2xl border border-forest/10 bg-white">
