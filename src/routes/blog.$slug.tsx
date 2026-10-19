@@ -1,10 +1,11 @@
 import { pageHead, pageUrl, plainDescription, jsonLd, breadcrumbs, absoluteImage } from "@/lib/seo";
-import { createFileRoute, Link, notFound, useRouter } from "@tanstack/react-router";
+import { createFileRoute, Link, notFound, redirect, useRouter } from "@tanstack/react-router";
 import { SiteLayout } from "@/components/SiteLayout";
 import { ContentEndFunnel } from "@/components/site/ContentEndFunnel";
 import { NewsletterPopup } from "@/components/NewsletterPopup";
-import { fallbackPost } from "@/lib/fallback-content";
+import { fallbackPost, fallbackRecipe } from "@/lib/fallback-content";
 import { getPublishedPostBySlug, type PublicPost } from "@/lib/blog.functions";
+import { getRecipeBySlug } from "@/lib/library/library.functions";
 
 export const Route = createFileRoute("/blog/$slug")({
   component: PostPage,
@@ -12,7 +13,13 @@ export const Route = createFileRoute("/blog/$slug")({
     let post: PublicPost | null = null;
     try { post = await getPublishedPostBySlug({ data: { slug: params.slug } }); } catch { post = null; }
     if (!post) post = fallbackPost(params.slug);
-    if (!post) throw notFound();
+    if (!post) {
+      // Safety net: recipe links pinned under /blog/ get a permanent redirect instead of a 404.
+      let recipe: unknown = null;
+      try { recipe = await getRecipeBySlug({ data: { slug: params.slug } }); } catch { recipe = null; }
+      if (recipe || fallbackRecipe(params.slug)) throw redirect({ to: "/recipes/$slug", params: { slug: params.slug }, statusCode: 301 });
+      throw notFound();
+    }
     return { post };
   },
   errorComponent: BlogError,

@@ -10,6 +10,11 @@ export function plainDescription(value: string) {
   return value.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim().slice(0, 160);
 }
 
+/** Adds matching og:image + twitter:image tags for an absolute https image. */
+export function withImage<T extends { meta: object[] }>(head: T, image: string): T {
+  return { ...head, meta: [...head.meta, { property: "og:image", content: image }, { name: "twitter:image", content: image }] };
+}
+
 export function pageHead(path: string, title: string, description: string, type = "website") {
   return {
     meta: [

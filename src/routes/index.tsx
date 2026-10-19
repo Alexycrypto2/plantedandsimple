@@ -1,4 +1,4 @@
-import { pageHead } from "@/lib/seo";
+import { pageHead, jsonLd, SITE_NAME, SITE_URL } from "@/lib/seo";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { subscribeFreeGuide } from "@/lib/free-guide.functions";
 import { trackEvent } from "@/lib/analytics";
@@ -67,7 +67,16 @@ export const Route = createFileRoute("/")({
       reviews,
     };
   },
-  head: () => pageHead("/", "Easy High Protein Vegan Meals & Recipes | Planted & Simple", "Easy high protein vegan meals ready in 20–30 minutes: tofu, tempeh, lentil and chickpea recipes with 20g+ protein, a free 12-recipe guide and meal prep cookbooks."),
+  head: () => ({
+    ...pageHead("/", "Easy High Protein Vegan Meals & Recipes | Planted & Simple", "Easy high protein vegan meals ready in 20–30 minutes: tofu, tempeh, lentil and chickpea recipes with 20g+ protein, a free 12-recipe guide and meal prep cookbooks."),
+    scripts: [
+      jsonLd({ "@context": "https://schema.org", "@type": "Organization", name: SITE_NAME, url: SITE_URL, email: "support@plantedandsimple.com" }),
+      jsonLd({
+        "@context": "https://schema.org", "@type": "WebSite", name: SITE_NAME, url: SITE_URL,
+        potentialAction: { "@type": "SearchAction", target: `${SITE_URL}/search?q={search_term_string}`, "query-input": "required name=search_term_string" },
+      }),
+    ],
+  }),
 });
 
 const ICONS: Record<string, string> = {
