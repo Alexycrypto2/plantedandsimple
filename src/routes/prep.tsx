@@ -1,4 +1,4 @@
-import { pageHead } from "@/lib/seo";
+import { pageHead, withImage } from "@/lib/seo";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { trackEvent } from "@/lib/analytics";
@@ -26,7 +26,7 @@ function getStoredAffiliateRef(): string | null {
 
 export const Route = createFileRoute("/prep")({
   component: PrepSalesPage,
-  head: () => pageHead("/prep", "Plant-Based Meal Prep System & Weekly Planner | PlantedAndSimple", "Plan seven days of plant-based meals, track protein and macros, organise groceries and batch cook with the interactive Meal Prep System. $27 one-time.", "product"),
+  head: () => withImage(pageHead("/prep", "Plant-Based Meal Prep System & Weekly Planner | PlantedAndSimple", "Plan seven days of plant-based meals, track protein and macros, organise groceries and batch cook with the interactive Meal Prep System. $27 one-time.", "product"), COVER_URL),
 });
 
 const STEPS = [
