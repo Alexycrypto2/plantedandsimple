@@ -11,7 +11,7 @@ export function plainDescription(value: string) {
 }
 
 /** Adds matching og:image + twitter:image tags for an absolute https image. */
-export function withImage<T extends { meta: Record<string, string>[] }>(head: T, image: string): T {
+export function withImage<T extends { meta: object[] }>(head: T, image: string): T {
   return { ...head, meta: [...head.meta, { property: "og:image", content: image }, { name: "twitter:image", content: image }] };
 }
 
