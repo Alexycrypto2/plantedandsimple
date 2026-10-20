@@ -1,4 +1,4 @@
-import { pageHead, jsonLd, SITE_NAME, SITE_URL } from "@/lib/seo";
+import { pageHead, withImage, jsonLd, SITE_NAME, SITE_URL } from "@/lib/seo";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { subscribeFreeGuide } from "@/lib/free-guide.functions";
 import { trackEvent } from "@/lib/analytics";
@@ -68,7 +68,7 @@ export const Route = createFileRoute("/")({
     };
   },
   head: () => ({
-    ...pageHead("/", "Easy High Protein Vegan Meals & Recipes | Planted & Simple", "Easy high protein vegan meals ready in 20–30 minutes: tofu, tempeh, lentil and chickpea recipes with 20g+ protein, a free 12-recipe guide and meal prep cookbooks."),
+    ...withImage(pageHead("/", "Easy High Protein Vegan Meals & Recipes | Planted & Simple", "Easy high protein vegan meals ready in 20–30 minutes: tofu, tempeh, lentil and chickpea recipes with 20g+ protein, a free 12-recipe guide and meal prep cookbooks."), `${SITE_URL}/products/high-protein-cookbook.jpg`),
     scripts: [
       jsonLd({ "@context": "https://schema.org", "@type": "Organization", name: SITE_NAME, url: SITE_URL, email: "support@plantedandsimple.com" }),
       jsonLd({
@@ -124,6 +124,7 @@ function HomePage() {
         {products.map((section) => (
           <Section key={section.id} section={section} data={data} />
         ))}
+        <CookbookValueBadges />
         <FreeCookbookStrip />
         <CustomerProof reviews={data.reviews} />
         {rest.slice(insertAt).map((section) => (
@@ -143,25 +144,75 @@ const FAQ = [
 ];
 
 function HighProteinGuide() {
+  const pills = [["Whole-Food Fuel", "No powders needed"], ["20–30 Min", "Weeknight speed"], ["20g–42g Protein", "Per serving"]];
+  const chips: { label: string; slug?: string }[] = [
+    { label: "Harissa Chickpea Power Bowl", slug: "harissa-chickpea-power-bowl" },
+    { label: "Creamy Red Lentil Dahl", slug: "creamy-red-lentil-dahl" },
+    { label: "Browse all recipes" },
+  ];
   return (
-    <section aria-labelledby="hp-guide" className="bg-cream px-6 py-16">
+    <section aria-labelledby="hp-guide" className="bg-cream px-5 py-16">
       <div className="mx-auto max-w-3xl">
-        <h2 id="hp-guide" className="font-display text-3xl italic text-forest-deep md:text-4xl">Easy high protein vegan meals, without the guesswork</h2>
-        <p className="mt-5 leading-relaxed text-charcoal/75">
-          Eating plant-based and getting enough protein is simpler than it sounds. Our recipes lean on protein-rich staples — crispy tofu, smoky tempeh,
-          red lentils, chickpeas and black beans — paired with whole grains and vegetables, so every plate is filling, balanced and ready in about 20 minutes.
-          Try the <Link to="/recipes/$slug" params={{ slug: "harissa-chickpea-power-bowl" }} className="text-forest underline underline-offset-4">Harissa Chickpea Power Bowl</Link>,
-          {" "}<Link to="/recipes/$slug" params={{ slug: "creamy-red-lentil-dahl" }} className="text-forest underline underline-offset-4">Creamy Red Lentil Dahl</Link> or browse
-          {" "}<Link to="/recipes" className="text-forest underline underline-offset-4">all recipes</Link>.
-        </p>
-        <dl className="mt-10 space-y-6">
-          {FAQ.map(([q, a]) => (
-            <div key={q}>
-              <dt className="font-semibold text-forest-deep">{q}</dt>
-              <dd className="mt-1 text-charcoal/70">{a}</dd>
+        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-forest">The Protein Promise</p>
+        <h2 id="hp-guide" className="mt-2 font-display text-3xl italic text-forest-deep md:text-4xl">Easy high protein vegan meals, without the guesswork</h2>
+        <div className="mt-6 grid grid-cols-3 gap-2">
+          {pills.map(([t, s]) => (
+            <div key={t} className="rounded-2xl border border-forest/15 bg-cream-warm px-2 py-3 text-center">
+              <p className="text-sm font-semibold leading-tight text-forest-deep">{t}</p>
+              <p className="mt-1 text-[11px] text-charcoal/60">{s}</p>
             </div>
           ))}
-        </dl>
+        </div>
+        <p className="mt-6 leading-relaxed text-charcoal/75">
+          Eating plant-based and getting enough protein is simpler than it sounds. Our recipes lean on protein-rich staples — crispy tofu, smoky tempeh,
+          red lentils, chickpeas and black beans — paired with whole grains and vegetables, so every plate is filling, balanced and ready in about 20 minutes.
+        </p>
+        <div className="mt-5 flex flex-wrap gap-2">
+          {chips.map((c) => c.slug ? (
+            <Link key={c.label} to="/recipes/$slug" params={{ slug: c.slug }} className="inline-flex items-center gap-1 rounded-full border border-forest/25 bg-background px-4 py-2 text-sm font-medium text-forest-deep hover:bg-forest/5">{c.label} <span aria-hidden="true">→</span></Link>
+          ) : (
+            <Link key={c.label} to="/recipes" className="inline-flex items-center gap-1 rounded-full bg-forest px-4 py-2 text-sm font-medium text-primary-foreground">{c.label} <span aria-hidden="true">→</span></Link>
+          ))}
+        </div>
+        <div className="mt-10 space-y-3">
+          {FAQ.map(([q, a]) => (
+            <details key={q} className="group rounded-2xl border border-forest/15 bg-background px-5 py-4 open:border-forest/40">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-semibold text-forest-deep">
+                {q}
+                <span aria-hidden="true" className="text-xl text-forest transition-transform group-open:rotate-45">+</span>
+              </summary>
+              <p className="mt-3 leading-relaxed text-charcoal/70">{a}</p>
+            </details>
+          ))}
+        </div>
+        <Link to="/free-cookbook" className="mt-8 flex items-center justify-between gap-4 rounded-2xl bg-forest-deep px-5 py-4 text-primary-foreground">
+          <span><span className="block text-xs uppercase tracking-wider opacity-75">Free download</span><span className="font-semibold">Get the free 12-recipe guide</span></span>
+          <span aria-hidden="true" className="text-xl">→</span>
+        </Link>
+      </div>
+    </section>
+  );
+}
+
+function CookbookValueBadges() {
+  const badges = ["Instant digital download", "Phone, tablet & print friendly", "Full calorie & macro breakdown", "30 dinners, most under 30 min"];
+  const inside = ["30 high-protein plant-based recipes", "Ingredient lists & step-by-step method", "Prep and cook times on every page", "Nutrition per serving"];
+  return (
+    <section aria-label="What you get" className="bg-cream-warm px-5 py-10">
+      <div className="mx-auto max-w-5xl">
+        <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
+          {badges.map((b) => (
+            <div key={b} className="flex items-center gap-2 rounded-xl border border-forest/15 bg-background px-3 py-3 text-sm font-medium text-forest-deep">
+              <BadgeCheck className="h-4 w-4 shrink-0 text-forest" aria-hidden="true" />{b}
+            </div>
+          ))}
+        </div>
+        <div className="mt-5 rounded-2xl border border-forest/15 bg-background p-5">
+          <p className="font-display text-xl italic text-forest-deep">Inside the $14.99 cookbook</p>
+          <ul className="mt-3 grid gap-2 text-sm text-charcoal/75 md:grid-cols-2">
+            {inside.map((i) => <li key={i} className="flex gap-2"><span className="text-forest" aria-hidden="true">✓</span>{i}</li>)}
+          </ul>
+        </div>
       </div>
     </section>
   );

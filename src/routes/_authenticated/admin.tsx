@@ -76,6 +76,7 @@ import { AdminShell, MetricCard, PanelCard, SectionTabs, FlowRibbon } from "@/co
 import { LibrarySection } from "@/components/admin/LibraryPanel";
 import { RecipesSection } from "@/components/admin/RecipesPanel";
 import { SubscribersPanel } from "@/components/admin/SubscribersPanel";
+import { EmailStudio } from "@/components/admin/EmailStudio";
 import { MealPrepPanel } from "@/components/admin/MealPrepPanel";
 import { CookbookLibraryPanel } from "@/components/admin/CookbookLibraryPanel";
 import {
@@ -343,7 +344,7 @@ function AudienceSection() {
     >
       {(t) => (
         <>
-          {t === "subscribers" && <SubscribersPanel />}
+          {t === "subscribers" && <><EmailStudio /><SubscribersPanel /></>}
           {t === "buyers" && <BuyersPanel />}
           {t === "reviews" && <ReviewsPanel />}
           {t === "affiliates" && <AffiliatesPanel />}
