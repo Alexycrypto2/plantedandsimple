@@ -97,10 +97,16 @@ function PostPage() {
         {post.excerpt && (
           <p className="mt-10 font-display text-xl italic text-forest-deep md:text-2xl">{post.excerpt}</p>
         )}
-        <div
-          className="article-body mt-10"
-          dangerouslySetInnerHTML={{ __html: post.content }}
-        />
+        {(() => {
+          const [first, second] = splitArticle(post.content ?? "");
+          return (
+            <>
+              <div className="article-body mt-10" dangerouslySetInnerHTML={{ __html: first }} />
+              {second ? <MidArticleBridge /> : null}
+              {second ? <div className="article-body" dangerouslySetInnerHTML={{ __html: second }} /> : null}
+            </>
+          );
+        })()}
         {(post.tags ?? []).length > 0 && (
           <div className="mt-12 flex flex-wrap gap-2">
             {(post.tags ?? []).map((t) => (
@@ -114,5 +120,43 @@ function PostPage() {
         <NewsletterPopup />
       </article>
     </SiteLayout>
+  );
+}
+function splitArticle(html: string): [string, string] {
+  const closes: number[] = [];
+  const re = /<\/p>/gi;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(html))) closes.push(m.index + m[0].length);
+  if (closes.length < 4) return [html, ""];
+  const target = html.length / 2;
+  let cut = closes[0];
+  for (const c of closes) if (Math.abs(c - target) < Math.abs(cut - target)) cut = c;
+  // Never cut inside a list, table or blockquote.
+  const before = html.slice(0, cut).toLowerCase();
+  for (const tag of ["ul", "ol", "table", "blockquote", "div"]) {
+    if ((before.match(new RegExp(`<${tag}[\\s>]`, "g")) ?? []).length !== (before.match(new RegExp(`</${tag}>`, "g")) ?? []).length) return [html, ""];
+  }
+  return [html.slice(0, cut), html.slice(cut)];
+}
+
+function MidArticleBridge() {
+  return (
+    <aside aria-label="Get the cookbook" className="my-10 rounded-2xl border border-forest/15 border-l-4 border-l-forest bg-cream-warm p-5">
+      <div className="flex gap-4">
+        <img src="/products/high-protein-cookbook.jpg" alt="30 High-Protein Plant-Based Meals cookbook" loading="lazy" className="h-24 w-20 shrink-0 rounded-lg object-cover" />
+        <div>
+          <p className="font-display text-lg italic text-forest-deep">Want dinners like this all week?</p>
+          <ul className="mt-2 space-y-1 text-sm text-charcoal/75">
+            <li>✓ 30 high-protein plant-based recipes</li>
+            <li>✓ Calories &amp; macros on every recipe</li>
+            <li>✓ Most ready in under 30 minutes</li>
+          </ul>
+        </div>
+      </div>
+      <div className="mt-4 flex flex-wrap items-center gap-3">
+        <Link to="/shop" className="rounded-full bg-forest px-5 py-2.5 text-sm font-semibold text-primary-foreground no-underline">Get the Cookbook — $14.99</Link>
+        <Link to="/free-cookbook" className="text-sm text-forest underline underline-offset-4">or grab the free 12-recipe guide</Link>
+      </div>
+    </aside>
   );
 }

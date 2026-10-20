@@ -1,4 +1,4 @@
-import { pageHead, jsonLd, SITE_NAME, SITE_URL } from "@/lib/seo";
+import { pageHead, withImage, jsonLd, SITE_NAME, SITE_URL } from "@/lib/seo";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { subscribeFreeGuide } from "@/lib/free-guide.functions";
 import { trackEvent } from "@/lib/analytics";
