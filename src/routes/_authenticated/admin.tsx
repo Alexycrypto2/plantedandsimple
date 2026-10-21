@@ -122,7 +122,22 @@ function AdminPage() {
   const navigate = useNavigate();
   const [me, setMe] = useState<Me | null>(null);
   const [err, setErr] = useState<string | null>(null);
-  const [tab, setTab] = useState<Tab>("dashboard");
+  const [tab, setTabState] = useState<Tab>("dashboard");
+
+  // Remember the open workspace in the URL (?tab=) and browser memory so
+  // refreshing or coming back never resets to Dashboard.
+  useEffect(() => {
+    const fromUrl = new URLSearchParams(window.location.search).get("tab");
+    const saved = fromUrl || window.localStorage.getItem("ps_admin_tab");
+    if (saved) setTabState(saved as Tab);
+  }, []);
+  const setTab = (t: Tab) => {
+    setTabState(t);
+    try { window.localStorage.setItem("ps_admin_tab", t); } catch { /* ignore */ }
+    const url = new URL(window.location.href);
+    url.searchParams.set("tab", t);
+    window.history.replaceState(window.history.state, "", url.toString());
+  };
 
   useEffect(() => {
     adminMe()
