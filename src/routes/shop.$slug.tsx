@@ -14,6 +14,12 @@ import actionKitchen from "@/assets/product-action-kitchen.jpg";
 import actionMealPrep from "@/assets/product-action-meal-prep.jpg";
 import actionBowl from "@/assets/product-action-bowl.jpg";
 import actionGrocery from "@/assets/product-action-grocery.jpg";
+import prepPlanner from "@/assets/prep-feature-planner.jpg";
+import prepGrocery from "@/assets/prep-feature-grocery.jpg";
+import kitPage1 from "@/assets/kit-page-1.jpg";
+import kitPage3 from "@/assets/kit-page-3.jpg";
+import kitPage5 from "@/assets/kit-page-5.jpg";
+import kitPage8 from "@/assets/kit-page-8.jpg";
 
 function getStoredAffiliateRef(): string | null {
   if (typeof window === "undefined") return null;
@@ -34,10 +40,25 @@ function uniqueImages(product: PublicProduct): Array<{ url: string; label: strin
     seen.add(url);
     images.push({ url, label, number: String(images.length + 1).padStart(2, "0") });
   };
-  add(productImage(product), "Cookbook cover");
-  PREVIEWS.forEach((preview) => add(preview.url, preview.label));
+  add(productImage(product), product.title);
+  (PRODUCT_GALLERIES[product.slug] ?? PREVIEWS).forEach((preview) => add(preview.url, preview.label));
   return images;
 }
+
+/** Each product tells its own story so they never look like the same item. */
+const PRODUCT_GALLERIES: Record<string, Array<{ url: string; label: string }>> = {
+  "meal-prep-system": [
+    { url: prepPlanner, label: "Drag recipes into your weekly planner" },
+    { url: prepGrocery, label: "Grocery list builds itself from your week" },
+    { url: actionMealPrep, label: "One batch session, a calm week" },
+  ],
+  "planning-kit": [
+    { url: kitPage1, label: "12 printable planning pages" },
+    { url: kitPage3, label: "Weekly meal planner sheet" },
+    { url: kitPage5, label: "Grocery list template" },
+    { url: kitPage8, label: "Pantry & prep checklists" },
+  ],
+};
 
 export const Route = createFileRoute("/shop/$slug")({
   loader: async ({ params }): Promise<{ product: PublicProduct; related: PublicProduct[] }> => {
@@ -331,17 +352,17 @@ function ProductDetail() {
               <h2 className="font-display text-3xl italic text-forest-deep md:text-4xl">You may also love</h2>
               <Link to="/shop" className="text-[11px] font-bold uppercase tracking-[0.25em] text-forest hover:underline">All cookbooks →</Link>
             </div>
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-3">
               {related.map((r: PublicProduct) => (
                 <Link key={r.id} to="/shop/$slug" params={{ slug: r.slug }} className="group overflow-hidden rounded-2xl border border-forest/10 bg-white transition hover:-translate-y-1 hover:shadow-card">
                   <div className="aspect-[4/5] overflow-hidden bg-cream-warm">
-                    {r.cover_image_url ? (
-                      <img src={r.cover_image_url} alt={r.title} loading="lazy" className="h-full w-full object-cover transition group-hover:scale-105" />
+                    {productImage(r) ? (
+                      <img src={productImage(r)!} alt={r.title} loading="lazy" className="h-full w-full object-cover transition group-hover:scale-105" />
                     ) : <div className="grid h-full place-items-center text-5xl">📗</div>}
                   </div>
-                  <div className="p-5">
-                    <h3 className="font-display text-lg italic text-forest-deep">{r.title}</h3>
-                    <p className="mt-2 font-display text-xl text-forest-deep">${r.price_display}</p>
+                  <div className="p-3 sm:p-5">
+                    <h3 className="font-display text-sm italic leading-snug text-forest-deep sm:text-lg">{r.title}</h3>
+                    <p className="mt-1 font-display text-base text-forest-deep sm:mt-2 sm:text-xl">${r.price_display}</p>
                   </div>
                 </Link>
               ))}

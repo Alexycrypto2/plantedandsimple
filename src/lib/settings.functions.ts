@@ -18,6 +18,7 @@ const FIELDS: { key: string; label: string; hint: string }[] = [
   { key: "GEMINI_TEXT_MODEL", label: "Gemini text model", hint: "Default: gemini-2.5-flash — powers blogs, recipes, pins, assistant" },
   { key: "AI_MODE", label: "AI model selection", hint: "Automatic chooses a suitable model for each task; Manual uses your selected models" },
   { key: "AI_BUDGET_MODE", label: "AI budget mode", hint: "Economy, Balanced, Quality, or Automatic" },
+  { key: "BREVO_DIRECT_API_KEY", label: "Brevo API key", hint: "Sends your emails and adds buyers/subscribers to Brevo lists (Brevo → SMTP & API → API keys)" },
   { key: "MAILERLITE_API_KEY", label: "MailerLite API key", hint: "Optional — new subscribers sync to MailerLite automatically (Integrations → API in MailerLite)" },
   { key: "MAILERLITE_GROUP_ID", label: "MailerLite group ID", hint: "Optional — which MailerLite group new subscribers join" },
   { key: "EMAIL_SYNC_WEBHOOK_URL", label: "Email sync webhook URL", hint: "Optional — any https URL (Brevo, Zapier, Make) that receives each new subscriber as JSON" },
@@ -154,4 +155,11 @@ export const aiModelManager = createServerFn({ method: "GET" })
       }),
       registry: await aiRegistrySnapshot(),
     };
+  });
+export const adminTestBrevo = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await requireBoss(context.supabase, context.userId);
+    const { brevoTestConnection } = await import("./brevo.server");
+    return brevoTestConnection();
   });

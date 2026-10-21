@@ -15,7 +15,7 @@ import { scheduleGeneration, generatePinsForBlog } from "@/lib/ai/pin-studio.fun
 import { generateStudioImage, type ImagePreset } from "@/lib/ai/image-studio.functions";
 import { suggestTopics, listTopics } from "@/lib/ai/topics.functions";
 import { runAssistantCommand, ASSISTANT_COMMANDS, type AssistantCommand } from "@/lib/ai/assistant.functions";
-import { adminListSettings, adminSaveSetting, aiDiagnostics, aiModelManager, listGeminiModels, type SettingRow } from "@/lib/settings.functions";
+import { adminListSettings, adminSaveSetting, adminTestBrevo, aiDiagnostics, aiModelManager, listGeminiModels, type SettingRow } from "@/lib/settings.functions";
 import {
   pinterestStatus,
   pinterestAuthUrl,
@@ -724,7 +724,7 @@ export function IntegrationsPanel() {
       <section className={card}>
         <div className="flex items-center gap-2"><Cloud className="h-4 w-4 text-sage" /><h3 className="font-semibold text-forest-deep">Provider details</h3></div>
         <div className="mt-4 space-y-4">
-           {settings.filter((s) => s.key.startsWith("GEMINI_") || s.key === "MAGIC_HOUR_API_KEY" || s.key === "PIXAZO_API_KEY").map((s) => {
+           {settings.filter((s) => s.key.startsWith("GEMINI_") || s.key === "MAGIC_HOUR_API_KEY" || s.key === "PIXAZO_API_KEY" || s.key === "BREVO_DIRECT_API_KEY").map((s) => {
              const modelField = s.key === "GEMINI_TEXT_MODEL" || s.key === "GEMINI_IMAGE_MODEL";
              const choices = models.filter((model) => s.key === "GEMINI_IMAGE_MODEL" ? model.image : !model.image);
              return (
@@ -744,6 +744,12 @@ export function IntegrationsPanel() {
                  )}
                  {!modelField && <Button variant="outline" size="icon" aria-label={showKeys[s.key] ? "Hide value" : "Show value"} onClick={() => setShowKeys((v) => ({ ...v, [s.key]: !v[s.key] }))}>{showKeys[s.key] ? <EyeOff /> : <Eye />}</Button>}
                 <Button className="h-auto rounded-xl" disabled={busy} onClick={() => save(s.key)}><Save /> Save</Button>
+                {s.key === "BREVO_DIRECT_API_KEY" && (
+                  <Button variant="outline" className="h-auto rounded-xl" disabled={busy} onClick={async () => {
+                    try { const r = await adminTestBrevo(); setMsg(r.ok ? `Brevo: ${r.detail}` : `Brevo problem: ${r.detail}`); }
+                    catch (e: any) { setMsg(e?.message ?? "Brevo test failed"); }
+                  }}>Test connection</Button>
+                )}
               </div>
             </div>
            )})}

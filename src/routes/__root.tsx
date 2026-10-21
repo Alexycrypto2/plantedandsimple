@@ -4,10 +4,11 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
+  useRouterState,
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
@@ -90,7 +91,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         rel: "stylesheet",
         href: appCss,
       },
-      { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
+      { rel: "icon", href: "/favicon.ico", sizes: "any" },
+      { rel: "icon", type: "image/png", sizes: "48x48", href: "/favicon-48x48.png" },
+      { rel: "icon", type: "image/png", sizes: "192x192", href: "/favicon-192x192.png" },
+      { rel: "apple-touch-icon", sizes: "180x180", href: "/apple-touch-icon.png" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       {
         rel: "preconnect",
@@ -136,11 +140,34 @@ function RootShell({ children }: { children: ReactNode }) {
   );
 }
 
+function NavigationProgress() {
+  const pending = useRouterState({ select: (s) => s.status === "pending" || s.isLoading });
+  const [width, setWidth] = useState(0);
+  const [visible, setVisible] = useState(false);
+  useEffect(() => {
+    if (pending) {
+      setVisible(true);
+      setWidth(15);
+      const id = window.setInterval(() => setWidth((w) => (w < 85 ? w + (90 - w) * 0.12 : w)), 180);
+      return () => window.clearInterval(id);
+    }
+    setWidth(100);
+    const t = window.setTimeout(() => { setVisible(false); setWidth(0); }, 320);
+    return () => window.clearTimeout(t);
+  }, [pending]);
+  return (
+    <div aria-hidden className="pointer-events-none fixed inset-x-0 top-0 z-[9999] h-[3px]" style={{ opacity: visible ? 1 : 0, transition: "opacity 300ms" }}>
+      <div className="h-full bg-primary shadow-[0_0_10px_var(--color-primary)]" style={{ width: `${width}%`, transition: "width 200ms ease-out" }} />
+    </div>
+  );
+}
+
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
   return (
     <QueryClientProvider client={queryClient}>
+      <NavigationProgress />
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <Outlet />
     </QueryClientProvider>

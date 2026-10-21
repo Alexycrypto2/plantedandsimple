@@ -124,12 +124,18 @@ function AuthPage() {
           Planted<span className="text-sage">&amp;</span>Simple
         </a>
         <h1 className="mt-4 font-display text-2xl italic text-forest-deep">
-          {mode === "signin" ? "Sign in to admin" : "Create your admin account"}
+          {dest.startsWith("/prep-app")
+            ? mode === "signin" ? "Sign in to your Meal Prep System" : "Create your Meal Prep account"
+            : dest.startsWith("/admin")
+              ? mode === "signin" ? "Sign in to admin" : "Create your admin account"
+              : mode === "signin" ? "Sign in to Planted & Simple" : "Create your account"}
         </h1>
         <p className="mt-1 text-sm text-charcoal/60">
-          {mode === "signin"
-            ? "Use your email and password, or continue with Google."
-            : "Sign up with email and password, or continue with Google."}
+          {dest.startsWith("/prep-app")
+            ? "Use the email you bought with to open your recipes, weekly planner and grocery lists."
+            : mode === "signin"
+              ? "Use your email and password, or continue with Google."
+              : "Sign up with email and password, or continue with Google."}
         </p>
 
         <button

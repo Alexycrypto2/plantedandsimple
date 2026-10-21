@@ -5,6 +5,7 @@ import { z } from "zod";
 import { textModel, describeAiError } from "./gateway.server";
 import { FRAMING, renderImageSafe, requireBossFactory } from "./studio.server";
 import { cleanStep, cleanStepText, cleanTip, cleanServings, usNutritionLabel } from "@/lib/recipe-clean";
+import { fixCalories } from "@/lib/nutrition-check";
 
 const requireBoss = requireBossFactory();
 
@@ -21,6 +22,7 @@ const RecipeSchema = z.object({
   instructions: z.array(z.object({ title: z.string(), body: z.string() })),
   cuisine: z.string(),
   category: z.string(),
+  macro_ledger: z.array(z.object({ ingredient: z.string(), grams: z.number(), protein: z.number(), carbs: z.number(), fat: z.number(), fiber: z.number() })),
   nutrition: z.array(z.object({ label: z.string(), value: z.string() })),
   tips: z.array(z.string()),
   tags: z.array(z.string()),
@@ -77,7 +79,7 @@ Non-negotiable rules:
 - Each instruction has a short action title (2-5 words, e.g. "Sear the tofu") and a body. Never leave a title empty.
 - cuisine: one word or phrase (e.g. Mediterranean, Thai, Mexican). category: one of Breakfast, Lunch, Dinner, Meal Prep, Snack, Dessert, Soup, Salad.
 - tags must include the cuisine and category in lowercase plus the main search keyword (Google recipe SEO).
-- nutrition: realistic per-serving values — Calories, Protein, Carbs, Fat, Fiber, Sugar, Sodium.
+- nutrition: per-serving values — Calories, Protein, Carbs, Fat, Fiber, Sugar, Sodium. CALCULATE, never guess: first fill macro_ledger with every ingredient's grams and its protein/carbs/fat/fiber (USDA-style values), sum the totals, then divide by servings. Reference per 100 g: firm tofu 15P/2C/9F, tempeh 19P/9C/11F, cooked lentils 9P/20C/0.4F/8Fi, cooked chickpeas 9P/27C/2.6F/8Fi, cooked black beans 9P/24C/0.5F/9Fi, dry red lentils 24P/60C/1F/11Fi, edamame 11P/9C/5F/5Fi, seitan 25P/4C/2F, cooked quinoa 4.4P/21C/1.9F/2.8Fi, dry oats 13P/68C/6.5F/10Fi, peanut butter 25P/20C/50F, olive oil 0P/0C/100F, hemp seeds 32P/9C/49F. Never inflate protein to fit the brand — if the dish is under 20 g protein per serving, say so honestly or add a real protein source. Calories must equal protein×4 + carbs×4 + fat×9 within 10%.
 - tips: 3-5 genuinely useful notes (make-ahead, swaps, storage, why a technique works). Never start a tip with a dash, bullet or number.
 - description: 2-3 sentences, warm and specific, written like a food magazine intro. No "delicious and easy" filler, no AI cliches.
 - seo_title <= 60 chars and must match the recipe title (never prepend a cuisine word like "American"). seo_description <= 155 chars, natural US English, no "x-style" filler. pinterest_description <= 480 chars with 4 hashtags, tags 5-8 lowercase.
@@ -151,7 +153,7 @@ Non-negotiable rules:
         description: out.description,
         ingredients: out.ingredients,
         instructions: out.instructions.map((s) => ({ title: cleanStepText(s.title), body: cleanStep(s.body) })),
-        nutrition: out.nutrition.map((n) => ({ ...n, label: usNutritionLabel(n.label) })),
+        nutrition: fixCalories(out.nutrition.map((n) => ({ ...n, label: usNutritionLabel(n.label) }))),
         tips: out.tips.map(cleanTip).filter(Boolean),
         prep_minutes: Math.max(0, Math.round(out.prep_minutes)),
         cook_minutes: Math.max(0, Math.round(out.cook_minutes)),

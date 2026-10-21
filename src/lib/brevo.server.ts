@@ -1,12 +1,28 @@
 // Brevo (email provider) — server-only. Never throws; callers fall back to the built-in queue.
 const API = "https://api.brevo.com/v3";
 
-function key() {
-  return process.env.BREVO_DIRECT_API_KEY ?? null;
+// Admin-panel key (encrypted in settings) wins; project secret is the fallback.
+async function key(): Promise<string | null> {
+  const { getConfig } = await import("./settings.server");
+  return (await getConfig("BREVO_DIRECT_API_KEY")) ?? null;
 }
 
-export function brevoConfigured() {
-  return Boolean(key());
+export async function brevoConfigured() {
+  return Boolean(await key());
+}
+
+/** Read-only account check used by the admin "Test connection" button. */
+export async function brevoTestConnection(): Promise<{ ok: boolean; detail: string }> {
+  const apiKey = await key();
+  if (!apiKey) return { ok: false, detail: "No Brevo key saved yet." };
+  try {
+    const res = await fetch(`${API}/account`, { headers: { "api-key": apiKey, Accept: "application/json" } });
+    const body: any = await res.json().catch(() => ({}));
+    if (!res.ok) return { ok: false, detail: `Brevo said ${res.status}: ${body?.message ?? "rejected the key"}` };
+    return { ok: true, detail: `Connected to ${body?.companyName || body?.email || "your Brevo account"}` };
+  } catch (e: any) {
+    return { ok: false, detail: e?.message ?? "Could not reach Brevo" };
+  }
 }
 
 export async function brevoSendEmail(opts: {
@@ -16,7 +32,7 @@ export async function brevoSendEmail(opts: {
   text?: string;
   tags?: string[];
 }): Promise<boolean> {
-  const apiKey = key();
+  const apiKey = await key();
   if (!apiKey) return false;
   try {
     const res = await fetch(`${API}/smtp/email`, {
@@ -45,7 +61,7 @@ export async function brevoAddContact(
   list: "free" | "buyer",
   attributes: Record<string, string> = {},
 ): Promise<boolean> {
-  const apiKey = key();
+  const apiKey = await key();
   const listId = Number(list === "free" ? process.env.BREVO_FREE_LIST_ID : process.env.BREVO_BUYER_LIST_ID);
   if (!apiKey || !listId) return false;
   try {

@@ -60,7 +60,7 @@ export const sendStudioEmail = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await requireAnyAdmin(context.supabase, context.userId);
     const { brevoSendEmail, brevoConfigured } = await import("@/lib/brevo.server");
-    if (!brevoConfigured()) throw new Error("Email sending isn't set up yet.");
+    if (!(await brevoConfigured())) throw new Error("Email sending isn't set up yet.");
     const html = emailBodyToHtml(data.body);
     if (data.mode === "test") {
       const to = (context.claims as any)?.email as string | undefined;
