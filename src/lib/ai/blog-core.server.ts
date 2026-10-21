@@ -138,7 +138,7 @@ WRITING STANDARD:
 - Banned: "delve", "elevate", "unlock", "game-changer", "in the world of", "look no further", "when it comes to", "nestled", "embark", "tantalising", "burst of flavour", "dive into", "testament to", exclamation marks, and any sentence that would read identically for a different topic.
 - Every H2 delivers information no other section covers. No section restates the intro.
 
-${brief.includeRecipe ? "- recipe: full recipe card with exact quantities and realistic per-serving nutrition." : "- recipe: null."}
+${brief.includeRecipe ? "- recipe: full recipe card with exact quantities and per-serving nutrition CALCULATED from the ingredient grams (e.g. firm tofu 15 g protein/100 g, cooked lentils 9 g, cooked chickpeas 9 g, tempeh 19 g, olive oil 100 g fat/100 g), totals divided by servings. Never inflate protein; calories must equal protein×4 + carbs×4 + fat×9 within 10%." : "- recipe: null."}
 ${brief.includeFaq ? "- faqs: 5-6 real People Also Ask questions with direct 2-4 sentence answers." : "- faqs: []."}
 ${brief.includeProduct ? "- related_product_html: a short HTML block (one <p> plus a link) recommending the PlantedAndSimple digital cookbook." : "- related_product_html: null."}
 ${brief.includeCta ? "- cta: one persuasive closing call to action." : "- cta: null."}

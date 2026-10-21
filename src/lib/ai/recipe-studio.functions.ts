@@ -5,6 +5,7 @@ import { z } from "zod";
 import { textModel, describeAiError } from "./gateway.server";
 import { FRAMING, renderImageSafe, requireBossFactory } from "./studio.server";
 import { cleanStep, cleanStepText, cleanTip, cleanServings, usNutritionLabel } from "@/lib/recipe-clean";
+import { fixCalories } from "@/lib/nutrition-check";
 
 const requireBoss = requireBossFactory();
 
@@ -21,6 +22,7 @@ const RecipeSchema = z.object({
   instructions: z.array(z.object({ title: z.string(), body: z.string() })),
   cuisine: z.string(),
   category: z.string(),
+  macro_ledger: z.array(z.object({ ingredient: z.string(), grams: z.number(), protein: z.number(), carbs: z.number(), fat: z.number(), fiber: z.number() })),
   nutrition: z.array(z.object({ label: z.string(), value: z.string() })),
   tips: z.array(z.string()),
   tags: z.array(z.string()),
@@ -151,7 +153,7 @@ Non-negotiable rules:
         description: out.description,
         ingredients: out.ingredients,
         instructions: out.instructions.map((s) => ({ title: cleanStepText(s.title), body: cleanStep(s.body) })),
-        nutrition: out.nutrition.map((n) => ({ ...n, label: usNutritionLabel(n.label) })),
+        nutrition: fixCalories(out.nutrition.map((n) => ({ ...n, label: usNutritionLabel(n.label) }))),
         tips: out.tips.map(cleanTip).filter(Boolean),
         prep_minutes: Math.max(0, Math.round(out.prep_minutes)),
         cook_minutes: Math.max(0, Math.round(out.cook_minutes)),
