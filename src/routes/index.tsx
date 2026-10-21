@@ -68,7 +68,7 @@ export const Route = createFileRoute("/")({
     };
   },
   head: () => ({
-    ...withImage(pageHead("/", "Easy High Protein Vegan Meals & Recipes | Planted & Simple", "Easy high protein vegan meals ready in 20–30 minutes: tofu, tempeh, lentil and chickpea recipes with 20g+ protein, a free 12-recipe guide and meal prep cookbooks."), `${SITE_URL}/products/high-protein-cookbook.jpg`),
+    ...withImage(pageHead("/", "Easy High Protein Vegan Meals & Recipes | Planted & Simple", "Easy high protein vegan meals ready in 20–30 minutes: tofu, tempeh, lentil and chickpea recipes with 20g+ protein, a free 12-recipe guide and meal prep cookbooks."), `${SITE_URL}/og-image.jpg`),
     scripts: [
       jsonLd({ "@context": "https://schema.org", "@type": "Organization", name: SITE_NAME, url: SITE_URL, email: "support@plantedandsimple.com" }),
       jsonLd({
