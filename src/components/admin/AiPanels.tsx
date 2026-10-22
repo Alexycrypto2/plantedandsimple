@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { CheckCircle2, Cloud, Eye, EyeOff, KeyRound, Loader2, RefreshCw, Save, Sparkles, Unplug, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { BrevoSettings } from "@/components/admin/BrevoSettings";
 import {
   listGenerations,
   setGenerationStatus,
@@ -565,8 +566,10 @@ export function IntegrationsPanel() {
 
   return (
     <div className="space-y-6">
-      <Heading title="AI API Configuration" sub="Choose which AI powers your publishing studio. Your keys are encrypted before storage." />
+      <Heading title="Integrations & keys" sub="Email delivery, AI providers and Pinterest." />
       {msg && <p className="rounded-xl bg-forest/10 px-4 py-3 text-sm text-forest-deep">{msg}</p>}
+
+      <BrevoSettings />
 
       <section className={`${card} overflow-hidden`}>
         <div className="flex flex-wrap items-center justify-between gap-3">
@@ -724,7 +727,7 @@ export function IntegrationsPanel() {
       <section className={card}>
         <div className="flex items-center gap-2"><Cloud className="h-4 w-4 text-sage" /><h3 className="font-semibold text-forest-deep">Provider details</h3></div>
         <div className="mt-4 space-y-4">
-           {settings.filter((s) => s.key.startsWith("GEMINI_") || s.key === "MAGIC_HOUR_API_KEY" || s.key === "PIXAZO_API_KEY" || s.key === "BREVO_DIRECT_API_KEY").map((s) => {
+           {settings.filter((s) => s.key.startsWith("GEMINI_") || s.key === "MAGIC_HOUR_API_KEY" || s.key === "PIXAZO_API_KEY").map((s) => {
              const modelField = s.key === "GEMINI_TEXT_MODEL" || s.key === "GEMINI_IMAGE_MODEL";
              const choices = models.filter((model) => s.key === "GEMINI_IMAGE_MODEL" ? model.image : !model.image);
              return (

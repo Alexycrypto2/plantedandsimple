@@ -19,3 +19,10 @@
 - [x] Research Engine: competitor gap, search trend, one-click blog or recipe handoff
 - [x] AI writer: home-cook voice, auto product offer (cookbook / prep / free), 3 pins + schema
 - [x] SEO Doctor in blog editor: score, auto-fix weak spots, mobile/desktop preview; drafts never auto-publish
+
+## Current five-item product and email fixes
+- [x] Wire real bundled images across product cards and two-column recommendations (distinct cover resolution tested).
+- [x] Give each product its own gallery, benefits and FAQs.
+- [x] Replace the flagship cover with a digital cookbook bundle showcase (phone-sized rendering verified).
+- [x] Make Brevo key management and connection/testing prominent in Admin.
+- [ ] Verify catalog recommendations and authenticated Brevo save/test end-to-end (blocked: Lovable Cloud is paused).

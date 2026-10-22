@@ -8,6 +8,7 @@ import {
   type PublicProduct,
 } from "@/lib/products.functions";
 import { productImage } from "@/components/site/ProductFamily";
+import { PRODUCT_STORIES } from "@/components/site/product-stories";
 import { SiteLayout } from "@/components/SiteLayout";
 import { fallbackProduct } from "@/lib/fallback-content";
 import actionKitchen from "@/assets/product-action-kitchen.jpg";
@@ -41,7 +42,7 @@ function uniqueImages(product: PublicProduct): Array<{ url: string; label: strin
     images.push({ url, label, number: String(images.length + 1).padStart(2, "0") });
   };
   add(productImage(product), product.title);
-  (PRODUCT_GALLERIES[product.slug] ?? PREVIEWS).forEach((preview) => add(preview.url, preview.label));
+  (PRODUCT_STORIES[product.slug]?.gallery ?? PRODUCT_GALLERIES[product.slug] ?? PREVIEWS).forEach((preview) => add(preview.url, preview.label));
   return images;
 }
 
@@ -103,7 +104,8 @@ export const Route = createFileRoute("/shop/$slug")({
     const description = plainDescription(product?.seo_description?.trim() || product?.subtitle || product?.description || "This PlantedAndSimple product is currently unavailable.");
     const head = pageHead(path, title, description, "product");
     if (!product) return { ...head, meta: [...head.meta, { name: "robots", content: "noindex" }] };
-    const image = product.cover_image_url?.startsWith("https://") ? product.cover_image_url : undefined;
+    const displayedImage = productImage(product);
+    const image = displayedImage?.startsWith("https://") ? displayedImage : undefined;
     return {
       ...head,
       meta: [...head.meta, ...(image ? [{ property: "og:image", content: image }, { name: "twitter:image", content: image }] : [])],
@@ -151,10 +153,11 @@ function ProductDetail() {
   const navigate = useNavigate();
   const loading = false;
   const gallery = uniqueImages(p);
-  const included = p.features.length ? p.features : INCLUDED;
-  const benefits = p.benefits.length
+  const story = PRODUCT_STORIES[p.slug];
+  const included = story?.included ?? (p.features.length ? p.features : INCLUDED);
+  const benefits = story?.benefits ?? (p.benefits.length
     ? p.benefits.map((body, index) => ({ title: `Benefit ${index + 1}`, body }))
-    : BENEFITS;
+    : BENEFITS);
   const [showSticky, setShowSticky] = useState(false);
   const [activeImg, setActiveImg] = useState<string>(
     gallery[0]?.url ?? PREVIEWS[0].url,
@@ -168,6 +171,7 @@ function ProductDetail() {
   }, []);
 
   useEffect(() => {
+    setActiveImg(productImage(p) ?? PREVIEWS[0].url);
     void trackEvent("product_view", { refId: p.id, refSlug: p.slug });
   }, [p.id, p.slug]);
 
@@ -248,7 +252,7 @@ function ProductDetail() {
 
 
             <ul className="mt-6 space-y-2 text-sm text-charcoal/70">
-              <li>✅ Instant PDF download after checkout</li>
+              <li>✅ {story?.format ?? "Instant digital access after checkout"}</li>
               <li>✅ 60-day money-back guarantee</li>
               <li>✅ Secure checkout with card, Apple Pay, and more</li>
             </ul>
@@ -281,7 +285,7 @@ function ProductDetail() {
       {/* Preview gallery */}
       <section className="px-6 py-20">
         <div className="mx-auto max-w-6xl">
-          <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.25em] text-sage">Recipe highlights</p>
+          <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.25em] text-sage">{story?.previewLabel ?? "Product highlights"}</p>
           <h2 className="mt-3 font-display text-4xl italic text-forest-deep md:text-5xl">Take a peek inside</h2>
           <div className="mt-10 grid grid-cols-2 gap-4 md:grid-cols-3">
              {gallery.map((v) => (
@@ -301,7 +305,7 @@ function ProductDetail() {
       <section className="bg-white px-6 py-20">
         <div className="mx-auto max-w-6xl">
           <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.25em] text-sage">Key benefits</p>
-          <h2 className="mt-3 font-display text-4xl italic text-forest-deep md:text-5xl">What this cookbook does for you</h2>
+          <h2 className="mt-3 font-display text-4xl italic text-forest-deep md:text-5xl">{story?.benefitHeading ?? "What this product does for you"}</h2>
           <div className="mt-10 grid grid-cols-1 gap-6 md:grid-cols-2">
             {benefits.map((b) => (
               <div key={b.title} className="rounded-3xl border border-forest/10 bg-cream-warm/30 p-8">
@@ -320,7 +324,7 @@ function ProductDetail() {
           <p className="mt-6 font-mono text-[11px] font-semibold uppercase tracking-[0.25em] text-cream/70">Iron-clad promise</p>
           <h2 className="mt-3 font-display text-4xl italic md:text-5xl">60-Day Money-Back Guarantee</h2>
           <p className="mx-auto mt-5 max-w-xl text-base leading-relaxed text-cream/80">
-            Download the cookbook, cook the recipes, live with it for two months. If you don't love it, email us for a full refund. No forms, no hoops. We'd rather have your trust than your money.
+            {story?.guarantee ?? "Try your purchase. If it's not for you, email us within 60 days for a refund."}
           </p>
         </div>
       </section>
@@ -331,7 +335,7 @@ function ProductDetail() {
           <p className="text-center font-mono text-[11px] font-semibold uppercase tracking-[0.25em] text-sage">Questions</p>
           <h2 className="mt-3 text-center font-display text-4xl italic text-forest-deep md:text-5xl">Frequently asked</h2>
           <div className="mt-10 space-y-3">
-            {FAQ.map((f, i) => (
+            {(story?.faq ?? FAQ).map((f, i) => (
               <details key={i} className="group rounded-2xl border border-forest/10 bg-white p-6 open:shadow-sm">
                 <summary className="flex cursor-pointer items-center justify-between text-base font-semibold text-forest-deep">
                   {f.q}
@@ -350,14 +354,14 @@ function ProductDetail() {
           <div className="mx-auto max-w-6xl">
             <div className="mb-10 flex items-end justify-between">
               <h2 className="font-display text-3xl italic text-forest-deep md:text-4xl">You may also love</h2>
-              <Link to="/shop" className="text-[11px] font-bold uppercase tracking-[0.25em] text-forest hover:underline">All cookbooks →</Link>
+              <Link to="/shop" className="shrink-0 text-[11px] font-bold uppercase tracking-[0.25em] text-forest hover:underline">Shop all →</Link>
             </div>
-            <div className="grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-3">
+            <div className="grid grid-cols-2 gap-3 sm:gap-6">
               {related.map((r: PublicProduct) => (
                 <Link key={r.id} to="/shop/$slug" params={{ slug: r.slug }} className="group overflow-hidden rounded-2xl border border-forest/10 bg-white transition hover:-translate-y-1 hover:shadow-card">
                   <div className="aspect-[4/5] overflow-hidden bg-cream-warm">
                     {productImage(r) ? (
-                      <img src={productImage(r)!} alt={r.title} loading="lazy" className="h-full w-full object-cover transition group-hover:scale-105" />
+                      <img src={productImage(r) ?? undefined} alt={r.title} loading="lazy" className="h-full w-full object-cover transition group-hover:scale-105" />
                     ) : <div className="grid h-full place-items-center text-5xl">📗</div>}
                   </div>
                   <div className="p-3 sm:p-5">

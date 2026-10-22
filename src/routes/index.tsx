@@ -474,7 +474,7 @@ function ProductsSection({ section, products }: { section: HomepageSection; prod
                 params={{ slug: p.slug }}
                 className="group block overflow-hidden rounded-[1.75rem] border border-forest/10 bg-white shadow-[var(--shadow-soft)] transition duration-500 hover:-translate-y-1 hover:shadow-[var(--shadow-card)]"
               >
-                <MediaImage src={p.cover_image_url} alt={p.title} ratio="aspect-[4/5]" />
+                <MediaImage src={productImage(p)} alt={p.title} ratio="aspect-[4/5]" />
                 <div className="p-6">
                   {p.is_bestseller ? (
                     <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.24em] text-sage">Bestseller</p>

@@ -11,6 +11,8 @@
 
 - Keep the free cookbook delivery self-contained: the uploaded PDF asset is the source of truth for instant downloads and email links, with email delivery treated as an additional channel so a provider outage never creates a dead download.
 - Product sales pages use a bundled visual story (mockup first, then product-in-use photography) rather than PDF screenshots so the gallery communicates the customer outcome before the document format.
+- Shared product stories own each built-in product's format, gallery and feature breakdown so companion products never inherit cookbook claims; shared product visuals own listing covers across the site.
+- Brevo controls reuse boss-authorized encrypted settings and the existing authenticated email test function so credentials never enter browser storage or source files.
 - Keep account recovery on a public TanStack route so reset links can work before the user is signed in.
 - Keep customer-facing product previews as public leaf routes under `src/routes`, using `SiteLayout` and bundled, browser-safe assets so they render consistently across hosts.
 - Meal Prep System sales are routed by the webhook's `productSlug` into `prep_purchases` (not `cookbook_downloads`); access to the interactive tools is granted only after server-verified payment against that table — never open registration.

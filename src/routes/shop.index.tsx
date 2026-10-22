@@ -55,7 +55,7 @@ function ShopPage() {
           Premium plant-based digital products
         </h1>
         <p className="mt-3 max-w-2xl text-charcoal/70">
-          Cookbooks, meal plans, and recipe guides — designed to make healthy eating simple. Instant PDF download after checkout.
+          A digital cookbook, an interactive Meal Prep app, and printable planning sheets — three different ways to make your week simpler.
         </p>
 
         <div className="mt-8 flex flex-wrap items-center gap-2">
