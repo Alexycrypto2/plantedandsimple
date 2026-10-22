@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { EditorialCard } from "@/components/site/primitives";
 import type { PublicProduct } from "@/lib/products.functions";
-import cookbookMockup from "@/assets/cookbook-mockup.jpg";
+import cookbookMockup from "@/assets/cookbook-bundle.jpg";
 import prepCover from "@/assets/prep-system-cover.jpg";
 import planningKitPhoto from "@/assets/planning-kit-lifestyle.jpg";
 
