@@ -39,13 +39,18 @@ export const subscribeFreeGuide = createServerFn({ method: "POST" })
       // The download must remain available even if the email provider is temporarily unavailable.
     }
 
+    // Brevo runs independently so a database outage never stops list signups.
     try {
-      const { syncSubscriber } = await import("@/lib/email-sync.server");
-      await syncSubscriber(data.email, data.source ?? "free_guide");
       const { brevoAddContact } = await import("@/lib/brevo.server");
       await brevoAddContact(data.email, "free", { SOURCE: data.source ?? "free_guide" });
     } catch {
-      // List sync is best-effort; the subscriber is already saved.
+      // Best-effort.
+    }
+    try {
+      const { syncSubscriber } = await import("@/lib/email-sync.server");
+      await syncSubscriber(data.email, data.source ?? "free_guide");
+    } catch {
+      // Best-effort.
     }
 
     return { ok: true, download_url: freeCookbookAsset.url, email_queued };
