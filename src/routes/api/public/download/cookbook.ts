@@ -82,52 +82,39 @@ export const Route = createFileRoute("/api/public/download/cookbook")({
           );
         }
 
-        // 2. Track downloads and enforce a per-session cap.
-        const { supabaseAdmin } = await import(
-          "@/integrations/supabase/client.server"
-        );
-
-        const { data: existing } = await supabaseAdmin
-          .from("cookbook_downloads")
-          .select("download_count")
-          .eq("stripe_session_id", transactionId)
-          .maybeSingle();
-
-        if (!existing) {
-          return json(
-            {
-              error:
-                "Your secure download is still being prepared. Please refresh the thank-you page in a moment.",
-            },
-            { status: 403 },
+        // 2. Best-effort tracking and download cap. Paddle already proved the
+        //    payment, so a paused database must never block the PDF.
+        try {
+          const { supabaseAdmin } = await import(
+            "@/integrations/supabase/client.server"
           );
-        }
-
-        const nextCount = existing.download_count + 1;
-        if (nextCount > MAX_DOWNLOADS_PER_SESSION) {
-          return json(
-            {
-              error:
-                "Download limit reached for this order. Please contact support if you need help.",
-            },
-            { status: 429 },
-          );
-        }
-
-        await supabaseAdmin
-          .from("cookbook_downloads")
-          .update({
-            download_count: nextCount,
-            last_downloaded_at: new Date().toISOString(),
-            email,
-          })
-          .eq("stripe_session_id", transactionId);
-
-        // 3. Also capture the email into subscribers (idempotent).
-        if (email) {
-          await supabaseAdmin
-            .from("subscribers")
-            .upsert(
+          const { data: existing, error } = await supabaseAdmin
+            .from("cookbook_downloads")
+            .select("download_count")
+            .eq("stripe_session_id", transactionId)
+            .maybeSingle();
+          if (!error && existing) {
+            const nextCount = existing.download_count + 1;
+            if (nextCount > MAX_DOWNLOADS_PER_SESSION) {
+              return json(
+                {
+                  error:
+                    "Download limit reached for this order. Please contact support@plantedandsimple.com if you need help.",
+                },
+                { status: 429 },
+              );
+            }
+            await supabaseAdmin
+              .from("cookbook_downloads")
+              .update({
+                download_count: nextCount,
+                last_downloaded_at: new Date().toISOString(),
+                email,
+              })
+              .eq("stripe_session_id", transactionId);
+          }
+          if (email) {
+            await supabaseAdmin.from("subscribers").upsert(
               {
                 email: email.toLowerCase(),
                 source: "cookbook_purchase",
@@ -135,6 +122,9 @@ export const Route = createFileRoute("/api/public/download/cookbook")({
               },
               { onConflict: "email", ignoreDuplicates: true },
             );
+          }
+        } catch {
+          // Database unavailable — still deliver the paid file.
         }
 
         // 4. Stream the PDF back from the CDN behind our gate.

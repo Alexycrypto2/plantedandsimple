@@ -104,33 +104,33 @@ export const verifyCookbookPayment = createServerFn({ method: "POST" })
         }
       }
 
-      // Planning Kit sales are verified directly against Paddle — no DB row needed.
-      if (json?.data?.custom_data?.productSlug === "planning-kit") {
+      // Paddle is the source of truth for which product was bought, so a
+      // paused or slow database never blocks a paying customer.
+      const slug = json?.data?.custom_data?.productSlug as string | undefined;
+      if (slug === "planning-kit") {
         return { paid: true, email, product: "kit" };
       }
+      if (slug === "meal-prep-system") {
+        return { paid: true, email, product: "prep" };
+      }
 
+      // Older checkouts may lack a slug — fall back to the recorded purchase table.
+      if (!slug) {
+        try {
+          if (await isPrepPurchase(data.transactionId)) {
+            return { paid: true, email, product: "prep" };
+          }
+        } catch {
+          // Database unavailable — treat as the cookbook (the default offer).
+        }
+      }
+
+      // Best-effort bookkeeping; never blocks the download.
       if (email) {
         try {
           const { supabaseAdmin } = await import(
             "@/integrations/supabase/client.server"
           );
-          const { data: order } = await supabaseAdmin
-            .from("cookbook_downloads")
-            .select("id")
-            .eq("stripe_session_id", data.transactionId)
-            .maybeSingle();
-
-          if (!order) {
-            if (await isPrepPurchase(data.transactionId)) {
-              return { paid: true, email, product: "prep" };
-            }
-            return {
-              paid: false,
-              reason:
-                "Payment is confirmed, but your secure download is still being prepared. Please wait a moment and refresh this page.",
-            };
-          }
-
           await supabaseAdmin
             .from("subscribers")
             .upsert(
@@ -146,35 +146,7 @@ export const verifyCookbookPayment = createServerFn({ method: "POST" })
             .update({ email })
             .eq("stripe_session_id", data.transactionId);
         } catch {
-          // Non-fatal — the order is still valid.
-        }
-      } else {
-        try {
-          const { supabaseAdmin } = await import(
-            "@/integrations/supabase/client.server"
-          );
-          const { data: order } = await supabaseAdmin
-            .from("cookbook_downloads")
-            .select("id")
-            .eq("stripe_session_id", data.transactionId)
-            .maybeSingle();
-
-          if (!order) {
-            if (await isPrepPurchase(data.transactionId)) {
-              return { paid: true, email, product: "prep" };
-            }
-            return {
-              paid: false,
-              reason:
-                "Payment is confirmed, but your secure download is still being prepared. Please wait a moment and refresh this page.",
-            };
-          }
-        } catch {
-          return {
-            paid: false,
-            reason:
-              "Payment is confirmed, but your secure download is still being prepared. Please wait a moment and refresh this page.",
-          };
+          // Non-fatal.
         }
       }
 
