@@ -60,6 +60,13 @@ export const Route = createFileRoute("/api/public/download/cookbook")({
               { status: 402 },
             );
           }
+          const slug = txJson?.data?.custom_data?.productSlug;
+          if (slug === "planning-kit" || slug === "meal-prep-system") {
+            return json(
+              { error: "This order is for a different product." },
+              { status: 403 },
+            );
+          }
           const customerId: string | undefined = txJson?.data?.customer_id;
           if (customerId) {
             const cRes = await gatewayFetch(
