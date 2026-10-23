@@ -11,22 +11,24 @@ const schema = z.object({
 export const subscribeFreeGuide = createServerFn({ method: "POST" })
   .inputValidator((d) => schema.parse(d))
   .handler(async ({ data }): Promise<{ ok: true; download_url: string; email_queued: boolean }> => {
-    const { supabaseAdmin } = await import(
-      "@/integrations/supabase/client.server"
-    );
-    const { error: subscriberError } = await supabaseAdmin
-      .from("subscribers")
-      .upsert(
-        { email: data.email, source: data.source ?? "free_guide" } as any,
-        { onConflict: "email", ignoreDuplicates: false },
+    // Saving to the database is best-effort: if it's paused or slow, the
+    // visitor still gets the PDF and Brevo still receives the contact.
+    try {
+      const { supabaseAdmin } = await import(
+        "@/integrations/supabase/client.server"
       );
-    if (subscriberError) throw new Error("We couldn't save your email. Please try again.");
-
-    // Log the download for analytics.
-    const { error: downloadError } = await (supabaseAdmin as any)
-      .from("free_guide_downloads")
-      .insert({ email: data.email });
-    if (downloadError) throw new Error("We couldn't prepare your free cookbook. Please try again.");
+      await supabaseAdmin
+        .from("subscribers")
+        .upsert(
+          { email: data.email, source: data.source ?? "free_guide" } as any,
+          { onConflict: "email", ignoreDuplicates: false },
+        );
+      await (supabaseAdmin as any)
+        .from("free_guide_downloads")
+        .insert({ email: data.email });
+    } catch {
+      // Database unavailable — continue with delivery.
+    }
 
     let email_queued = false;
     try {
@@ -37,13 +39,18 @@ export const subscribeFreeGuide = createServerFn({ method: "POST" })
       // The download must remain available even if the email provider is temporarily unavailable.
     }
 
+    // Brevo runs independently so a database outage never stops list signups.
     try {
-      const { syncSubscriber } = await import("@/lib/email-sync.server");
-      await syncSubscriber(data.email, data.source ?? "free_guide");
       const { brevoAddContact } = await import("@/lib/brevo.server");
       await brevoAddContact(data.email, "free", { SOURCE: data.source ?? "free_guide" });
     } catch {
-      // List sync is best-effort; the subscriber is already saved.
+      // Best-effort.
+    }
+    try {
+      const { syncSubscriber } = await import("@/lib/email-sync.server");
+      await syncSubscriber(data.email, data.source ?? "free_guide");
+    } catch {
+      // Best-effort.
     }
 
     return { ok: true, download_url: freeCookbookAsset.url, email_queued };
