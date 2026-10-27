@@ -2,9 +2,14 @@
 const API = "https://api.brevo.com/v3";
 
 // Admin-panel key (encrypted in settings) wins; project secret is the fallback.
+// The saved-settings lookup is capped at 2s so a paused database never blocks Brevo.
 async function key(): Promise<string | null> {
   const { getConfig } = await import("./settings.server");
-  return (await getConfig("BREVO_DIRECT_API_KEY")) ?? null;
+  const fromSettings = await Promise.race([
+    getConfig("BREVO_DIRECT_API_KEY").catch(() => null),
+    new Promise<null>((r) => setTimeout(() => r(null), 2000)),
+  ]);
+  return fromSettings ?? process.env.BREVO_DIRECT_API_KEY ?? null;
 }
 
 export async function brevoConfigured() {

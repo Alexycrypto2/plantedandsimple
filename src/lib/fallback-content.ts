@@ -166,7 +166,7 @@ export const FALLBACK_PRODUCTS: PublicProduct[] = [
     currency: "USD",
     price_display: "14.99",
     compare_at_display: "29.99",
-    paddle_price_external_id: null,
+    paddle_price_external_id: "high_protein_cookbook_onetime",
     is_featured: true,
     is_bestseller: true,
     seo_title: null,
