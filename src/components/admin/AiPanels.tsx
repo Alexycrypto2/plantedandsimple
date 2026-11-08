@@ -727,7 +727,7 @@ export function IntegrationsPanel() {
       <section className={card}>
         <div className="flex items-center gap-2"><Cloud className="h-4 w-4 text-sage" /><h3 className="font-semibold text-forest-deep">Provider details</h3></div>
         <div className="mt-4 space-y-4">
-           {settings.filter((s) => s.key.startsWith("GEMINI_") || s.key === "MAGIC_HOUR_API_KEY" || s.key === "PIXAZO_API_KEY").map((s) => {
+           {settings.filter((s) => s.key.startsWith("GEMINI_") || s.key === "MAGIC_HOUR_API_KEY" || s.key === "PIXAZO_API_KEY" || s.key === "ANTHROPIC_API_KEY" || s.key === "CLAUDE_TEXT_MODEL" || s.key === "AI_TEXT_PROVIDER").map((s) => {
              const modelField = s.key === "GEMINI_TEXT_MODEL" || s.key === "GEMINI_IMAGE_MODEL";
              const choices = models.filter((model) => s.key === "GEMINI_IMAGE_MODEL" ? model.image : !model.image);
              return (
@@ -737,7 +737,11 @@ export function IntegrationsPanel() {
                 {s.hint} · {s.source === "missing" ? "not set" : `current: ${s.masked} (${s.source === "panel" ? "saved here" : "project secret"})`}
               </p>
                <div className="mt-2 flex flex-col gap-2 sm:flex-row">
-                 {modelField ? (
+                 {s.key === "AI_TEXT_PROVIDER" ? (
+                   <select className={input} value={values[s.key] ?? ""} onChange={(e) => setValues((v) => ({ ...v, [s.key]: e.target.value }))}>
+                     <option value="">Choose…</option><option value="gemini">Gemini (Google)</option><option value="claude">Claude (Anthropic)</option>
+                   </select>
+                 ) : modelField ? (
                    <select className={input} value={values[s.key] ?? ""} onChange={(e) => setValues((v) => ({ ...v, [s.key]: e.target.value }))}>
                      <option value="">Choose a model available to this key</option>
                      {choices.map((model) => <option key={model.id} value={model.id}>{model.name} · {model.id}</option>)}
@@ -745,7 +749,7 @@ export function IntegrationsPanel() {
                  ) : (
                    <input className={input} type={showKeys[s.key] ? "text" : "password"} placeholder="Enter new value" value={values[s.key] ?? ""} onChange={(e) => setValues((v) => ({ ...v, [s.key]: e.target.value }))} />
                  )}
-                 {!modelField && <Button variant="outline" size="icon" aria-label={showKeys[s.key] ? "Hide value" : "Show value"} onClick={() => setShowKeys((v) => ({ ...v, [s.key]: !v[s.key] }))}>{showKeys[s.key] ? <EyeOff /> : <Eye />}</Button>}
+                 {!modelField && s.key !== "AI_TEXT_PROVIDER" && <Button variant="outline" size="icon" aria-label={showKeys[s.key] ? "Hide value" : "Show value"} onClick={() => setShowKeys((v) => ({ ...v, [s.key]: !v[s.key] }))}>{showKeys[s.key] ? <EyeOff /> : <Eye />}</Button>}
                 <Button className="h-auto rounded-xl" disabled={busy} onClick={() => save(s.key)}><Save /> Save</Button>
                 {s.key === "BREVO_DIRECT_API_KEY" && (
                   <Button variant="outline" className="h-auto rounded-xl" disabled={busy} onClick={async () => {

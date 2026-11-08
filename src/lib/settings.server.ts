@@ -16,6 +16,9 @@ export const SETTING_KEYS = [
   "MAILERLITE_GROUP_ID",
   "EMAIL_SYNC_WEBHOOK_URL",
   "BREVO_DIRECT_API_KEY",
+  "ANTHROPIC_API_KEY",
+  "CLAUDE_TEXT_MODEL",
+  "AI_TEXT_PROVIDER",
 ] as const;
 export type SettingKey = (typeof SETTING_KEYS)[number];
 

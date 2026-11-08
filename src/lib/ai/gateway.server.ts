@@ -104,7 +104,7 @@ export function describeAiError(err: unknown, info?: AiProviderInfo): Error {
   const body =
     typeof (err as any)?.responseBody === "string" ? (err as any).responseBody.slice(0, 500) : "";
   const where = info ? `${info.provider} · ${info.modelId}` : "AI provider";
-  if (status === 402 || /payment_required|Not enough credits/i.test(raw + body)) {
+  if (info?.provider !== ("claude" as any) && (status === 402 || /payment_required|Not enough credits/i.test(raw + body))) {
     return new Error(
       `Gemini billing or quota is unavailable (402). Check this API key's Google AI billing and quota. [${where}]`,
     );
@@ -129,6 +129,18 @@ function logAi(stage: string, fields: Record<string, unknown>) {
  */
 export async function resolveTextModel(opts?: { structuredOutputs?: boolean; feature?: string }) {
   const structuredOutputs = opts?.structuredOutputs ?? true;
+  {
+    const { getConfig } = await import("../settings.server");
+    if ((await getConfig("AI_TEXT_PROVIDER"))?.trim().toLowerCase() === "claude") {
+      const key = await getConfig("ANTHROPIC_API_KEY");
+      if (!key) throw new Error("Claude is selected but the Claude API key is missing. Add it in Admin → Settings → Integrations.");
+      const modelId = (await getConfig("CLAUDE_TEXT_MODEL"))?.trim().replace(/^anthropic\//, "") || "claude-sonnet-4-5";
+      const { createAnthropic } = await import("@ai-sdk/anthropic");
+      const info = { provider: "claude", modelId, keySource: "admin_settings" } as unknown as AiProviderInfo;
+      logAi("request", { feature: opts?.feature ?? "unknown", ...info });
+      return { model: createAnthropic({ apiKey: key })(modelId) as any, info };
+    }
+  }
   const gemini = await resolveGeminiKey();
 
   if (!gemini) throw new Error("Gemini API key is missing. Add it in Admin → Settings → Integrations, then run the live test.");
@@ -242,9 +254,10 @@ export async function runAi<T>(feature: string, fn: (model: any) => Promise<T>):
 export async function aiProviderSnapshot() {
   const gemini = await resolveGeminiKey();
   const { getConfig } = await import("../settings.server");
+  const claude = (await getConfig("AI_TEXT_PROVIDER"))?.trim().toLowerCase() === "claude";
   return {
-    text_provider: "gemini",
-    text_model: normalizeGeminiTextModel(await getConfig("GEMINI_TEXT_MODEL")),
+    text_provider: claude ? "claude" : "gemini",
+    text_model: claude ? ((await getConfig("CLAUDE_TEXT_MODEL"))?.trim() || "claude-sonnet-4-5") : normalizeGeminiTextModel(await getConfig("GEMINI_TEXT_MODEL")),
     image_provider: "magic_hour",
     image_model: "ai-photo-generator",
     gemini_key_present: Boolean(gemini),
