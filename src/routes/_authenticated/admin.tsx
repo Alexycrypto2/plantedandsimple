@@ -2607,6 +2607,7 @@ export function BlogList({
   const [headerH, setHeaderH] = useState(68);
   const [showTop, setShowTop] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
+  console.log("DBG render BlogList", typeof window, window.scrollY);
 
   // The admin header above us is sticky and its height changes between phone and
   // desktop, so measure it and park the search bar directly underneath it.
