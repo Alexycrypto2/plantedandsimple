@@ -138,12 +138,12 @@ export const pageHref = (p: { type: PageType; slug: string }) => `/${p.type === 
 function pick(current: LinkPage, pool: LinkPage[], n: number, now: number, exclude: Set<string>) {
   const candidates = pool.filter((p) => !exclude.has(pageHref(p)) && pageHref(p) !== pageHref(current));
   const scored = candidates
-    .map((p) => ({ p, score: scorePage(current, p, now) }))
-    .sort((a, b) => b.score - a.score || newest(a.p, b.p));
+    .map((page) => ({ page, score: scorePage(current, page, now) }))
+    .sort((a, b) => b.score - a.score || newest(a.page, b.page));
   const good = scored.filter((x) => x.score >= GOOD_MATCH).slice(0, n);
-  const used = new Set(good.map((x) => pageHref(x.p)));
+  const used = new Set(good.map((x) => pageHref(x.page)));
   const fill = [...candidates].sort(newest).filter((p) => !used.has(pageHref(p))).slice(0, n - good.length)
-    .map((p) => ({ p, score: scorePage(current, p, now) }));
+    .map((page) => ({ page, score: scorePage(current, page, now) }));
   return [...good, ...fill];
 }
 
