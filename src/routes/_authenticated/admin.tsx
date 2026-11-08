@@ -1800,9 +1800,24 @@ function ProductsPanel() {
           </Field>
         </div>
 
+        <div className="mt-4 grid gap-4 sm:grid-cols-2">
+          <Field label="Benefits (one per line)">
+            <textarea value={f.benefits} onChange={(e) => set("benefits", e.target.value)} rows={4} className={fieldClass} />
+          </Field>
+          <Field label="What's inside (one per line)">
+            <textarea value={f.features} onChange={(e) => set("features", e.target.value)} rows={4} className={fieldClass} />
+          </Field>
+          <Field label="Tags (comma separated)">
+            <input value={f.tags} onChange={(e) => set("tags", e.target.value)} className={fieldClass} />
+          </Field>
+          <Field label="Extra gallery image links (one per line)">
+            <textarea value={f.gallery_urls} onChange={(e) => set("gallery_urls", e.target.value)} rows={3} className={fieldClass} />
+          </Field>
+        </div>
+
         {err && <p className="mt-4 text-sm text-red-600">{err}</p>}
 
-        <div className="mt-6 flex gap-3">
+        <div className="sticky bottom-0 -mx-6 mt-6 flex flex-wrap gap-3 border-t border-forest/10 bg-white px-6 py-4">
           <button
             onClick={save}
             disabled={saving}
@@ -1810,6 +1825,16 @@ function ProductsPanel() {
           >
             {saving ? "Saving…" : "Save product"}
           </button>
+          {f.id && f.slug && (
+            <a
+              href={`/shop/${f.slug}`}
+              target="_blank"
+              rel="noreferrer"
+              className="rounded-full border border-forest/20 px-6 py-3 text-sm font-semibold text-forest hover:bg-cream"
+            >
+              View on site ↗
+            </a>
+          )}
           {f.id && (
             <button
               onClick={() => remove(f.id!)}
