@@ -3,7 +3,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { SiteLayout } from "@/components/SiteLayout";
-import freeCover from "@/assets/free-cookbook-cover.jpg";
+import freeBundle from "@/assets/free-cookbook-bundle.jpg";
 import freeCookbookAsset from "@/assets/free-cookbook.pdf.asset.json";
 import { trackEvent } from "@/lib/analytics";
 
@@ -27,12 +27,12 @@ function FreeCookbookPage() {
     <SiteLayout>
       <main>
         <section className="mx-auto grid max-w-6xl items-center gap-12 px-6 py-16 lg:grid-cols-[0.82fr_1fr] lg:gap-20 lg:py-24">
-        <div className="mx-auto max-w-sm overflow-hidden rounded-3xl bg-cream-warm shadow-card">
+        <div className="mx-auto max-w-md overflow-hidden rounded-3xl bg-cream-warm shadow-card">
           <img
-            src={freeCover}
-            alt="20-Minute Plant Protein Kitchen cookbook cover"
-            width={800}
-            height={1200}
+            src={freeBundle}
+            alt="20-Minute Plant Protein Kitchen free cookbook shown on a tablet, phone and printed recipe pages"
+            width={1024}
+            height={1280}
             className="h-auto w-full"
           />
         </div>
