@@ -75,6 +75,7 @@ import {
 import { AdminShell, MetricCard, PanelCard, SectionTabs, FlowRibbon } from "@/components/admin/AdminShell";
 import { LibrarySection } from "@/components/admin/LibraryPanel";
 import { RecipesSection } from "@/components/admin/RecipesPanel";
+import { productImage } from "@/components/site/ProductFamily";
 import { SubscribersPanel } from "@/components/admin/SubscribersPanel";
 import { EmailStudio } from "@/components/admin/EmailStudio";
 import { MealPrepPanel } from "@/components/admin/MealPrepPanel";
@@ -1525,6 +1526,25 @@ function ProductsPanel() {
   const [editing, setEditing] = useState<ProductDraft | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
+
+  const flash = (m: string) => {
+    setNotice(m);
+    setTimeout(() => setNotice(null), 4000);
+  };
+  const afterQuickSave = async (m: string) => {
+    flash(m);
+    await reload();
+  };
+  const toggleStatus = async (p: AdminProduct) => {
+    const next = p.status === "published" ? "draft" : "published";
+    try {
+      await adminUpsertProduct({ data: { ...productToInput(p), status: next } });
+      await afterQuickSave(next === "published" ? `"${p.title}" is now live.` : `"${p.title}" is now hidden from the shop.`);
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "Update failed");
+    }
+  };
 
   const reload = () =>
     Promise.all([adminListProducts(), listCategories()])
@@ -1603,6 +1623,7 @@ function ProductsPanel() {
       });
       setEditing(null);
       await reload();
+      flash(`Saved "${editing.title}" — it's live on the site now.`);
     } catch (e) {
       setErr(e instanceof Error ? e.message : "Save failed");
     } finally {
@@ -1674,12 +1695,20 @@ function ProductsPanel() {
               ))}
             </select>
           </Field>
-          <Field label="Cover image URL">
-            <input
-              value={f.cover_image_url}
-              onChange={(e) => set("cover_image_url", e.target.value)}
-              className={fieldClass}
-            />
+          <Field label="Cover image (paste image link)">
+            <div className="flex gap-3">
+              <div className="size-16 shrink-0 overflow-hidden rounded-lg bg-cream">
+                {f.cover_image_url && (
+                  <img src={f.cover_image_url} alt="" className="size-full object-cover" />
+                )}
+              </div>
+              <input
+                value={f.cover_image_url}
+                onChange={(e) => set("cover_image_url", e.target.value)}
+                placeholder="Leave empty to use the built-in product picture"
+                className={fieldClass}
+              />
+            </div>
           </Field>
           <Field label="PDF asset URL">
             <input
@@ -1689,24 +1718,35 @@ function ProductsPanel() {
               className={fieldClass}
             />
           </Field>
-          <Field label="Price (cents)">
-            <input
-              type="number"
-              value={f.price_cents}
-              onChange={(e) => set("price_cents", Number(e.target.value))}
-              className={fieldClass}
+          <Field label="Price customers pay ($)">
+            <DollarInput
+              cents={f.price_cents}
+              onChange={(c) => set("price_cents", c)}
             />
           </Field>
-          <Field label="Compare-at (cents)">
-            <input
-              type="number"
-              value={f.compare_at_cents}
-              onChange={(e) =>
-                set("compare_at_cents", Number(e.target.value))
-              }
-              className={fieldClass}
+          <Field label="Original price, crossed out ($)">
+            <DollarInput
+              cents={f.compare_at_cents}
+              onChange={(c) => set("compare_at_cents", c)}
             />
           </Field>
+          <div className="sm:col-span-2 rounded-xl bg-cream/60 p-4 text-sm">
+            <p className="text-xs uppercase tracking-widest text-charcoal/50">How the price shows on the site</p>
+            <p className="mt-1">
+              <span className="text-2xl font-bold text-forest-deep">${(f.price_cents / 100).toFixed(2)}</span>
+              {f.compare_at_cents > f.price_cents && (
+                <>
+                  <span className="ml-2 text-charcoal/50 line-through">${(f.compare_at_cents / 100).toFixed(2)}</span>
+                  <span className="ml-2 rounded-full bg-sage/25 px-2 py-0.5 text-xs font-semibold text-forest">
+                    Save {Math.round((1 - f.price_cents / f.compare_at_cents) * 100)}%
+                  </span>
+                </>
+              )}
+            </p>
+            {f.compare_at_cents < f.price_cents && (
+              <p className="mt-1 text-xs text-red-600">Original price must be the same or higher than the selling price.</p>
+            )}
+          </div>
           <Field label="Currency">
             <input
               value={f.currency}
@@ -1781,9 +1821,24 @@ function ProductsPanel() {
           </Field>
         </div>
 
+        <div className="mt-4 grid gap-4 sm:grid-cols-2">
+          <Field label="Benefits (one per line)">
+            <textarea value={f.benefits} onChange={(e) => set("benefits", e.target.value)} rows={4} className={fieldClass} />
+          </Field>
+          <Field label="What's inside (one per line)">
+            <textarea value={f.features} onChange={(e) => set("features", e.target.value)} rows={4} className={fieldClass} />
+          </Field>
+          <Field label="Tags (comma separated)">
+            <input value={f.tags} onChange={(e) => set("tags", e.target.value)} className={fieldClass} />
+          </Field>
+          <Field label="Extra gallery image links (one per line)">
+            <textarea value={f.gallery_urls} onChange={(e) => set("gallery_urls", e.target.value)} rows={3} className={fieldClass} />
+          </Field>
+        </div>
+
         {err && <p className="mt-4 text-sm text-red-600">{err}</p>}
 
-        <div className="mt-6 flex gap-3">
+        <div className="sticky bottom-0 -mx-6 mt-6 flex flex-wrap gap-3 border-t border-forest/10 bg-white px-6 py-4">
           <button
             onClick={save}
             disabled={saving}
@@ -1791,6 +1846,16 @@ function ProductsPanel() {
           >
             {saving ? "Saving…" : "Save product"}
           </button>
+          {f.id && f.slug && (
+            <a
+              href={`/shop/${f.slug}`}
+              target="_blank"
+              rel="noreferrer"
+              className="rounded-full border border-forest/20 px-6 py-3 text-sm font-semibold text-forest hover:bg-cream"
+            >
+              View on site ↗
+            </a>
+          )}
           {f.id && (
             <button
               onClick={() => remove(f.id!)}
@@ -1818,58 +1883,131 @@ function ProductsPanel() {
         </button>
       </div>
       {err && <p className="text-sm text-red-600">{err}</p>}
-      <div className="overflow-hidden rounded-2xl border border-forest/10 bg-white shadow-sm">
-        <table className="w-full text-sm">
-          <thead className="bg-cream/60 text-left text-xs uppercase tracking-widest text-charcoal/60">
-            <tr>
-              <th className="px-4 py-3">Title</th>
-              <th className="px-4 py-3">Status</th>
-              <th className="px-4 py-3">Price</th>
-              <th className="px-4 py-3">Category</th>
-              <th className="px-4 py-3"></th>
-            </tr>
-          </thead>
-          <tbody>
-            {products.length === 0 ? (
-              <tr>
-                <td colSpan={5} className="px-4 py-6 text-charcoal/60">
-                  No products yet.
-                </td>
-              </tr>
-            ) : (
-              products.map((p) => (
-                <tr key={p.id} className="border-t border-forest/5">
-                  <td className="px-4 py-3">
-                    <p className="font-semibold text-forest-deep">{p.title}</p>
-                    <p className="text-xs text-charcoal/50">/{p.slug}</p>
-                  </td>
-                  <td className="px-4 py-3">
-                    <span
-                      className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
-                        p.status === "published"
-                          ? "bg-sage/20 text-forest"
-                          : "bg-charcoal/10 text-charcoal/60"
-                      }`}
-                    >
-                      {p.status}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3">${p.price_display}</td>
-                  <td className="px-4 py-3">{p.category_name ?? "—"}</td>
-                  <td className="px-4 py-3 text-right">
-                    <button
-                      onClick={() => startEdit(p)}
-                      className="text-xs font-semibold text-forest hover:underline"
-                    >
-                      Edit
-                    </button>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+      {notice && <p className="rounded-xl bg-sage/20 px-4 py-3 text-sm font-semibold text-forest">{notice}</p>}
+      {products.length === 0 ? (
+        <p className="rounded-2xl border border-forest/10 bg-white p-6 text-sm text-charcoal/60">No products yet.</p>
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {products.map((p) => (
+            <div key={p.id} className="flex flex-col overflow-hidden rounded-2xl border border-forest/10 bg-white shadow-sm">
+              <div className="aspect-[4/3] bg-cream">
+                <img src={productImage(p) ?? ""} alt={p.title} className="size-full object-cover" />
+              </div>
+              <div className="flex flex-1 flex-col p-4">
+                <div className="flex items-start justify-between gap-2">
+                  <p className="font-semibold leading-snug text-forest-deep">{p.title}</p>
+                  <button
+                    onClick={() => toggleStatus(p)}
+                    title="Tap to switch between live and hidden"
+                    className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold ${p.status === "published" ? "bg-sage/25 text-forest" : "bg-charcoal/10 text-charcoal/60"}`}
+                  >
+                    {p.status === "published" ? "● Live" : "○ Hidden"}
+                  </button>
+                </div>
+                <p className="mt-1 text-xs text-charcoal/50">/shop/{p.slug}</p>
+                <div className="mt-3 flex items-center gap-2">
+                  <QuickPrice product={p} onSaved={afterQuickSave} />
+                  {p.compare_at_cents > p.price_cents && (
+                    <span className="text-sm text-charcoal/50 line-through">${p.compare_at_display}</span>
+                  )}
+                </div>
+                <div className="mt-auto flex gap-2 pt-4">
+                  <button onClick={() => startEdit(p)} className="flex-1 rounded-full bg-forest px-4 py-2 text-sm font-semibold text-cream hover:bg-forest-deep">Edit everything</button>
+                  <a href={`/shop/${p.slug}`} target="_blank" rel="noreferrer" className="rounded-full border border-forest/20 px-4 py-2 text-sm font-semibold text-forest hover:bg-cream">View ↗</a>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function productToInput(p: AdminProduct) {
+  return {
+    id: p.id,
+    slug: p.slug,
+    title: p.title,
+    subtitle: p.subtitle,
+    description: p.description,
+    category_id: p.category_id,
+    cover_image_url: p.cover_image_url,
+    pdf_asset_url: p.pdf_asset_url,
+    price_cents: p.price_cents,
+    compare_at_cents: p.compare_at_cents,
+    currency: p.currency,
+    paddle_price_external_id: p.paddle_price_external_id,
+    is_featured: p.is_featured,
+    is_bestseller: p.is_bestseller,
+    status: p.status,
+    seo_title: p.seo_title,
+    seo_description: p.seo_description,
+    pinterest_description: p.pinterest_description,
+    tags: p.tags,
+    benefits: p.benefits,
+    features: p.features,
+    gallery_urls: p.gallery_urls,
+  };
+}
+
+function DollarInput({ cents, onChange }: { cents: number; onChange: (c: number) => void }) {
+  const [text, setText] = useState((cents / 100).toFixed(2));
+  useEffect(() => {
+    if (Math.round(Number(text) * 100) !== cents) setText((cents / 100).toFixed(2));
+  }, [cents]);
+  return (
+    <div className="flex items-center rounded-lg border border-forest/15 bg-white focus-within:border-forest">
+      <span className="pl-3 text-sm text-charcoal/50">$</span>
+      <input
+        inputMode="decimal"
+        value={text}
+        onChange={(e) => {
+          const v = e.target.value.replace(/[^0-9.]/g, "");
+          setText(v);
+          const n = Number(v);
+          if (Number.isFinite(n)) onChange(Math.round(n * 100));
+        }}
+        onBlur={() => setText((cents / 100).toFixed(2))}
+        className="w-full bg-transparent px-2 py-2 text-sm outline-none"
+      />
+    </div>
+  );
+}
+
+function QuickPrice({ product, onSaved }: { product: AdminProduct; onSaved: (m: string) => Promise<void> }) {
+  const [open, setOpen] = useState(false);
+  const [cents, setCents] = useState(product.price_cents);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  if (!open)
+    return (
+      <button onClick={() => { setCents(product.price_cents); setOpen(true); }} title="Tap to change price" className="text-xl font-bold text-forest-deep underline decoration-dotted underline-offset-4">
+        ${product.price_display}
+      </button>
+    );
+  const save = async () => {
+    setBusy(true);
+    setError(null);
+    try {
+      const compare = Math.max(product.compare_at_cents, cents);
+      await adminUpsertProduct({ data: { ...productToInput(product), price_cents: cents, compare_at_cents: compare } });
+      setOpen(false);
+      await onSaved(`"${product.title}" now costs $${(cents / 100).toFixed(2)}.`);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Save failed");
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <div className="flex flex-col gap-1">
+      <div className="flex items-center gap-2">
+        <div className="w-28"><DollarInput cents={cents} onChange={setCents} /></div>
+        <button onClick={save} disabled={busy} className="rounded-full bg-forest px-3 py-1.5 text-xs font-semibold text-cream disabled:opacity-60">{busy ? "…" : "Save"}</button>
+        <button onClick={() => setOpen(false)} className="text-xs text-charcoal/60">Cancel</button>
       </div>
+      {error && <p className="text-xs text-red-600">{error}</p>}
     </div>
   );
 }
