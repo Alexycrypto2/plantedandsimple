@@ -183,7 +183,6 @@ export function RecipesSection() {
   const [editing, setEditing] = useState<string | "new" | null>(null);
   const [form, setForm] = useState(blank());
   const [links, setLinks] = useState<{ type: string; id: string }[]>([]);
-  const [linkable, setLinkable] = useState<any>(null);
   const [busy, setBusy] = useState(false);
   const [aiOpen, setAiOpen] = useState(false);
   const [aiSeed, setAiSeed] = useState("");
@@ -201,7 +200,7 @@ export function RecipesSection() {
   }, []);
 
   const load = () => adminListEntity({ data: { entity: "recipes" } }).then((r) => setRows(r as Recipe[]));
-  useEffect(() => { load(); adminLinkableItems().then(setLinkable).catch(() => {}); }, []);
+  useEffect(() => { load(); }, []);
 
   const openNew = () => { setForm(blank()); setLinks([]); setEditing("new"); };
 
@@ -263,13 +262,6 @@ export function RecipesSection() {
     } finally { setBusy(false); }
   };
 
-  const toggleLink = (type: string, id: string) => {
-    setLinks((prev) =>
-      prev.some((l) => l.type === type && l.id === id)
-        ? prev.filter((l) => !(l.type === type && l.id === id))
-        : [...prev, { type, id }],
-    );
-  };
 
   if (editing) {
     return (
