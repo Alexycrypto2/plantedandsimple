@@ -6,10 +6,13 @@ import { NewsletterPopup } from "@/components/NewsletterPopup";
 import { fallbackPost, fallbackRecipe } from "@/lib/fallback-content";
 import { getPublishedPostBySlug, type PublicPost } from "@/lib/blog.functions";
 import { getRecipeBySlug } from "@/lib/library/library.functions";
+import { getPageLinks, type PageLinks } from "@/lib/linking/linking.functions";
+import { RelatedSection, RoundupList } from "@/components/site/RelatedLinks";
 
 export const Route = createFileRoute("/blog/$slug")({
   component: PostPage,
-  loader: async ({ params }): Promise<{ post: PublicPost }> => {
+  loader: async ({ params }): Promise<{ post: PublicPost; links: PageLinks | null }> => {
+    const linksP = getPageLinks({ data: { type: "blog", slug: params.slug } }).catch(() => null);
     let post: PublicPost | null = null;
     try { post = await getPublishedPostBySlug({ data: { slug: params.slug } }); } catch { post = null; }
     if (!post) post = fallbackPost(params.slug);
@@ -20,7 +23,7 @@ export const Route = createFileRoute("/blog/$slug")({
       if (recipe || fallbackRecipe(params.slug)) throw redirect({ to: "/recipes/$slug", params: { slug: params.slug }, statusCode: 301 });
       throw notFound();
     }
-    return { post };
+    return { post, links: await linksP };
   },
   errorComponent: BlogError,
   notFoundComponent: () => (
@@ -73,7 +76,7 @@ function BlogError({ error, reset }: { error: unknown; reset: () => void }) {
 }
 
 function PostPage() {
-  const { post } = Route.useLoaderData() as { post: PublicPost };
+  const { post, links } = Route.useLoaderData() as { post: PublicPost; links: PageLinks | null };
   return (
     <SiteLayout>
       <article className="mx-auto max-w-3xl px-6 py-16">
@@ -116,6 +119,8 @@ function PostPage() {
             ))}
           </div>
         )}
+        {links ? <RoundupList roundup={links.roundup} /> : null}
+        {links ? <RelatedSection links={links} heading="Recipes to try next" readLabel="More from the journal:" /> : null}
         <ContentEndFunnel source="blog" />
         <NewsletterPopup />
       </article>

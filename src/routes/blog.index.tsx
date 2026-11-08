@@ -4,20 +4,23 @@ import { FALLBACK_POSTS } from "@/lib/fallback-content";
 import { SiteLayout } from "@/components/SiteLayout";
 import { listPublishedPosts, type PublicPost } from "@/lib/blog.functions";
 import { EditorialCard } from "@/components/site/primitives";
+import { getHubs, type Hub } from "@/lib/linking/linking.functions";
+import { HubSections } from "@/components/site/RelatedLinks";
 
 export const Route = createFileRoute("/blog/")({
   component: BlogPage,
-  loader: async (): Promise<{ posts: PublicPost[] }> => {
+  loader: async (): Promise<{ posts: PublicPost[]; hubs: Hub[] }> => {
+    const hubsP = getHubs().catch(() => [] as Hub[]);
     let posts: PublicPost[] = [];
     try { posts = await listPublishedPosts(); } catch { /* show the editorial fallback while Cloud recovers */ }
-    return { posts: posts.length ? posts : FALLBACK_POSTS };
+    return { posts: posts.length ? posts : FALLBACK_POSTS, hubs: await hubsP };
   },
   head: () => pageHead("/blog", "Plant-Based Cooking Blog & Meal Prep Tips | PlantedAndSimple", "Explore plant-based cooking articles, vegan protein ideas and practical meal prep tips. Find inspiration for your next meal with PlantedAndSimple."),
 });
 
 
 function BlogPage() {
-  const { posts } = Route.useLoaderData() as { posts: PublicPost[] };
+  const { posts, hubs } = Route.useLoaderData() as { posts: PublicPost[]; hubs: Hub[] };
   return (
     <SiteLayout>
       <section className="mx-auto max-w-6xl px-6 py-20">
@@ -55,6 +58,7 @@ function BlogPage() {
             ))}
           </div>
         )}
+        <HubSections hubs={hubs} />
       </section>
     </SiteLayout>
   );
