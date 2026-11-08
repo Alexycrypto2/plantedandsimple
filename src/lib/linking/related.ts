@@ -81,7 +81,7 @@ const norm = (s: string) => s.trim().toLowerCase();
 /** Suggest tags from a page's title, tags, category and summary. */
 export function inferTaxonomy(p: RawPage): Taxonomy {
   const text = [p.title, ...(p.tags ?? []), p.category ?? "", p.excerpt ?? "", p.description ?? ""].join(" | ").toLowerCase();
-  const titleAndTags = [p.title, ...(p.tags ?? [])].join(" | ").toLowerCase();
+  const titleAndTags = [p.title, ...(p.tags ?? [])].join(" | ").toLowerCase().replace(/-/g, " ");
   const titleLc = p.title.toLowerCase();
   let category = CATEGORY_RULES.find(([, re]) => re.test(titleLc))?.[0]
     ?? CATEGORY_RULES.find(([, re]) => re.test(titleAndTags))?.[0]
