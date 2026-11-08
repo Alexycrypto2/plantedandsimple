@@ -2586,7 +2586,7 @@ function BlogPanel() {
 
 const BLOG_PAGE = 40;
 
-function BlogList({
+export function BlogList({
   posts,
   onEdit,
   onDelete,
