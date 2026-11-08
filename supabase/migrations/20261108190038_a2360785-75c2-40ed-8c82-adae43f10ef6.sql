@@ -1,0 +1,2 @@
+INSERT INTO public.site_settings (key, value) VALUES ('internal_linking', '{"live": true, "hubs": ["Thanksgiving"]}'::jsonb)
+ON CONFLICT (key) DO UPDATE SET value = jsonb_set(COALESCE(public.site_settings.value, '{}'::jsonb), '{live}', 'true'::jsonb);
