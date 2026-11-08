@@ -2026,7 +2026,22 @@ function OverviewPanel({ onNavigate }: { onNavigate: (t: string) => void }) {
       .catch((e) => setErr(e instanceof Error ? e.message : String(e)));
   }, []);
 
-  if (err) return <p className="text-red-600">{err}</p>;
+  if (err)
+    return (
+      <div className="rounded-2xl border border-forest/10 bg-white/60 p-6">
+        <p className="font-medium">Store numbers couldn't load right now.</p>
+        <p className="mt-1 text-sm opacity-70">The rest of the admin panel still works. Try again in a moment.</p>
+        <button
+          className="mt-4 rounded-full border border-forest/20 px-4 py-2 text-sm"
+          onClick={() => {
+            setErr(null);
+            getDashboardStats().then(setStats).catch((e) => setErr(e instanceof Error ? e.message : String(e)));
+          }}
+        >
+          Retry
+        </button>
+      </div>
+    );
   if (!stats)
     return (
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
