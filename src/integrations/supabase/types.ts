@@ -1419,56 +1419,53 @@ export type Database = {
       }
       prep_cookbooks: {
         Row: {
+          active: boolean
+          cover_url: string | null
           created_at: string
           description: string | null
-          display_order: number
           id: string
-          is_active: boolean
+          is_builtin: boolean
           slug: string
+          sort: number
           title: string
-          updated_at: string
-          version: string
         }
         Insert: {
+          active?: boolean
+          cover_url?: string | null
           created_at?: string
           description?: string | null
-          display_order?: number
           id?: string
-          is_active?: boolean
+          is_builtin?: boolean
           slug: string
+          sort?: number
           title: string
-          updated_at?: string
-          version?: string
         }
         Update: {
+          active?: boolean
+          cover_url?: string | null
           created_at?: string
           description?: string | null
-          display_order?: number
           id?: string
-          is_active?: boolean
+          is_builtin?: boolean
           slug?: string
+          sort?: number
           title?: string
-          updated_at?: string
-          version?: string
         }
         Relationships: []
       }
       prep_favorites: {
         Row: {
           created_at: string
-          id: string
           recipe_id: string
           user_id: string
         }
         Insert: {
           created_at?: string
-          id?: string
           recipe_id: string
           user_id: string
         }
         Update: {
           created_at?: string
-          id?: string
           recipe_id?: string
           user_id?: string
         }
@@ -1477,28 +1474,37 @@ export type Database = {
       prep_meal_plans: {
         Row: {
           created_at: string
+          grocery_checked: Json
           id: string
-          is_active: boolean
-          plan_data: Json
-          title: string
+          is_current: boolean
+          name: string
+          prep_done: Json
+          slots: Json
+          source: string
           updated_at: string
           user_id: string
         }
         Insert: {
           created_at?: string
+          grocery_checked?: Json
           id?: string
-          is_active?: boolean
-          plan_data?: Json
-          title?: string
+          is_current?: boolean
+          name?: string
+          prep_done?: Json
+          slots?: Json
+          source?: string
           updated_at?: string
           user_id: string
         }
         Update: {
           created_at?: string
+          grocery_checked?: Json
           id?: string
-          is_active?: boolean
-          plan_data?: Json
-          title?: string
+          is_current?: boolean
+          name?: string
+          prep_done?: Json
+          slots?: Json
+          source?: string
           updated_at?: string
           user_id?: string
         }
@@ -1506,148 +1512,154 @@ export type Database = {
       }
       prep_members: {
         Row: {
-          access_status: string
           created_at: string
           email: string
           granted_by: string | null
           id: string
-          role: string
-          user_id: string | null
+          last_seen_at: string | null
+          note: string | null
+          source: string
+          status: string
+          updated_at: string
         }
         Insert: {
-          access_status?: string
           created_at?: string
           email: string
           granted_by?: string | null
           id?: string
-          role?: string
-          user_id?: string | null
+          last_seen_at?: string | null
+          note?: string | null
+          source?: string
+          status?: string
+          updated_at?: string
         }
         Update: {
-          access_status?: string
           created_at?: string
           email?: string
           granted_by?: string | null
           id?: string
-          role?: string
-          user_id?: string | null
+          last_seen_at?: string | null
+          note?: string | null
+          source?: string
+          status?: string
+          updated_at?: string
         }
         Relationships: []
       }
       prep_pantry_items: {
         Row: {
-          category: string | null
           created_at: string
           id: string
-          in_stock: boolean
-          ingredient_name: string
+          name: string
           user_id: string
         }
         Insert: {
-          category?: string | null
           created_at?: string
           id?: string
-          in_stock?: boolean
-          ingredient_name: string
+          name: string
           user_id: string
         }
         Update: {
-          category?: string | null
           created_at?: string
           id?: string
-          in_stock?: boolean
-          ingredient_name?: string
+          name?: string
           user_id?: string
         }
         Relationships: []
       }
       prep_profiles: {
         Row: {
+          allergies: string[]
+          budget: string | null
           created_at: string
-          dietary_preferences: string[] | null
-          disliked_ingredients: string[] | null
-          household_size: number
+          dislikes: string[]
+          display_name: string | null
+          goal: string | null
           id: string
+          onboarded: boolean
           prep_day: string | null
-          servings_per_meal: number
+          protein_target: number | null
+          servings: number
           updated_at: string
-          user_id: string
         }
         Insert: {
+          allergies?: string[]
+          budget?: string | null
           created_at?: string
-          dietary_preferences?: string[] | null
-          disliked_ingredients?: string[] | null
-          household_size?: number
-          id?: string
+          dislikes?: string[]
+          display_name?: string | null
+          goal?: string | null
+          id: string
+          onboarded?: boolean
           prep_day?: string | null
-          servings_per_meal?: number
+          protein_target?: number | null
+          servings?: number
           updated_at?: string
-          user_id: string
         }
         Update: {
+          allergies?: string[]
+          budget?: string | null
           created_at?: string
-          dietary_preferences?: string[] | null
-          disliked_ingredients?: string[] | null
-          household_size?: number
+          dislikes?: string[]
+          display_name?: string | null
+          goal?: string | null
           id?: string
+          onboarded?: boolean
           prep_day?: string | null
-          servings_per_meal?: number
+          protein_target?: number | null
+          servings?: number
           updated_at?: string
-          user_id?: string
         }
         Relationships: []
       }
       prep_purchases: {
         Row: {
-          customer_email: string
+          created_at: string
+          email: string | null
+          environment: string
           id: string
-          paddle_transaction_id: string | null
-          purchased_at: string
-          status: string
+          transaction_id: string
         }
         Insert: {
-          customer_email: string
+          created_at?: string
+          email?: string | null
+          environment?: string
           id?: string
-          paddle_transaction_id?: string | null
-          purchased_at?: string
-          status?: string
+          transaction_id: string
         }
         Update: {
-          customer_email?: string
+          created_at?: string
+          email?: string | null
+          environment?: string
           id?: string
-          paddle_transaction_id?: string | null
-          purchased_at?: string
-          status?: string
+          transaction_id?: string
         }
         Relationships: []
       }
       prep_recipes: {
         Row: {
-          cookbook_id: string | null
+          active: boolean
+          cookbook_id: string
           created_at: string
-          display_order: number
+          data: Json
           id: string
-          recipe_data: Json
           slug: string
-          updated_at: string
         }
         Insert: {
-          cookbook_id?: string | null
+          active?: boolean
+          cookbook_id: string
           created_at?: string
-          display_order?: number
+          data: Json
           id?: string
-          recipe_data?: Json
           slug: string
-          updated_at?: string
         }
         Update: {
-          cookbook_id?: string | null
+          active?: boolean
+          cookbook_id?: string
           created_at?: string
-          display_order?: number
+          data?: Json
           id?: string
-          recipe_data?: Json
           slug?: string
-          updated_at?: string
         }
         Relationships: [
           {
