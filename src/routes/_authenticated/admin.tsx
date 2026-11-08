@@ -1674,12 +1674,20 @@ function ProductsPanel() {
               ))}
             </select>
           </Field>
-          <Field label="Cover image URL">
-            <input
-              value={f.cover_image_url}
-              onChange={(e) => set("cover_image_url", e.target.value)}
-              className={fieldClass}
-            />
+          <Field label="Cover image (paste image link)">
+            <div className="flex gap-3">
+              <div className="size-16 shrink-0 overflow-hidden rounded-lg bg-cream">
+                {f.cover_image_url && (
+                  <img src={f.cover_image_url} alt="" className="size-full object-cover" />
+                )}
+              </div>
+              <input
+                value={f.cover_image_url}
+                onChange={(e) => set("cover_image_url", e.target.value)}
+                placeholder="Leave empty to use the built-in product picture"
+                className={fieldClass}
+              />
+            </div>
           </Field>
           <Field label="PDF asset URL">
             <input
@@ -1689,24 +1697,35 @@ function ProductsPanel() {
               className={fieldClass}
             />
           </Field>
-          <Field label="Price (cents)">
-            <input
-              type="number"
-              value={f.price_cents}
-              onChange={(e) => set("price_cents", Number(e.target.value))}
-              className={fieldClass}
+          <Field label="Price customers pay ($)">
+            <DollarInput
+              cents={f.price_cents}
+              onChange={(c) => set("price_cents", c)}
             />
           </Field>
-          <Field label="Compare-at (cents)">
-            <input
-              type="number"
-              value={f.compare_at_cents}
-              onChange={(e) =>
-                set("compare_at_cents", Number(e.target.value))
-              }
-              className={fieldClass}
+          <Field label="Original price, crossed out ($)">
+            <DollarInput
+              cents={f.compare_at_cents}
+              onChange={(c) => set("compare_at_cents", c)}
             />
           </Field>
+          <div className="sm:col-span-2 rounded-xl bg-cream/60 p-4 text-sm">
+            <p className="text-xs uppercase tracking-widest text-charcoal/50">How the price shows on the site</p>
+            <p className="mt-1">
+              <span className="text-2xl font-bold text-forest-deep">${(f.price_cents / 100).toFixed(2)}</span>
+              {f.compare_at_cents > f.price_cents && (
+                <>
+                  <span className="ml-2 text-charcoal/50 line-through">${(f.compare_at_cents / 100).toFixed(2)}</span>
+                  <span className="ml-2 rounded-full bg-sage/25 px-2 py-0.5 text-xs font-semibold text-forest">
+                    Save {Math.round((1 - f.price_cents / f.compare_at_cents) * 100)}%
+                  </span>
+                </>
+              )}
+            </p>
+            {f.compare_at_cents < f.price_cents && (
+              <p className="mt-1 text-xs text-red-600">Original price must be the same or higher than the selling price.</p>
+            )}
+          </div>
           <Field label="Currency">
             <input
               value={f.currency}
