@@ -44,6 +44,8 @@ const stored = (r: any): Partial<Taxonomy> => ({
   category: r.link_category, occasions: r.occasions ?? [], main_ingredients: r.main_ingredients ?? [], diet_tags: r.diet_tags ?? [],
 });
 
+type Loaded = { raw: any; page: LinkPage };
+
 async function loadPages(sb: any, onlyPublished: boolean) {
   let rq = sb.from("recipes").select(R_COLS);
   let bq = sb.from("blog_posts").select(B_COLS);
@@ -57,7 +59,7 @@ async function loadPages(sb: any, onlyPublished: boolean) {
     const { data } = await sb.from("media").select("id, public_url").in("id", ids);
     for (const m of data ?? []) media.set(m.id, m.public_url);
   }
-  const recipes = (r.data ?? []).map((x: any) => ({
+  const recipes: Loaded[] = (r.data ?? []).map((x: any) => ({
     raw: x,
     page: {
       type: "recipe" as const, id: x.id, slug: x.slug, title: x.title,
@@ -66,7 +68,7 @@ async function loadPages(sb: any, onlyPublished: boolean) {
       ...effectiveTaxonomy(stored(x), { type: "recipe", title: x.title, tags: x.tags, description: x.description }),
     } satisfies LinkPage,
   }));
-  const blogs = (b.data ?? []).map((x: any) => ({
+  const blogs: Loaded[] = (b.data ?? []).map((x: any) => ({
     raw: x,
     page: {
       type: "blog" as const, id: x.id, slug: x.slug, title: x.title, image: x.featured_image_url ?? null,
@@ -142,8 +144,8 @@ export const adminLinkingOverview = createServerFn({ method: "GET" })
     await requireBoss(context.supabase, context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { recipes, blogs, settings } = await loadPages(supabaseAdmin as any, false);
-    const pub = (xs: typeof recipes) => xs.filter((x) => x.raw.status === "published").map((x) => x.page);
-    const pr = pub(recipes), pb = pub(blogs as any);
+    const pub = (xs: Loaded[]) => xs.filter((x) => x.raw.status === "published").map((x) => x.page);
+    const pr = pub(recipes), pb = pub(blogs);
     const now = Date.now();
     const rows = [...recipes, ...blogs].map(({ raw, page }) => ({
       type: page.type, id: page.id, slug: page.slug, title: page.title, status: raw.status, href: pageHref(page),
