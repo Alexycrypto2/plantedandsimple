@@ -29,6 +29,7 @@ import { Route as ShopRouteImport } from './routes/shop'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as ThankYouRouteImport } from './routes/thank-you'
+import { Route as ZzBlogPreviewRouteImport } from './routes/zz-blog-preview'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedAffiliateRouteImport } from './routes/_authenticated/affiliate'
 import { Route as AuthenticatedPrepAppRouteImport } from './routes/_authenticated/prep-app'
@@ -164,6 +165,11 @@ const TermsRoute = TermsRouteImport.update({
 const ThankYouRoute = ThankYouRouteImport.update({
   id: '/thank-you',
   path: '/thank-you',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ZzBlogPreviewRoute = ZzBlogPreviewRouteImport.update({
+  id: '/zz-blog-preview',
+  path: '/zz-blog-preview',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
@@ -392,6 +398,7 @@ export interface FileRoutesByFullPath {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/thank-you': typeof ThankYouRoute
+  '/zz-blog-preview': typeof ZzBlogPreviewRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/affiliate': typeof AuthenticatedAffiliateRoute
   '/prep-app': typeof AuthenticatedPrepAppRouteWithChildren
@@ -447,6 +454,7 @@ export interface FileRoutesByTo {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/thank-you': typeof ThankYouRoute
+  '/zz-blog-preview': typeof ZzBlogPreviewRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/affiliate': typeof AuthenticatedAffiliateRoute
   '/blog/$slug': typeof BlogSlugRoute
@@ -506,6 +514,7 @@ export interface FileRoutesById {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/thank-you': typeof ThankYouRoute
+  '/zz-blog-preview': typeof ZzBlogPreviewRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/affiliate': typeof AuthenticatedAffiliateRoute
   '/_authenticated/prep-app': typeof AuthenticatedPrepAppRouteWithChildren
@@ -566,6 +575,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/terms'
     | '/thank-you'
+    | '/zz-blog-preview'
     | '/admin'
     | '/affiliate'
     | '/prep-app'
@@ -621,6 +631,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/terms'
     | '/thank-you'
+    | '/zz-blog-preview'
     | '/admin'
     | '/affiliate'
     | '/blog/$slug'
@@ -679,6 +690,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/terms'
     | '/thank-you'
+    | '/zz-blog-preview'
     | '/_authenticated/admin'
     | '/_authenticated/affiliate'
     | '/_authenticated/prep-app'
@@ -739,6 +751,7 @@ export interface RootRouteChildren {
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TermsRoute: typeof TermsRoute
   ThankYouRoute: typeof ThankYouRoute
+  ZzBlogPreviewRoute: typeof ZzBlogPreviewRoute
   CollectionsSlugRoute: typeof CollectionsSlugRoute
   EmailUnsubscribeRoute: typeof EmailUnsubscribeRoute
   PSlugRoute: typeof PSlugRoute
@@ -898,6 +911,13 @@ declare module '@tanstack/react-router' {
       path: '/thank-you'
       fullPath: '/thank-you'
       preLoaderRoute: typeof ThankYouRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/zz-blog-preview': {
+      id: '/zz-blog-preview'
+      path: '/zz-blog-preview'
+      fullPath: '/zz-blog-preview'
+      preLoaderRoute: typeof ZzBlogPreviewRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/admin': {
@@ -1266,6 +1286,7 @@ const rootRouteChildren: RootRouteChildren = {
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   TermsRoute: TermsRoute,
   ThankYouRoute: ThankYouRoute,
+  ZzBlogPreviewRoute: ZzBlogPreviewRoute,
   CollectionsSlugRoute: CollectionsSlugRoute,
   EmailUnsubscribeRoute: EmailUnsubscribeRoute,
   PSlugRoute: PSlugRoute,
