@@ -70,7 +70,7 @@ export const INGREDIENT_RULES: Array<[string, RegExp]> = [
 ];
 
 const DIET_RULES: Array<[string, RegExp]> = [
-  ["High-protein", /\b(high[- ]?protein|highprotein|protein)\b/],
+  ["High-protein", /\b(high[- ]?protein|highprotein|protein[- ]packed|\d+\s?g (of )?(plant )?protein)\b/],
   ["Gluten-free", /\bgluten[- ]free\b/],
   ["High-fiber", /\bhigh[- ](fiber|fibre)\b/],
   ["Dairy-free", /\bdairy[- ]free\b/],
