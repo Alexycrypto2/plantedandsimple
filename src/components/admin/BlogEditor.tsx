@@ -1,3 +1,4 @@
+import { ConnectionsCard, type ConnLink } from "./ConnectionsCard";
 import { useEffect, useRef, useState } from "react";
 import { Sparkles, Plus, ExternalLink, Image as ImageIcon, Eye, Pencil } from "lucide-react";
 import { generateStudioImage } from "@/lib/ai/image-studio.functions";
@@ -51,7 +52,11 @@ export function BlogEditor({
   onSave,
   onCancel,
   busy,
+  links,
+  onLinksChange,
 }: {
+  links?: ConnLink[];
+  onLinksChange?: (l: ConnLink[]) => void;
   value: BlogDraft;
   onChange: (v: BlogDraft) => void;
   onSave: () => void;
@@ -296,6 +301,7 @@ export function BlogEditor({
         </div>
       </section>
       <SeoDoctor value={value} onApply={(patch) => set(patch as any)} />
+      {links && onLinksChange && <ConnectionsCard links={links} onChange={onLinksChange} contextText={`${value.title} ${value.tags} ${value.category}`} />}
 
       <div className="sticky bottom-0 -mx-4 flex justify-end gap-3 border-t border-forest/10 bg-white/95 px-4 py-3 sm:-mx-6 sm:px-6">
         <button onClick={onCancel} className="rounded-full border border-forest/20 px-5 py-2 text-xs font-bold uppercase tracking-[0.2em] text-charcoal/70">Cancel</button>

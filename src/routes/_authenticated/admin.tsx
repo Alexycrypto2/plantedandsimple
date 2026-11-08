@@ -2489,7 +2489,10 @@ function BlogPanel() {
     }
   }, []);
 
-  const startEdit = (p: AdminPost) =>
+  const [postLinks, setPostLinks] = useState<{ type: string; id: string }[]>([]);
+  const startEdit = (p: AdminPost) => {
+    setPostLinks([]);
+    adminGetLinks({ data: { contentType: "blog", contentId: p.id } }).then((l: any) => setPostLinks(l.relations ?? [])).catch(() => {});
     setEditing({
       id: p.id,
       slug: p.slug,
@@ -2503,13 +2506,14 @@ function BlogPanel() {
       seo_title: p.seo_title ?? "",
       seo_description: p.seo_description ?? "",
     });
+  };
 
   const save = async () => {
     if (!editing) return;
     setBusy(true);
     setErr(null);
     try {
-      await adminUpsertPost({
+      const saved: any = await adminUpsertPost({
         data: {
           id: editing.id,
           slug: editing.slug.trim(),
@@ -2527,6 +2531,7 @@ function BlogPanel() {
           seo_description: editing.seo_description || null,
         },
       });
+      if (saved?.id) await adminSetLinks({ data: { contentType: "blog", contentId: saved.id, relations: postLinks } });
       setEditing(null);
       await load();
     } catch (e) {
@@ -2554,7 +2559,7 @@ function BlogPanel() {
             <Sparkles className="h-3.5 w-3.5" /> Write with AI
           </button>
           <button
-            onClick={() => setEditing({ ...emptyPostDraft })}
+            onClick={() => { setPostLinks([]); setEditing({ ...emptyPostDraft }); }}
             className="rounded-full border border-forest/25 px-5 py-2 text-xs font-bold uppercase tracking-[0.2em] text-forest hover:bg-forest/5"
           >
             + New post
@@ -2579,7 +2584,7 @@ function BlogPanel() {
       />
 
       {editing && (
-        <BlogEditor value={editing as any} onChange={(v) => setEditing(v as any)} onSave={save} onCancel={() => setEditing(null)} busy={busy} />
+        <BlogEditor links={postLinks} onLinksChange={setPostLinks} value={editing as any} onChange={(v) => setEditing(v as any)} onSave={save} onCancel={() => setEditing(null)} busy={busy} />
       )}
 
       <BlogList posts={posts} onEdit={startEdit} onDelete={remove} onReload={load} onError={setErr} />
