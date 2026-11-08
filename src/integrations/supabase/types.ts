@@ -390,6 +390,7 @@ export type Database = {
       blog_posts: {
         Row: {
           author_id: string | null
+          author_name: string | null
           category: string | null
           content: string
           created_at: string
@@ -398,6 +399,7 @@ export type Database = {
           hero_image_id: string | null
           id: string
           published_at: string | null
+          read_minutes: number | null
           reading_time_minutes: number | null
           seo_description: string | null
           seo_title: string | null
@@ -409,6 +411,7 @@ export type Database = {
         }
         Insert: {
           author_id?: string | null
+          author_name?: string | null
           category?: string | null
           content?: string
           created_at?: string
@@ -417,6 +420,7 @@ export type Database = {
           hero_image_id?: string | null
           id?: string
           published_at?: string | null
+          read_minutes?: number | null
           reading_time_minutes?: number | null
           seo_description?: string | null
           seo_title?: string | null
@@ -428,6 +432,7 @@ export type Database = {
         }
         Update: {
           author_id?: string | null
+          author_name?: string | null
           category?: string | null
           content?: string
           created_at?: string
@@ -436,6 +441,7 @@ export type Database = {
           hero_image_id?: string | null
           id?: string
           published_at?: string | null
+          read_minutes?: number | null
           reading_time_minutes?: number | null
           seo_description?: string | null
           seo_title?: string | null
@@ -528,7 +534,11 @@ export type Database = {
           id: string
           image_id: string | null
           name: string
+          parent_id: string | null
+          seo_description: string | null
+          seo_title: string | null
           slug: string
+          sort_order: number
           updated_at: string
         }
         Insert: {
@@ -538,7 +548,11 @@ export type Database = {
           id?: string
           image_id?: string | null
           name: string
+          parent_id?: string | null
+          seo_description?: string | null
+          seo_title?: string | null
           slug: string
+          sort_order?: number
           updated_at?: string
         }
         Update: {
@@ -548,7 +562,11 @@ export type Database = {
           id?: string
           image_id?: string | null
           name?: string
+          parent_id?: string | null
+          seo_description?: string | null
+          seo_title?: string | null
           slug?: string
+          sort_order?: number
           updated_at?: string
         }
         Relationships: [
@@ -934,9 +952,11 @@ export type Database = {
           display_order: number
           enabled: boolean
           id: string
-          section_key: string
+          kind: string | null
+          section_key: string | null
+          sort_order: number
           subtitle: string | null
-          title: string
+          title: string | null
           updated_at: string
         }
         Insert: {
@@ -945,9 +965,11 @@ export type Database = {
           display_order?: number
           enabled?: boolean
           id?: string
-          section_key: string
+          kind?: string | null
+          section_key?: string | null
+          sort_order?: number
           subtitle?: string | null
-          title: string
+          title?: string | null
           updated_at?: string
         }
         Update: {
@@ -956,9 +978,11 @@ export type Database = {
           display_order?: number
           enabled?: boolean
           id?: string
-          section_key?: string
+          kind?: string | null
+          section_key?: string | null
+          sort_order?: number
           subtitle?: string | null
-          title?: string
+          title?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -1052,57 +1076,63 @@ export type Database = {
       }
       media: {
         Row: {
+          alt: string
           alt_text: string | null
           blur_data_url: string | null
-          byte_size: number
+          byte_size: number | null
           caption: string | null
           created_at: string
           created_by: string | null
-          file_name: string
+          file_name: string | null
           height: number | null
           id: string
-          mime_type: string
-          source: string
+          mime_type: string | null
+          public_url: string | null
+          source: string | null
           source_details: Json
-          storage_path: string
+          storage_path: string | null
           tags: string[]
           title: string | null
           updated_at: string
           width: number | null
         }
         Insert: {
+          alt?: string
           alt_text?: string | null
           blur_data_url?: string | null
-          byte_size: number
+          byte_size?: number | null
           caption?: string | null
           created_at?: string
           created_by?: string | null
-          file_name: string
+          file_name?: string | null
           height?: number | null
           id?: string
-          mime_type: string
-          source?: string
+          mime_type?: string | null
+          public_url?: string | null
+          source?: string | null
           source_details?: Json
-          storage_path: string
+          storage_path?: string | null
           tags?: string[]
           title?: string | null
           updated_at?: string
           width?: number | null
         }
         Update: {
+          alt?: string
           alt_text?: string | null
           blur_data_url?: string | null
-          byte_size?: number
+          byte_size?: number | null
           caption?: string | null
           created_at?: string
           created_by?: string | null
-          file_name?: string
+          file_name?: string | null
           height?: number | null
           id?: string
-          mime_type?: string
-          source?: string
+          mime_type?: string | null
+          public_url?: string | null
+          source?: string | null
           source_details?: Json
-          storage_path?: string
+          storage_path?: string | null
           tags?: string[]
           title?: string | null
           updated_at?: string
@@ -1677,67 +1707,130 @@ export type Database = {
           description: string | null
           display_order: number
           id: string
+          name: string | null
           slug: string
-          title: string
+          sort_order: number
+          title: string | null
+          updated_at: string
         }
         Insert: {
           created_at?: string
           description?: string | null
           display_order?: number
           id?: string
+          name?: string | null
           slug: string
-          title: string
+          sort_order?: number
+          title?: string | null
+          updated_at?: string
         }
         Update: {
           created_at?: string
           description?: string | null
           display_order?: number
           id?: string
+          name?: string | null
           slug?: string
-          title?: string
+          sort_order?: number
+          title?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
       products: {
         Row: {
+          benefits: Json
+          bonus_files: Json
           category_id: string | null
+          compare_at_cents: number
+          cover_image_id: string | null
+          cover_image_url: string | null
           created_at: string
+          currency: string
           description: string | null
+          features: Json
+          gallery_urls: string[]
           id: string
+          is_bestseller: boolean
+          is_featured: boolean
           original_price_cents: number | null
+          paddle_price_external_id: string | null
           paddle_price_id: string | null
+          pdf_asset_url: string | null
+          pdf_storage_path: string | null
+          pinterest_description: string | null
           price_cents: number
+          published_at: string | null
+          seo_description: string | null
+          seo_title: string | null
           slug: string
           status: string
           subtitle: string | null
+          tags: string[]
           title: string
           updated_at: string
         }
         Insert: {
+          benefits?: Json
+          bonus_files?: Json
           category_id?: string | null
+          compare_at_cents?: number
+          cover_image_id?: string | null
+          cover_image_url?: string | null
           created_at?: string
+          currency?: string
           description?: string | null
+          features?: Json
+          gallery_urls?: string[]
           id?: string
+          is_bestseller?: boolean
+          is_featured?: boolean
           original_price_cents?: number | null
+          paddle_price_external_id?: string | null
           paddle_price_id?: string | null
+          pdf_asset_url?: string | null
+          pdf_storage_path?: string | null
+          pinterest_description?: string | null
           price_cents?: number
+          published_at?: string | null
+          seo_description?: string | null
+          seo_title?: string | null
           slug: string
           status?: string
           subtitle?: string | null
+          tags?: string[]
           title: string
           updated_at?: string
         }
         Update: {
+          benefits?: Json
+          bonus_files?: Json
           category_id?: string | null
+          compare_at_cents?: number
+          cover_image_id?: string | null
+          cover_image_url?: string | null
           created_at?: string
+          currency?: string
           description?: string | null
+          features?: Json
+          gallery_urls?: string[]
           id?: string
+          is_bestseller?: boolean
+          is_featured?: boolean
           original_price_cents?: number | null
+          paddle_price_external_id?: string | null
           paddle_price_id?: string | null
+          pdf_asset_url?: string | null
+          pdf_storage_path?: string | null
+          pinterest_description?: string | null
           price_cents?: number
+          published_at?: string | null
+          seo_description?: string | null
+          seo_title?: string | null
           slug?: string
           status?: string
           subtitle?: string | null
+          tags?: string[]
           title?: string
           updated_at?: string
         }
@@ -1756,9 +1849,11 @@ export type Database = {
           author_id: string | null
           calories: number | null
           carbs_grams: number | null
+          cook_minutes: number | null
           cook_time_minutes: number | null
           created_at: string
           description: string | null
+          difficulty: string
           equipment: string[]
           fat_grams: number | null
           featured: boolean
@@ -1768,14 +1863,21 @@ export type Database = {
           id: string
           ingredients: Json
           instructions: Json
+          is_featured: boolean
+          nutrition: Json
+          pinterest_description: string | null
+          prep_minutes: number | null
           prep_time_minutes: number | null
           protein_grams: number | null
           published_at: string | null
-          servings: number | null
+          seo_description: string | null
+          seo_title: string | null
+          servings: string | null
           slug: string
           status: string
           subtitle: string | null
           tags: string[]
+          tips: Json
           title: string
           total_time_minutes: number | null
           updated_at: string
@@ -1784,9 +1886,11 @@ export type Database = {
           author_id?: string | null
           calories?: number | null
           carbs_grams?: number | null
+          cook_minutes?: number | null
           cook_time_minutes?: number | null
           created_at?: string
           description?: string | null
+          difficulty?: string
           equipment?: string[]
           fat_grams?: number | null
           featured?: boolean
@@ -1796,14 +1900,21 @@ export type Database = {
           id?: string
           ingredients?: Json
           instructions?: Json
+          is_featured?: boolean
+          nutrition?: Json
+          pinterest_description?: string | null
+          prep_minutes?: number | null
           prep_time_minutes?: number | null
           protein_grams?: number | null
           published_at?: string | null
-          servings?: number | null
+          seo_description?: string | null
+          seo_title?: string | null
+          servings?: string | null
           slug: string
           status?: string
           subtitle?: string | null
           tags?: string[]
+          tips?: Json
           title: string
           total_time_minutes?: number | null
           updated_at?: string
@@ -1812,9 +1923,11 @@ export type Database = {
           author_id?: string | null
           calories?: number | null
           carbs_grams?: number | null
+          cook_minutes?: number | null
           cook_time_minutes?: number | null
           created_at?: string
           description?: string | null
+          difficulty?: string
           equipment?: string[]
           fat_grams?: number | null
           featured?: boolean
@@ -1824,14 +1937,21 @@ export type Database = {
           id?: string
           ingredients?: Json
           instructions?: Json
+          is_featured?: boolean
+          nutrition?: Json
+          pinterest_description?: string | null
+          prep_minutes?: number | null
           prep_time_minutes?: number | null
           protein_grams?: number | null
           published_at?: string | null
-          servings?: number | null
+          seo_description?: string | null
+          seo_title?: string | null
+          servings?: string | null
           slug?: string
           status?: string
           subtitle?: string | null
           tags?: string[]
+          tips?: Json
           title?: string
           total_time_minutes?: number | null
           updated_at?: string
