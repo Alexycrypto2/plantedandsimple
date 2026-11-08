@@ -2607,7 +2607,6 @@ export function BlogList({
   const [headerH, setHeaderH] = useState(68);
   const [showTop, setShowTop] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
-  console.log("DBG render BlogList", typeof window, window.scrollY);
 
   // The admin header above us is sticky and its height changes between phone and
   // desktop, so measure it and park the search bar directly underneath it.
@@ -2623,10 +2622,7 @@ export function BlogList({
 
   // With hundreds of articles you need a fast way back to the search bar.
   useEffect(() => {
-    const onScroll = () => {
-      console.log("DBG scroll", window.scrollY);
-      setShowTop(window.scrollY > 700);
-    };
+    const onScroll = () => setShowTop(window.scrollY > 700);
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
@@ -2725,7 +2721,7 @@ export function BlogList({
             ref={searchRef}
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="Search articles by title, category or tag…"
+            placeholder="Search title, category or tag…"
             className="w-full rounded-full border border-forest/15 bg-white py-2 pl-9 pr-16 text-sm outline-none focus:border-forest"
           />
           {q ? (
