@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { createClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import {
-  chooseRelated, effectiveTaxonomy, hubItems, hubMenuBlog, inferTaxonomy, pageHref, roundupRecipes,
+  chooseRelated, effectiveTaxonomy, hubAnchor, hubItems, hubMenuBlog, inferTaxonomy, pageHref, roundupRecipes,
   type LinkPage, type PageType, type Taxonomy,
 } from "./related";
 
@@ -92,7 +92,7 @@ function computeLinks(current: LinkPage, recipes: LinkPage[], blogs: LinkPage[],
     blogs: rel.blogs.map((x) => card(x.page)),
     hubs: myHubs.map((h) => {
       const menu = hubMenuBlog(h, blogs, current.type === "blog" ? current.slug : undefined);
-      return { name: h, anchor: `hub-${h.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`, menu: menu ? card(menu) : null };
+      return { name: h, anchor: hubAnchor(h), menu: menu ? card(menu) : null };
     }),
     roundup: current.type === "blog" && current.roundup_tag
       ? { tag: current.roundup_tag, items: roundupRecipes(current.roundup_tag, recipes).map(card) }
