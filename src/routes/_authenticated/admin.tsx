@@ -1862,58 +1862,43 @@ function ProductsPanel() {
         </button>
       </div>
       {err && <p className="text-sm text-red-600">{err}</p>}
-      <div className="overflow-hidden rounded-2xl border border-forest/10 bg-white shadow-sm">
-        <table className="w-full text-sm">
-          <thead className="bg-cream/60 text-left text-xs uppercase tracking-widest text-charcoal/60">
-            <tr>
-              <th className="px-4 py-3">Title</th>
-              <th className="px-4 py-3">Status</th>
-              <th className="px-4 py-3">Price</th>
-              <th className="px-4 py-3">Category</th>
-              <th className="px-4 py-3"></th>
-            </tr>
-          </thead>
-          <tbody>
-            {products.length === 0 ? (
-              <tr>
-                <td colSpan={5} className="px-4 py-6 text-charcoal/60">
-                  No products yet.
-                </td>
-              </tr>
-            ) : (
-              products.map((p) => (
-                <tr key={p.id} className="border-t border-forest/5">
-                  <td className="px-4 py-3">
-                    <p className="font-semibold text-forest-deep">{p.title}</p>
-                    <p className="text-xs text-charcoal/50">/{p.slug}</p>
-                  </td>
-                  <td className="px-4 py-3">
-                    <span
-                      className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
-                        p.status === "published"
-                          ? "bg-sage/20 text-forest"
-                          : "bg-charcoal/10 text-charcoal/60"
-                      }`}
-                    >
-                      {p.status}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3">${p.price_display}</td>
-                  <td className="px-4 py-3">{p.category_name ?? "—"}</td>
-                  <td className="px-4 py-3 text-right">
-                    <button
-                      onClick={() => startEdit(p)}
-                      className="text-xs font-semibold text-forest hover:underline"
-                    >
-                      Edit
-                    </button>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
+      {notice && <p className="rounded-xl bg-sage/20 px-4 py-3 text-sm font-semibold text-forest">{notice}</p>}
+      {products.length === 0 ? (
+        <p className="rounded-2xl border border-forest/10 bg-white p-6 text-sm text-charcoal/60">No products yet.</p>
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {products.map((p) => (
+            <div key={p.id} className="flex flex-col overflow-hidden rounded-2xl border border-forest/10 bg-white shadow-sm">
+              <div className="aspect-[4/3] bg-cream">
+                <img src={p.cover_image_url || productImage(p.slug)} alt={p.title} className="size-full object-cover" />
+              </div>
+              <div className="flex flex-1 flex-col p-4">
+                <div className="flex items-start justify-between gap-2">
+                  <p className="font-semibold leading-snug text-forest-deep">{p.title}</p>
+                  <button
+                    onClick={() => toggleStatus(p)}
+                    title="Tap to switch between live and hidden"
+                    className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold ${p.status === "published" ? "bg-sage/25 text-forest" : "bg-charcoal/10 text-charcoal/60"}`}
+                  >
+                    {p.status === "published" ? "● Live" : "○ Hidden"}
+                  </button>
+                </div>
+                <p className="mt-1 text-xs text-charcoal/50">/shop/{p.slug}</p>
+                <div className="mt-3 flex items-center gap-2">
+                  <QuickPrice product={p} onSaved={afterQuickSave} />
+                  {p.compare_at_cents > p.price_cents && (
+                    <span className="text-sm text-charcoal/50 line-through">${p.compare_at_display}</span>
+                  )}
+                </div>
+                <div className="mt-auto flex gap-2 pt-4">
+                  <button onClick={() => startEdit(p)} className="flex-1 rounded-full bg-forest px-4 py-2 text-sm font-semibold text-cream hover:bg-forest-deep">Edit everything</button>
+                  <a href={`/shop/${p.slug}`} target="_blank" rel="noreferrer" className="rounded-full border border-forest/20 px-4 py-2 text-sm font-semibold text-forest hover:bg-cream">View ↗</a>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
