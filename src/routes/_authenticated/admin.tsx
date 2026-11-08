@@ -2622,10 +2622,7 @@ export function BlogList({
 
   // With hundreds of articles you need a fast way back to the search bar.
   useEffect(() => {
-    const onScroll = () => {
-      console.log("DBG effect scroll", window.scrollY);
-      setShowTop(window.scrollY > 700);
-    };
+    const onScroll = () => setShowTop(window.scrollY > 700);
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
