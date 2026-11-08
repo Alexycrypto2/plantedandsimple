@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { BlogEditor } from "@/components/admin/BlogEditor";
+import { InternalLinksPanel } from "@/components/admin/InternalLinksPanel";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { csvCell } from "@/lib/csv";
 import { supabase } from "@/integrations/supabase/client";
@@ -286,12 +287,14 @@ function BlogsSection() {
       tabs={[
         { id: "posts", label: "All posts", icon: FileText },
         { id: "writer", label: "AI Blog Assistant", icon: Sparkles },
+        { id: "links", label: "Internal links & tags", icon: FileText },
       ]}
     >
       {(t) => (
         <>
           {t === "posts" && <BlogPanel />}
           {t === "writer" && <BlogStudioPanel />}
+          {t === "links" && <InternalLinksPanel />}
         </>
       )}
     </Section>
