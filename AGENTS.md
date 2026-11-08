@@ -30,3 +30,4 @@
 - Media uploads validate encoded size, allowed MIME types and byte signatures before storage; paths use a generated UUID and detected extension.
 - Pinterest Studio separates AI copy/photography from a shared browser canvas compositor; export and approval uploads use the same finished artwork so publishing never drops the title overlay.
 - Pinterest image providers run through authenticated, resumable jobs; only transient failures fall through to configured backups, while refusals and permission denials stop the job.
+- Published recipe/blog/product images are mirrored to bundled CDN assets (src/lib/bundled-images.json) and the image route redirects to them first, so live pages never depend on the storage bucket.
