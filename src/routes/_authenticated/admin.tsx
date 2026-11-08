@@ -2540,9 +2540,9 @@ function BlogPanel() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h2 className="font-display text-3xl italic text-forest-deep">Blog</h2>
-        <div className="flex flex-wrap justify-end gap-2">
+        <div className="grid grid-cols-2 gap-2 sm:flex">
           <button
             onClick={() => setAiOpen(true)}
             className="flex items-center gap-2 rounded-full bg-gradient-to-r from-forest to-sage px-5 py-2 text-xs font-bold uppercase tracking-[0.2em] text-cream shadow-sm hover:opacity-90"
@@ -2578,62 +2578,126 @@ function BlogPanel() {
         <BlogEditor value={editing as any} onChange={(v) => setEditing(v as any)} onSave={save} onCancel={() => setEditing(null)} busy={busy} />
       )}
 
-      <div className="overflow-hidden rounded-2xl border border-forest/10 bg-white">
-        <table className="w-full text-sm">
-          <thead className="bg-cream-warm text-left text-xs uppercase tracking-[0.15em] text-charcoal/60">
-            <tr>
-              <th className="px-4 py-3">Title</th>
-              <th className="px-4 py-3">Slug</th>
-              <th className="px-4 py-3">Status</th>
-              <th className="px-4 py-3 text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {posts.map((p) => (
-              <tr key={p.id} className="border-t border-forest/5">
-                <td className="px-4 py-3 font-semibold text-forest-deep">
-                  {p.title}
-                </td>
-                <td className="px-4 py-3 font-mono text-xs text-charcoal/60">
-                  {p.slug}
-                </td>
-                <td className="px-4 py-3">
-                  <span
-                    className={
-                      p.status === "published"
-                        ? "rounded-full bg-forest/10 px-2 py-0.5 text-xs font-semibold text-forest"
-                        : "rounded-full bg-charcoal/10 px-2 py-0.5 text-xs text-charcoal/70"
-                    }
-                  >
-                    {p.status}
-                  </span>
-                </td>
-                <td className="px-4 py-3 text-right">
-                  <button
-                    onClick={() => startEdit(p)}
-                    className="mr-3 text-xs font-semibold text-forest hover:underline"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => remove(p.id)}
-                    className="text-xs font-semibold text-red-600 hover:underline"
-                  >
-                    Delete
-                  </button>
-                </td>
-              </tr>
-            ))}
-            {posts.length === 0 && (
-              <tr>
-                <td colSpan={4} className="px-4 py-8 text-center text-charcoal/60">
-                  No posts yet.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+      <BlogList posts={posts} onEdit={startEdit} onDelete={remove} onReload={load} onError={setErr} />
+    </div>
+  );
+}
+
+function BlogList({
+  posts,
+  onEdit,
+  onDelete,
+  onReload,
+  onError,
+}: {
+  posts: AdminPost[];
+  onEdit: (p: AdminPost) => void;
+  onDelete: (id: string) => void;
+  onReload: () => Promise<unknown>;
+  onError: (m: string) => void;
+}) {
+  const [q, setQ] = useState("");
+  const [filter, setFilter] = useState<"all" | "published" | "draft">("all");
+  const [busyId, setBusyId] = useState<string | null>(null);
+  const shown = posts.filter(
+    (p) =>
+      (filter === "all" || p.status === filter) &&
+      (p.title + " " + (p.category ?? "") + " " + (p.tags ?? []).join(" ")).toLowerCase().includes(q.toLowerCase()),
+  );
+  const count = (s: string) => posts.filter((p) => p.status === s).length;
+  const toggle = async (p: AdminPost) => {
+    setBusyId(p.id);
+    try {
+      await adminUpsertPost({
+        data: {
+          id: p.id,
+          slug: p.slug,
+          title: p.title,
+          excerpt: p.excerpt ?? null,
+          content: p.content ?? "",
+          category: p.category ?? null,
+          featured_image_url: p.featured_image_url ?? null,
+          tags: p.tags ?? [],
+          status: p.status === "published" ? "draft" : "published",
+          seo_title: p.seo_title ?? null,
+          seo_description: p.seo_description ?? null,
+        },
+      });
+      await onReload();
+    } catch (e) {
+      onError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setBusyId(null);
+    }
+  };
+  return (
+    <div className="space-y-4">
+      <div className="space-y-3">
+        <input
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          placeholder="Search articles…"
+          className="w-full rounded-full border border-forest/15 bg-white px-4 py-2.5 text-sm outline-none focus:border-forest"
+        />
+        <div className="flex flex-wrap gap-2">
+          {([
+            ["all", `All (${posts.length})`],
+            ["published", `Live (${count("published")})`],
+            ["draft", `Drafts (${count("draft")})`],
+          ] as const).map(([k, l]) => (
+            <button
+              key={k}
+              onClick={() => setFilter(k)}
+              className={`rounded-full px-4 py-1.5 text-xs font-semibold ${filter === k ? "bg-forest text-cream" : "border border-forest/15 text-forest"}`}
+            >
+              {l}
+            </button>
+          ))}
+        </div>
       </div>
+      {shown.length === 0 ? (
+        <p className="rounded-2xl border border-forest/10 bg-white p-6 text-center text-sm text-charcoal/60">No articles found.</p>
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {shown.map((p) => {
+            const words = (p.content ?? "").replace(/<[^>]+>/g, " ").split(/\s+/).filter(Boolean).length;
+            return (
+              <div key={p.id} className="flex flex-col overflow-hidden rounded-2xl border border-forest/10 bg-white shadow-sm">
+                <div className="aspect-[16/9] bg-cream">
+                  {p.featured_image_url ? (
+                    <img src={p.featured_image_url} alt={p.title} loading="lazy" className="size-full object-cover" />
+                  ) : (
+                    <div className="grid size-full place-items-center text-xs text-charcoal/40">No cover photo</div>
+                  )}
+                </div>
+                <div className="flex flex-1 flex-col p-4">
+                  <div className="flex items-start justify-between gap-2">
+                    <p className="min-w-0 font-semibold leading-snug text-forest-deep">{p.title}</p>
+                    <button
+                      onClick={() => toggle(p)}
+                      disabled={busyId === p.id}
+                      title="Tap to switch between live and draft"
+                      className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold disabled:opacity-50 ${p.status === "published" ? "bg-sage/25 text-forest" : "bg-charcoal/10 text-charcoal/60"}`}
+                    >
+                      {busyId === p.id ? "…" : p.status === "published" ? "● Live" : "○ Draft"}
+                    </button>
+                  </div>
+                  <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-charcoal/55">
+                    {p.category && <span className="rounded-full bg-cream px-2 py-0.5 font-semibold text-forest">{p.category}</span>}
+                    <span>{words.toLocaleString()} words · {Math.max(1, Math.round(words / 230))} min read</span>
+                  </div>
+                  <p className="mt-1 truncate text-xs text-charcoal/40">/blog/{p.slug}</p>
+                  <div className="mt-auto flex gap-2 pt-4">
+                    <button onClick={() => onEdit(p)} className="flex-1 rounded-full bg-forest px-4 py-2 text-sm font-semibold text-cream hover:bg-forest-deep">Edit</button>
+                    <a href={`/blog/${p.slug}`} target="_blank" rel="noreferrer" className="rounded-full border border-forest/20 px-4 py-2 text-sm font-semibold text-forest hover:bg-cream">View ↗</a>
+                    <button onClick={() => onDelete(p.id)} aria-label="Delete article" className="rounded-full border border-red-200 px-3 py-2 text-sm font-semibold text-red-600 hover:bg-red-50">✕</button>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
