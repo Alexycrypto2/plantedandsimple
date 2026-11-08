@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import BUNDLED from "@/lib/bundled-images.json";
 
 const ALLOWED = new Set(["ai-images", "media", "review-photos"]);
 
@@ -11,6 +12,14 @@ export const Route = createFileRoute("/api/public/img/$")({
         const path = rest.join("/");
         if (!bucket || !path || !ALLOWED.has(bucket) || path.includes("..")) {
           return new Response("Not found", { status: 404 });
+        }
+        // Published images are bundled permanently; serve them without touching storage.
+        const bundled = (BUNDLED as Record<string, string>)[`${bucket}/${path}`];
+        if (bundled && bucket !== "review-photos") {
+          return new Response(null, {
+            status: 301,
+            headers: { Location: bundled, "Cache-Control": "public, max-age=31536000, immutable" },
+          });
         }
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
         if (bucket === "review-photos") {
