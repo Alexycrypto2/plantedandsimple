@@ -9,6 +9,7 @@ import { generateStudioImage } from "@/lib/ai/image-studio.functions";
 import { adminListMedia, adminUploadMedia, adminAddMediaByUrl } from "@/lib/library/admin.functions";
 import { EmptyState, PanelCard, SkeletonList } from "./AdminShell";
 import { SeoDoctor } from "./SeoDoctor";
+import { ConnectionsCard } from "./ConnectionsCard";
 import { recipeToHtml } from "@/lib/content/seo-doctor";
 import { btnCls, inputCls } from "./LibraryPanel";
 
@@ -182,7 +183,6 @@ export function RecipesSection() {
   const [editing, setEditing] = useState<string | "new" | null>(null);
   const [form, setForm] = useState(blank());
   const [links, setLinks] = useState<{ type: string; id: string }[]>([]);
-  const [linkable, setLinkable] = useState<any>(null);
   const [busy, setBusy] = useState(false);
   const [aiOpen, setAiOpen] = useState(false);
   const [aiSeed, setAiSeed] = useState("");
@@ -200,7 +200,7 @@ export function RecipesSection() {
   }, []);
 
   const load = () => adminListEntity({ data: { entity: "recipes" } }).then((r) => setRows(r as Recipe[]));
-  useEffect(() => { load(); adminLinkableItems().then(setLinkable).catch(() => {}); }, []);
+  useEffect(() => { load(); }, []);
 
   const openNew = () => { setForm(blank()); setLinks([]); setEditing("new"); };
 
@@ -262,13 +262,6 @@ export function RecipesSection() {
     } finally { setBusy(false); }
   };
 
-  const toggleLink = (type: string, id: string) => {
-    setLinks((prev) =>
-      prev.some((l) => l.type === type && l.id === id)
-        ? prev.filter((l) => !(l.type === type && l.id === id))
-        : [...prev, { type, id }],
-    );
-  };
 
   if (editing) {
     return (
@@ -344,37 +337,7 @@ export function RecipesSection() {
           )}
         </PanelCard>
 
-        <PanelCard title="Connections" icon={Link2}>
-          <p className="mb-3 text-xs text-charcoal/55">
-            Linked items update everywhere automatically — blog pages, product pages and related content.
-          </p>
-          {!linkable ? <SkeletonList rows={2} /> : (
-            <div className="space-y-4">
-              {(["blog", "product", "recipe"] as const).map((t) => (
-                <div key={t}>
-                  <p className="font-mono text-[9px] uppercase tracking-[0.2em] text-charcoal/40">{t}s</p>
-                  <div className="mt-1.5 flex flex-wrap gap-1.5">
-                    {(linkable[t] ?? []).slice(0, 40).map((it: any) => {
-                      const on = links.some((l) => l.type === t && l.id === it.id);
-                      return (
-                        <button
-                          key={it.id}
-                          onClick={() => toggleLink(t, it.id)}
-                          className={`rounded-full border px-3 py-1.5 text-[11px] font-semibold transition ${
-                            on ? "border-forest bg-forest text-cream" : "border-forest/15 text-charcoal/60 hover:bg-forest/5"
-                          }`}
-                        >
-                          {it.title}
-                        </button>
-                      );
-                    })}
-                    {(linkable[t] ?? []).length === 0 && <span className="text-xs text-charcoal/40">None yet</span>}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </PanelCard>
+        <ConnectionsCard links={links} onChange={setLinks} selfId={editing === "new" ? null : editing} contextText={`${form.title} ${form.tagsText} ${form.ingredientsText}`} />
 
         <PanelCard title="SEO & publishing">
           <div className="grid gap-3 sm:grid-cols-2">
