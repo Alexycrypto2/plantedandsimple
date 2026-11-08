@@ -368,13 +368,18 @@ export type Database = {
           category: string | null
           content: string
           created_at: string
+          diet_tags: string[]
           excerpt: string | null
           featured_image_url: string | null
           hero_image_id: string | null
           id: string
+          link_category: string | null
+          main_ingredients: string[]
+          occasions: string[]
           published_at: string | null
           read_minutes: number | null
           reading_time_minutes: number | null
+          roundup_tag: string | null
           seo_description: string | null
           seo_title: string | null
           slug: string
@@ -389,13 +394,18 @@ export type Database = {
           category?: string | null
           content?: string
           created_at?: string
+          diet_tags?: string[]
           excerpt?: string | null
           featured_image_url?: string | null
           hero_image_id?: string | null
           id?: string
+          link_category?: string | null
+          main_ingredients?: string[]
+          occasions?: string[]
           published_at?: string | null
           read_minutes?: number | null
           reading_time_minutes?: number | null
+          roundup_tag?: string | null
           seo_description?: string | null
           seo_title?: string | null
           slug: string
@@ -410,13 +420,18 @@ export type Database = {
           category?: string | null
           content?: string
           created_at?: string
+          diet_tags?: string[]
           excerpt?: string | null
           featured_image_url?: string | null
           hero_image_id?: string | null
           id?: string
+          link_category?: string | null
+          main_ingredients?: string[]
+          occasions?: string[]
           published_at?: string | null
           read_minutes?: number | null
           reading_time_minutes?: number | null
+          roundup_tag?: string | null
           seo_description?: string | null
           seo_title?: string | null
           slug?: string
@@ -1899,6 +1914,7 @@ export type Database = {
           cook_time_minutes: number | null
           created_at: string
           description: string | null
+          diet_tags: string[]
           difficulty: string
           equipment: string[]
           fat_grams: number | null
@@ -1910,7 +1926,10 @@ export type Database = {
           ingredients: Json
           instructions: Json
           is_featured: boolean
+          link_category: string | null
+          main_ingredients: string[]
           nutrition: Json
+          occasions: string[]
           pinterest_description: string | null
           prep_minutes: number | null
           prep_time_minutes: number | null
@@ -1936,6 +1955,7 @@ export type Database = {
           cook_time_minutes?: number | null
           created_at?: string
           description?: string | null
+          diet_tags?: string[]
           difficulty?: string
           equipment?: string[]
           fat_grams?: number | null
@@ -1947,7 +1967,10 @@ export type Database = {
           ingredients?: Json
           instructions?: Json
           is_featured?: boolean
+          link_category?: string | null
+          main_ingredients?: string[]
           nutrition?: Json
+          occasions?: string[]
           pinterest_description?: string | null
           prep_minutes?: number | null
           prep_time_minutes?: number | null
@@ -1973,6 +1996,7 @@ export type Database = {
           cook_time_minutes?: number | null
           created_at?: string
           description?: string | null
+          diet_tags?: string[]
           difficulty?: string
           equipment?: string[]
           fat_grams?: number | null
@@ -1984,7 +2008,10 @@ export type Database = {
           ingredients?: Json
           instructions?: Json
           is_featured?: boolean
+          link_category?: string | null
+          main_ingredients?: string[]
           nutrition?: Json
+          occasions?: string[]
           pinterest_description?: string | null
           prep_minutes?: number | null
           prep_time_minutes?: number | null

@@ -11,17 +11,20 @@ import { MediaImage, Pill } from "@/components/site/primitives";
 import { getRecipeBySlug } from "@/lib/library/library.functions";
 import { trackEvent } from "@/lib/analytics";
 import type { Recipe } from "@/lib/library/types";
+import { getPageLinks, type PageLinks } from "@/lib/linking/linking.functions";
+import { RelatedSection } from "@/components/site/RelatedLinks";
 
-type Data = { recipe: Recipe; related: { recipes: any[]; blogs: any[]; products: any[] } };
+type Data = { recipe: Recipe; related: { recipes: any[]; blogs: any[]; products: any[] }; links?: PageLinks | null };
 
 export const Route = createFileRoute("/recipes/$slug")({
   component: RecipeDetail,
   loader: async ({ params }): Promise<Data> => {
     let res: Data | null = null;
+    const linksP = getPageLinks({ data: { type: "recipe", slug: params.slug } }).catch(() => null);
     try { res = (await getRecipeBySlug({ data: { slug: params.slug } })) as Data | null; } catch { res = null; }
     if (!res) res = fallbackRecipe(params.slug) as Data | null;
     if (!res) throw notFound();
-    return res;
+    return { ...res, links: await linksP };
   },
   head: ({ loaderData, params }) => {
     const recipe = loaderData?.recipe;
@@ -74,7 +77,7 @@ function RecipeMissing() {
 }
 
 function RecipeDetail() {
-  const { recipe: r, related } = Route.useLoaderData() as Data;
+  const { recipe: r, related, links } = Route.useLoaderData() as Data;
   const total = (r.prep_minutes ?? 0) + (r.cook_minutes ?? 0);
 
   useEffect(() => {
@@ -162,6 +165,8 @@ function RecipeDetail() {
             </ul>
           </section>
         ) : null}
+
+        {links ? <RelatedSection links={links} heading="More recipes you'll love" readLabel="Read next:" /> : null}
 
         {(related?.products ?? []).length ? (
           <section className="mt-16">

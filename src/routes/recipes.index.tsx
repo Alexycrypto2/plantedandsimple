@@ -6,24 +6,27 @@ import { SiteLayout } from "@/components/SiteLayout";
 import { Reveal, EditorialCard } from "@/components/site/primitives";
 import { listCategories, listPublishedRecipes } from "@/lib/library/library.functions";
 import type { Category, Recipe } from "@/lib/library/types";
+import { getHubs, type Hub } from "@/lib/linking/linking.functions";
+import { HubSections } from "@/components/site/RelatedLinks";
 
 export const Route = createFileRoute("/recipes/")({
   component: RecipesIndex,
-  loader: async (): Promise<{ recipes: Recipe[]; categories: Category[] }> => {
+  loader: async (): Promise<{ recipes: Recipe[]; categories: Category[]; hubs: Hub[] }> => {
+    const hubsP = getHubs().catch(() => [] as Hub[]);
     const [recipes, categories] = await Promise.allSettled([
       listPublishedRecipes({ data: { limit: 60 } }), listCategories(),
     ]).then(([recipeResult, categoryResult]) => [
       recipeResult.status === "fulfilled" ? recipeResult.value : [],
       categoryResult.status === "fulfilled" ? categoryResult.value : [],
     ] as const);
-    return { recipes: recipes.length ? recipes : FALLBACK_RECIPES, categories };
+    return { recipes: recipes.length ? recipes : FALLBACK_RECIPES, categories, hubs: await hubsP };
   },
   head: () => pageHead("/recipes", "High-Protein Vegan & Plant-Based Recipes | PlantedAndSimple", "Find plant-based recipes with ingredients, step-by-step methods and cooking times. Browse vegan breakfasts, high-protein dinners and meal prep ideas."),
 });
 
 
 function RecipesIndex() {
-  const { recipes, categories } = Route.useLoaderData() as { recipes: Recipe[]; categories: Category[] };
+  const { recipes, categories, hubs } = Route.useLoaderData() as { recipes: Recipe[]; categories: Category[]; hubs: Hub[] };
   const [tag, setTag] = useState<string | null>(null);
 
   const filtered = useMemo(
@@ -90,6 +93,8 @@ function RecipesIndex() {
             </Link>
           </div>
         )}
+
+        <HubSections hubs={hubs} />
 
         {categories.length ? (
           <div className="mt-20">
