@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { BlogEditor } from "@/components/admin/BlogEditor";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { csvCell } from "@/lib/csv";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -85,6 +85,7 @@ import {
   Sparkles, ShoppingBag, ArrowUpRight, Image as ImageIcon, Bot,
   Tags, Star, Handshake, ShieldCheck, Plug, Palette, Brain, TrendingUp,
   ChefHat, Megaphone, BookOpen, LayoutDashboard,
+  Search, X, ArrowUp,
 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin")({
@@ -2583,6 +2584,8 @@ function BlogPanel() {
   );
 }
 
+const BLOG_PAGE = 40;
+
 function BlogList({
   posts,
   onEdit,
@@ -2598,13 +2601,84 @@ function BlogList({
 }) {
   const [q, setQ] = useState("");
   const [filter, setFilter] = useState<"all" | "published" | "draft">("all");
+  const [sort, setSort] = useState<"new" | "old" | "az">("new");
+  const [limit, setLimit] = useState(BLOG_PAGE);
   const [busyId, setBusyId] = useState<string | null>(null);
-  const shown = posts.filter(
-    (p) =>
-      (filter === "all" || p.status === filter) &&
-      (p.title + " " + (p.category ?? "") + " " + (p.tags ?? []).join(" ")).toLowerCase().includes(q.toLowerCase()),
-  );
+  const [headerH, setHeaderH] = useState(68);
+  const [showTop, setShowTop] = useState(false);
+  const searchRef = useRef<HTMLInputElement>(null);
+
+  // The admin header above us is sticky and its height changes between phone and
+  // desktop, so measure it and park the search bar directly underneath it.
+  useEffect(() => {
+    const header = document.querySelector("header.sticky");
+    if (!header) return;
+    const measure = () => setHeaderH(Math.round(header.getBoundingClientRect().height));
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(header);
+    return () => ro.disconnect();
+  }, []);
+
+  // With hundreds of articles you need a fast way back to the search bar.
+  useEffect(() => {
+    const onScroll = () => setShowTop(window.scrollY > 700);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  // "/" jumps to the search box from anywhere; Escape clears it.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const el = document.activeElement;
+      const typing =
+        el instanceof HTMLInputElement ||
+        el instanceof HTMLTextAreaElement ||
+        (el instanceof HTMLElement && el.isContentEditable);
+      if (e.key === "/" && !typing) {
+        e.preventDefault();
+        searchRef.current?.focus();
+      } else if (e.key === "Escape" && el === searchRef.current) {
+        setQ("");
+        searchRef.current?.blur();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
+  const wordCounts = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const p of posts) {
+      m.set(p.id, (p.content ?? "").replace(/<[^>]+>/g, " ").split(/\s+/).filter(Boolean).length);
+    }
+    return m;
+  }, [posts]);
+
+  const shown = useMemo(() => {
+    const needle = q.trim().toLowerCase();
+    const list = posts.filter((p) => {
+      if (filter !== "all" && p.status !== filter) return false;
+      if (!needle) return true;
+      return `${p.title} ${p.category ?? ""} ${(p.tags ?? []).join(" ")} ${p.slug}`.toLowerCase().includes(needle);
+    });
+    return list.sort((a, b) =>
+      sort === "az"
+        ? a.title.localeCompare(b.title)
+        : sort === "old"
+          ? a.created_at.localeCompare(b.created_at)
+          : b.created_at.localeCompare(a.created_at),
+    );
+  }, [posts, q, filter, sort]);
+
+  // A new search or filter starts the list back at the top.
+  useEffect(() => {
+    setLimit(BLOG_PAGE);
+  }, [q, filter, sort]);
+
   const count = (s: string) => posts.filter((p) => p.status === s).length;
+
   const toggle = async (p: AdminPost) => {
     setBusyId(p.id);
     try {
@@ -2630,16 +2704,44 @@ function BlogList({
       setBusyId(null);
     }
   };
+
+  const visible = shown.slice(0, limit);
+
   return (
-    <div className="space-y-4">
-      <div className="space-y-3">
-        <input
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          placeholder="Search articles…"
-          className="w-full rounded-full border border-forest/15 bg-white px-4 py-2.5 text-sm outline-none focus:border-forest"
-        />
-        <div className="flex flex-wrap gap-2">
+    <div className="space-y-3">
+      {/* Search + filters stay pinned under the admin header so they are one tap away
+          no matter how far down a long list you have scrolled. */}
+      <div
+        className="sticky top-0 z-20 rounded-2xl border border-white/60 bg-cream/90 p-2.5 shadow-[0_16px_34px_-30px_rgba(0,0,0,0.7)] backdrop-blur-2xl"
+        style={{ top: headerH }}
+      >
+        <div className="relative">
+          <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-charcoal/40" />
+          <input
+            ref={searchRef}
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="Search articles by title, category or tag…"
+            className="w-full rounded-full border border-forest/15 bg-white py-2 pl-9 pr-16 text-sm outline-none focus:border-forest"
+          />
+          {q ? (
+            <button
+              onClick={() => {
+                setQ("");
+                searchRef.current?.focus();
+              }}
+              aria-label="Clear search"
+              className="absolute right-2 top-1/2 grid size-6 -translate-y-1/2 place-items-center rounded-full text-charcoal/50 hover:bg-forest/10"
+            >
+              <X className="size-3.5" />
+            </button>
+          ) : (
+            <kbd className="absolute right-3 top-1/2 hidden -translate-y-1/2 rounded border border-forest/15 px-1.5 py-0.5 font-mono text-[10px] text-charcoal/40 sm:block">
+              /
+            </kbd>
+          )}
+        </div>
+        <div className="mt-2 flex items-center gap-1.5 overflow-x-auto rounded-full [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {([
             ["all", `All (${posts.length})`],
             ["published", `Live (${count("published")})`],
@@ -2648,55 +2750,122 @@ function BlogList({
             <button
               key={k}
               onClick={() => setFilter(k)}
-              className={`rounded-full px-4 py-1.5 text-xs font-semibold ${filter === k ? "bg-forest text-cream" : "border border-forest/15 text-forest"}`}
+              className={`shrink-0 rounded-full px-3 py-1 text-[11px] font-semibold transition ${
+                filter === k ? "bg-forest text-cream" : "border border-forest/15 text-forest hover:bg-forest/5"
+              }`}
             >
               {l}
             </button>
           ))}
+          <select
+            value={sort}
+            onChange={(e) => setSort(e.target.value as typeof sort)}
+            aria-label="Sort articles"
+            className="ml-auto shrink-0 rounded-full border border-forest/15 bg-white px-2 py-1 text-[11px] font-semibold text-forest outline-none"
+          >
+            <option value="new">Newest first</option>
+            <option value="old">Oldest first</option>
+            <option value="az">A–Z</option>
+          </select>
         </div>
       </div>
+
       {shown.length === 0 ? (
-        <p className="rounded-2xl border border-forest/10 bg-white p-6 text-center text-sm text-charcoal/60">No articles found.</p>
+        <p className="rounded-2xl border border-forest/10 bg-white p-6 text-center text-sm text-charcoal/60">
+          {posts.length === 0 ? "No articles yet — write your first one." : "No articles match that search."}
+        </p>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {shown.map((p) => {
-            const words = (p.content ?? "").replace(/<[^>]+>/g, " ").split(/\s+/).filter(Boolean).length;
-            return (
-              <div key={p.id} className="flex flex-col overflow-hidden rounded-2xl border border-forest/10 bg-white shadow-sm">
-                <div className="aspect-[16/9] bg-cream">
-                  {p.featured_image_url ? (
-                    <img src={p.featured_image_url} alt={p.title} loading="lazy" className="size-full object-cover" />
-                  ) : (
-                    <div className="grid size-full place-items-center text-xs text-charcoal/40">No cover photo</div>
-                  )}
-                </div>
-                <div className="flex flex-1 flex-col p-4">
-                  <div className="flex items-start justify-between gap-2">
-                    <p className="min-w-0 font-semibold leading-snug text-forest-deep">{p.title}</p>
+        <>
+          <div className="grid grid-cols-2 gap-2 sm:gap-3">
+            {visible.map((p) => {
+              const words = wordCounts.get(p.id) ?? 0;
+              return (
+                <article
+                  key={p.id}
+                  className="flex flex-col overflow-hidden rounded-xl border border-forest/10 bg-white shadow-sm transition hover:border-forest/30"
+                >
+                  <div className="relative h-14 shrink-0 bg-cream sm:h-16">
+                    {p.featured_image_url ? (
+                      <img src={p.featured_image_url} alt="" loading="lazy" className="size-full object-cover" />
+                    ) : (
+                      <div className="grid size-full place-items-center text-[10px] text-charcoal/40">No photo</div>
+                    )}
                     <button
                       onClick={() => toggle(p)}
                       disabled={busyId === p.id}
                       title="Tap to switch between live and draft"
-                      className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold disabled:opacity-50 ${p.status === "published" ? "bg-sage/25 text-forest" : "bg-charcoal/10 text-charcoal/60"}`}
+                      className={`absolute right-1 top-1 rounded-full px-1.5 py-0.5 text-[10px] font-bold leading-4 disabled:opacity-50 ${
+                        p.status === "published" ? "bg-forest/90 text-cream" : "bg-charcoal/60 text-cream"
+                      }`}
                     >
-                      {busyId === p.id ? "…" : p.status === "published" ? "● Live" : "○ Draft"}
+                      {busyId === p.id ? "…" : p.status === "published" ? "Live" : "Draft"}
                     </button>
                   </div>
-                  <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-charcoal/55">
-                    {p.category && <span className="rounded-full bg-cream px-2 py-0.5 font-semibold text-forest">{p.category}</span>}
-                    <span>{words.toLocaleString()} words · {Math.max(1, Math.round(words / 230))} min read</span>
+                  <div className="flex flex-1 flex-col p-2">
+                    <p className="line-clamp-2 text-[11px] font-semibold leading-tight text-forest-deep sm:text-xs">
+                      {p.title}
+                    </p>
+                    <p className="mt-1 truncate text-[10px] text-charcoal/50">
+                      {p.category ? `${p.category} · ` : ""}
+                      {words.toLocaleString()} words
+                    </p>
+                    <div className="mt-auto flex items-center gap-1 pt-2">
+                      <button
+                        onClick={() => onEdit(p)}
+                        className="flex-1 rounded-full bg-forest px-2 py-1.5 text-[11px] font-semibold text-cream hover:bg-forest-deep"
+                      >
+                        Edit
+                      </button>
+                      <a
+                        href={`/blog/${p.slug}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        aria-label="View article on site"
+                        className="grid size-7 shrink-0 place-items-center rounded-full border border-forest/20 text-forest hover:bg-cream"
+                      >
+                        <ExternalLink className="size-3" />
+                      </a>
+                      <button
+                        onClick={() => onDelete(p.id)}
+                        aria-label="Delete article"
+                        className="grid size-7 shrink-0 place-items-center rounded-full border border-red-200 text-red-600 hover:bg-red-50"
+                      >
+                        <X className="size-3" />
+                      </button>
+                    </div>
                   </div>
-                  <p className="mt-1 truncate text-xs text-charcoal/40">/blog/{p.slug}</p>
-                  <div className="mt-auto flex gap-2 pt-4">
-                    <button onClick={() => onEdit(p)} className="flex-1 rounded-full bg-forest px-4 py-2 text-sm font-semibold text-cream hover:bg-forest-deep">Edit</button>
-                    <a href={`/blog/${p.slug}`} target="_blank" rel="noreferrer" className="rounded-full border border-forest/20 px-4 py-2 text-sm font-semibold text-forest hover:bg-cream">View ↗</a>
-                    <button onClick={() => onDelete(p.id)} aria-label="Delete article" className="rounded-full border border-red-200 px-3 py-2 text-sm font-semibold text-red-600 hover:bg-red-50">✕</button>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
+                </article>
+              );
+            })}
+          </div>
+
+          <div className="flex items-center justify-center gap-3 pt-1">
+            <p className="text-xs text-charcoal/50">
+              Showing {visible.length} of {shown.length} article{shown.length === 1 ? "" : "s"}
+            </p>
+            {shown.length > limit && (
+              <button
+                onClick={() => setLimit((l) => l + BLOG_PAGE)}
+                className="rounded-full border border-forest/25 px-4 py-1.5 text-xs font-semibold text-forest hover:bg-forest/5"
+              >
+                Show more
+              </button>
+            )}
+          </div>
+        </>
+      )}
+
+      {showTop && (
+        <button
+          onClick={() => {
+            window.scrollTo({ top: 0, behavior: "smooth" });
+            searchRef.current?.focus();
+          }}
+          className="fixed bottom-6 right-4 z-30 grid size-11 place-items-center rounded-full bg-forest text-cream shadow-lg transition hover:bg-forest-deep"
+          aria-label="Back to search"
+        >
+          <ArrowUp className="size-4" />
+        </button>
       )}
     </div>
   );
