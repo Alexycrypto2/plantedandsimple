@@ -85,7 +85,7 @@ import {
   Sparkles, ShoppingBag, ArrowUpRight, Image as ImageIcon, Bot,
   Tags, Star, Handshake, ShieldCheck, Plug, Palette, Brain, TrendingUp,
   ChefHat, Megaphone, BookOpen, LayoutDashboard,
-  Search, X, ArrowUp,
+  Search, X, ArrowUp, ExternalLink,
 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin")({
