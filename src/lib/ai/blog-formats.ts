@@ -67,7 +67,9 @@ export function detectBlogFormat(title: string): BlogFormatId {
   const t = ` ${title.toLowerCase()} `;
   if (/\b(meal[- ]?prep|batch[- ]?cook|sunday prep|weekly (plan|menu)|prep for the week|lunch(es)? for the week)\b/.test(t)) return "meal_prep";
   if (/^\s*\d+\s|\b(best|top|roundup|collection|ideas)\b/.test(t)) return "roundup";
+  if (/\b(enough protein|protein on a|plant-based diet|vegan diet|supplements|nutrients?|nutrition|b12|iron|calcium|grocery|shopping|on a budget)\b/.test(t)) return "nutrition_guide";
   if (/\b(how to|how do|guide to (cook|press|make)|technique|mistakes|tips for|without (it|them))\b/.test(t)) return "how_to";
+  if (/\b(chili|soup|stew|curry|skillet|bowl|bowls|tacos|noodles|pasta|salad|loaf|burger|seeds|dahl|dal|stir[- ]?fry|bake|traybake|scramble|wrap|sandwich|pancakes|oats|smoothie|cookies|cake|bars)\b/.test(t)) return "hero_recipe";
   if (/\b(protein|nutrition|nutrients|budget|grocery|shopping|beginner|b12|iron|calcium|healthy|vs\.?|is .* healthy)\b/.test(t)) return "nutrition_guide";
   return "hero_recipe";
 }
