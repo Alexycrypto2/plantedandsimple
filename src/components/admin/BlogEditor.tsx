@@ -300,7 +300,7 @@ export function BlogEditor({
           <p className="line-clamp-2 text-xs text-charcoal/70">{value.seo_description || value.excerpt}</p>
         </div>
       </section>
-      <SeoDoctor value={value} onApply={(patch) => set(patch as any)} />
+      <SeoDoctor value={{ ...value, image: value.featured_image_url }} onApply={(patch) => set(patch as any)} />
       {links && onLinksChange && <ConnectionsCard links={links} onChange={onLinksChange} contextText={`${value.title} ${value.tags} ${value.category}`} />}
 
       <div className="sticky bottom-0 -mx-4 flex justify-end gap-3 border-t border-forest/10 bg-white/95 px-4 py-3 sm:-mx-6 sm:px-6">

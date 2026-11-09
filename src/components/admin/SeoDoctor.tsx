@@ -18,7 +18,7 @@ export function pickKeyword(tagsText: string, title: string): string {
 }
 
 type Fields = { title: string; seo_title: string; seo_description: string; excerpt: string; content: string; tags?: string; slug?: string; image?: string; pinterest_description?: string };
-type Extra = { prepMinutes?: number; cookMinutes?: number; servings?: string; calories?: string; protein?: string };
+type Extra = { prepMinutes?: number; cookMinutes?: number; servings?: string; calories?: string; protein?: string; hasImage?: boolean };
 type SuggestField = "seo_title" | "seo_description" | "pinterest" | "keywords";
 
 const LIMITS: Record<string, [number, number]> = { seo_title: [30, 60], seo_description: [120, 155], pinterest: [100, 500] };
@@ -44,7 +44,7 @@ export function SeoDoctor({ value, onApply, kind = "blog", extra }: { value: Fie
   const report = useMemo(
     () => auditSeo({
       title: value.title, seoTitle: value.seo_title, seoDescription: value.seo_description, html: value.content, keyword, secondary, kind, slug: value.slug,
-      extra: kind === "recipe" ? { ...extra, hasImage: !!value.image, pinterestDescription: value.pinterest_description } : undefined,
+      extra: kind === "recipe" ? { ...extra, hasImage: !!value.image || !!extra?.hasImage, pinterestDescription: value.pinterest_description } : undefined,
     }),
     [value, keyword, secondary, kind, extra],
   );
