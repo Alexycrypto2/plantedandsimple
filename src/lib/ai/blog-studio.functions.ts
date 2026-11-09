@@ -5,6 +5,7 @@ import { z } from "zod";
 import { textModel, describeAiError } from "./gateway.server";
 import { requireBossFactory } from "./studio.server";
 import type { ArticleBrief } from "./blog-core.server";
+import { BLOG_FORMATS } from "./blog-formats";
 
 const requireBoss = requireBossFactory();
 
@@ -144,7 +145,8 @@ const briefValidator = (d: BlogBrief) => ({
   includeInternalLinks: d.includeInternalLinks ?? true,
   includeProduct: d.includeProduct ?? true,
   includeCta: d.includeCta ?? true,
-  imageCount: d.imageCount === undefined || d.imageCount === null ? null : Math.min(Math.max(Number(d.imageCount), 0), 6),
+  imageCount: d.imageCount === undefined || d.imageCount === null ? null : Math.min(Math.max(Number(d.imageCount), 0), 8),
+  format: d.format && d.format in BLOG_FORMATS ? d.format : null,
   research: d.research ?? null,
   rewriteBrief: d.rewriteBrief ? String(d.rewriteBrief).slice(0, 4000) : null,
 });

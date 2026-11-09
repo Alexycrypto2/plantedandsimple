@@ -4,6 +4,7 @@ import { textModel, describeAiError, DEFAULT_CHAT_MODEL, DEFAULT_IMAGE_MODEL } f
 import { assembleArticleHtml, FRAMING, renderImageSafe } from "./studio.server";
 import { scoreArticle, QUALITY_THRESHOLD } from "./quality.server";
 import { offerCardHtml, pickOffer } from "@/lib/content/product-bridge";
+import { BLOG_FORMATS, BANNED_PHRASES, detectBlogFormat, type BlogFormat, type BlogFormatId } from "./blog-formats";
 
 export const ArticleSchema = z.object({
   slug: z.string(),
@@ -86,17 +87,24 @@ export type ArticleBrief = {
   imageCount?: number | null;
   research?: unknown;
   rewriteBrief?: string | null;
+  format?: BlogFormatId | null;
 };
 
-/** How many photos an article of this length actually deserves. */
-export function imagePlanFor(words: number) {
-  const sections = Math.max(1, Math.min(3, Math.floor(words / 650)));
+export function formatFor(brief: Pick<ArticleBrief, "format" | "topic">): BlogFormat {
+  return BLOG_FORMATS[brief.format && BLOG_FORMATS[brief.format] ? brief.format : detectBlogFormat(brief.topic)];
+}
+
+/** How many section photos an article deserves: its format's standard, scaled down for short posts. */
+export function imagePlanFor(words: number, format?: BlogFormat) {
+  const base = format?.sectionPhotos ?? 3;
+  const sections = Math.max(1, Math.min(base, Math.round((base * words) / 1600)));
   return { sections, total: sections + 3 };
 }
 
 export function buildArticlePrompt(brief: ArticleBrief, memory: string) {
   const words = brief.wordCount ?? 1600;
-  const plan = imagePlanFor(words);
+  const format = formatFor(brief);
+  const plan = imagePlanFor(words, format);
   return `You are a senior food editor at a magazine like Bon Appétit writing for PlantedAndSimple, a premium plant-based cookbook brand. Write a publication-ready editorial article a human editor would sign off without edits.
 
 ${memory}
@@ -110,6 +118,10 @@ Tone: ${brief.tone ?? "Editorial"}. Reading level: ${brief.readingLevel ?? "Stan
 Target length: ~${words} words across intro + sections + conclusion.
 ${brief.research ? `Research to build on:\n${JSON.stringify(brief.research).slice(0, 4000)}` : ""}
 ${brief.rewriteBrief ? `\nTHIS IS A REWRITE. The previous draft failed the editor's quality check. Fix all of this:\n${brief.rewriteBrief}\n` : ""}
+
+ARTICLE FORMAT: ${format.label}. Follow this standard section order (map each numbered part to one or more sections):
+${format.structure}
+Photos for this format should show: ${format.photos}.
 
 STRUCTURE (this is how the page will be laid out, so write to it):
 - intro_html: 2-3 short paragraphs. Open with a concrete scene, a number or a real problem. Never open with "In today's world", "Whether you're" or a definition.
@@ -135,7 +147,9 @@ VOICE — "no-BS home cook" (this is what makes people actually read):
 WRITING STANDARD:
 - Specific detail everywhere: grams, temperatures, timings, textures, costs, equipment. Explain the WHY behind each technique.
 - At least one honest trade-off or common mistake. Second person, warm and confident, never breathless.
-- Banned: "delve", "elevate", "unlock", "game-changer", "in the world of", "look no further", "when it comes to", "nestled", "embark", "tantalising", "burst of flavour", "dive into", "testament to", exclamation marks, and any sentence that would read identically for a different topic.
+- Banned words and phrases (never use them, in any form): ${BANNED_PHRASES.map((p) => `"${p}"`).join(", ")}. Also banned: exclamation marks, em-dash chains, rhetorical questions as openers, "Let's", lists of three adjectives, and any sentence that would read identically for a different topic.
+- Vary sentence length. Mix short punchy lines with longer explanations. Use American English (flavor, fiber, color).
+- Never invent personal stories, testers, studies, statistics, awards or reader quotes.
 - Every H2 delivers information no other section covers. No section restates the intro.
 
 ${brief.includeRecipe ? "- recipe: full recipe card with exact quantities and per-serving nutrition CALCULATED from the ingredient grams (e.g. firm tofu 15 g protein/100 g, cooked lentils 9 g, cooked chickpeas 9 g, tempeh 19 g, olive oil 100 g fat/100 g), totals divided by servings. Never inflate protein; calories must equal protein×4 + carbs×4 + fat×9 within 10%." : "- recipe: null."}
@@ -176,7 +190,7 @@ export async function buildAndStoreArticle(opts: {
   const { article: output, brief } = opts;
   const folder = `blog/${output.slug}`;
   const words = brief.wordCount ?? 1600;
-  const plan = imagePlanFor(words);
+  const plan = imagePlanFor(words, formatFor(brief));
 
   const images: Record<string, { url: string | null; path: string; alt: string }> = {};
   const render = async (key: string, prompt: string, framing: string, alt: string) => {
