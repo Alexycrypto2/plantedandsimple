@@ -6,6 +6,8 @@ describe("detectBlogFormat", () => {
   it("how-to titles are technique posts", () => expect(detectBlogFormat("How to Press and Crisp Tofu")).toBe("how_to"));
   it("meal prep wins over numbers", () => expect(detectBlogFormat("5 Day Vegan Meal Prep for Work")).toBe("meal_prep"));
   it("protein questions are nutrition guides", () => expect(detectBlogFormat("Getting Enough Plant Protein Without Powders")).toBe("nutrition_guide"));
+  it("protein how-to questions are nutrition guides", () => expect(detectBlogFormat("How to get enough protein on a plant-based diet without supplements")).toBe("nutrition_guide"));
+  it("high-protein dishes stay hero recipes", () => expect(detectBlogFormat("High Protein Vegan Pumpkin Chili in the Slow Cooker")).toBe("hero_recipe"));
   it("dish names are hero recipes", () => expect(detectBlogFormat("Creamy Tuscan White Bean Skillet")).toBe("hero_recipe"));
 });
 
