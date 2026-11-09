@@ -39,7 +39,7 @@ export function validateRecipeScripts(scripts: string[]): RecipeSchemaReport {
   const instructionsValid = (value: unknown): boolean => {
     const items = list(value).map(resolve);
     return items.length > 0 && items.every((v) => text(v) || (object(v) && (
-      (typeIs(v, "HowToStep") && text(v.text)) ||
+      (typeIs(v, "HowToStep") && (text(v.text) || (list(v.itemListElement).length > 0 && list(v.itemListElement).map(resolve).every((step) => object(step) && (typeIs(step, "HowToDirection") || typeIs(step, "HowToTip")) && text(step.text))))) ||
       (typeIs(v, "HowToSection") && text(v.name) && instructionsValid(v.itemListElement))
     )));
   };
@@ -51,15 +51,16 @@ export function validateRecipeScripts(scripts: string[]): RecipeSchemaReport {
     const nutrition = resolve(r.nutrition);
     const calories = object(nutrition) ? nutrition.calories : undefined;
     const yields = list(r.recipeYield);
-    if (calories != null) {
-      check(errors, "recipeYield (when calories supplied)", yields.some((v) => typeof v === "number" ? Number.isFinite(v) && v > 0 : text(v) && /\d/.test(v)), "When calories are supplied, Google requires recipeYield to state the number of servings.");
+    if (object(nutrition) && Object.keys(nutrition).some((key) => !key.startsWith("@"))) {
+      check(errors, "recipeYield (when per-serving nutrition supplied)", yields.some((v) => typeof v === "number" ? Number.isFinite(v) && v > 0 : text(v) && /^\d+(?:\.\d+)?(?:\s+servings?)?$/i.test(v.trim()) && parseFloat(v) > 0), "When per-serving nutrition is supplied, Google requires recipeYield to state the number of servings; an item count alone is insufficient.");
     }
+    if (r.recipeInstructions != null) check(errors, "recipeInstructions format (when supplied)", instructionsValid(r.recipeInstructions), "Supplied steps need text or HowToDirection/HowToTip substeps; sections need a name and valid steps.");
     check(recommendations, "description", text(r.description), "Add a truthful recipe summary.");
     const authors = list(r.author).map(resolve);
     check(recommendations, "author", authors.length > 0 && authors.every((v) => object(v) && (typeIs(v, "Person") || typeIs(v, "Organization")) && text(v.name)), "Use a named Person or Organization author.");
     check(recommendations, "recipeIngredient", Array.isArray(r.recipeIngredient) && r.recipeIngredient.length > 0 && r.recipeIngredient.every(text), "List the real ingredients; Google sets no minimum ingredient count.");
     check(recommendations, "recipeInstructions", instructionsValid(r.recipeInstructions), "Use nonempty instruction text, HowToStep text, or named HowToSection groups; there is no minimum step count.");
-    check(recommendations, "recipeYield", yields.length > 0 && yields.every((v) => text(v) || (typeof v === "number" && Number.isFinite(v) && v > 0)), "Describe the recipe yield. A servings count is required only when calories are supplied.");
+    check(recommendations, "recipeYield", yields.length > 0 && yields.every((v) => text(v) || (typeof v === "number" && Number.isFinite(v) && v > 0)), "Describe the recipe yield. A servings count is required when per-serving nutrition is supplied.");
     const hasPair = r.prepTime != null || r.cookTime != null;
     check(recommendations, "prepTime / cookTime / totalTime", hasPair ? duration(r.prepTime) && duration(r.cookTime) && (r.totalTime == null || duration(r.totalTime)) : duration(r.totalTime), "Use ISO 8601 durations. If prepTime or cookTime is supplied, supply both; totalTime alone is also supported.");
     check(recommendations, "nutrition.calories", object(nutrition) && typeIs(nutrition, "NutritionInformation") && text(calories) && /^\d+(?:\.\d+)?\s*(?:kcal|cal|calories|kilocalories)$/i.test(calories), "Calories are recommended, not universally required. Add only verified per-serving nutrition with units.");

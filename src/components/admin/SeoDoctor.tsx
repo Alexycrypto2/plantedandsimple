@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { Stethoscope, Check, X, Loader2, Wand2, Monitor, Smartphone, Sparkles, Pin } from "lucide-react";
 import { auditSeo, SEO_PASS_SCORE, SEO_CATEGORY_LABELS, type SeoCategory } from "@/lib/content/seo-doctor";
 import { autoFixSeo, suggestSeoField } from "@/lib/ai/seo-doctor.functions";
+import { RenderedRecipeAudit } from "./RenderedRecipeAudit";
 
 const GENERIC = new Set(["american", "mediterranean", "mexican", "thai", "indian", "italian", "asian", "middle eastern", "dinner", "lunch", "breakfast", "vegan", "high-protein", "high protein", "dessert", "snack", "side"]);
 const HOLIDAYS = ["thanksgiving", "christmas", "easter", "halloween", "valentine", "new year"];
@@ -24,7 +25,7 @@ type SuggestField = "seo_title" | "seo_description" | "pinterest" | "keywords";
 const LIMITS: Record<string, [number, number]> = { seo_title: [30, 60], seo_description: [120, 155], pinterest: [100, 500] };
 
 function Meter({ len, field }: { len: number; field: keyof typeof LIMITS }) {
-  const [min, max] = LIMITS[field]!;
+  const [min, max] = LIMITS[field] ?? [0, 500];
   const ok = len >= min && len <= max;
   return <span className={`text-[10px] font-mono ${ok ? "text-forest" : "text-amber-700"}`}>{len}/{min}–{max}</span>;
 }
@@ -60,7 +61,7 @@ export function SeoDoctor({ value, onApply, kind = "blog", extra }: { value: Fie
       onApply(kind === "recipe"
         ? { seo_title: r.seoTitle, seo_description: r.seoDescription, excerpt: r.excerpt }
         : { seo_title: r.seoTitle, seo_description: r.seoDescription, excerpt: r.excerpt, content: r.html });
-      setMsg(`Score ${r.before} → ${r.after}. ${(r.changes ?? []).slice(0, 4).join(" · ")}`);
+      setMsg(`Editorial suggestions applied. ${(r.changes ?? []).slice(0, 4).join(" · ")} Save and recheck the page separately; this does not repair or validate structured data.`);
     } catch (e: any) {
       setErr(e?.message ?? "Auto-fix failed");
     } finally {
@@ -104,13 +105,16 @@ export function SeoDoctor({ value, onApply, kind = "blog", extra }: { value: Fie
           <span className={`grid h-14 w-14 place-items-center rounded-full font-mono text-lg font-bold ${pass ? "bg-forest text-cream" : "bg-amber-100 text-amber-800"}`}>{report.score}</span>
           <div>
             <p className="flex items-center gap-1.5 font-semibold text-forest-deep"><Stethoscope className="h-4 w-4" /> SEO Doctor Pro</p>
-            <p className="text-xs text-charcoal/60">{pass ? "Ready to rank — safe to publish." : `${failing} to fix · aim for ${SEO_PASS_SCORE}+`} · {report.words} words · {report.readMinutes} min read</p>
+            <p className="text-xs text-charcoal/60">Editorial score · {pass ? "Few editorial suggestions remaining" : `${failing} editorial suggestions`} · {report.words} words · {report.readMinutes} min read</p>
           </div>
         </div>
         <button type="button" onClick={fix} disabled={busy || pass} className="flex items-center gap-2 rounded-full bg-forest px-4 py-2 text-xs font-bold text-cream disabled:opacity-50">
           {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Wand2 className="h-3.5 w-3.5" />} Auto-fix weak spots
         </button>
       </div>
+
+      <p className="mt-3 text-xs text-muted-foreground">This score reflects local editorial heuristics, not Google requirements. Character lengths, word counts and keyword density are suggestions, not ranking rules. No score guarantees rankings, indexing or rich results.</p>
+      {kind === "recipe" && <RenderedRecipeAudit slug={value.slug} />}
 
       <div className="mt-4 grid gap-2 sm:grid-cols-2">
         <label className="text-[11px] font-semibold text-charcoal/70">Main keyword
@@ -176,6 +180,7 @@ export function SeoDoctor({ value, onApply, kind = "blog", extra }: { value: Fie
         <div className="mt-4 w-56 overflow-hidden rounded-2xl border border-forest/15 bg-white shadow-sm">
           {value.image ? <img src={value.image} alt="" className="aspect-[2/3] w-full object-cover" /> : <div className="grid aspect-[2/3] place-items-center bg-cream-warm text-xs text-charcoal/50">No main photo yet</div>}
           <div className="p-3">
+            <p className="mb-2 text-[11px] text-muted-foreground">Illustrative preview · not a Rich Pin eligibility check</p>
             <p className="line-clamp-2 text-sm font-semibold text-charcoal">{value.seo_title || value.title}</p>
             <p className="mt-1 line-clamp-3 text-[11px] text-charcoal/60">{value.pinterest_description || value.seo_description}</p>
             <p className="mt-2 text-[10px] text-charcoal/40">plantedandsimple.com</p>
@@ -185,6 +190,7 @@ export function SeoDoctor({ value, onApply, kind = "blog", extra }: { value: Fie
       {(view === "mobile" || view === "desktop") && (
         <div className="mt-4 overflow-x-auto">
           <div className={`mx-auto max-h-[70vh] overflow-y-auto rounded-2xl border border-forest/15 bg-white p-5 shadow-sm ${view === "mobile" ? "w-[390px]" : "w-full max-w-3xl"}`}>
+            <p className="mb-2 text-xs text-muted-foreground">Illustrative preview · Google may show a different result or no rich result</p>
             <div className="mb-4 flex gap-3 rounded-xl border border-forest/10 p-3">
               <div className="min-w-0 flex-1">
                 <p className="text-[11px] text-charcoal/60">plantedandsimple.com › {kind === "recipe" ? "recipes" : "blog"}{value.slug ? ` › ${value.slug}` : ""}</p>
