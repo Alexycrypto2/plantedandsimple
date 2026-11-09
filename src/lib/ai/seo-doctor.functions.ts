@@ -73,3 +73,41 @@ ${data.html}`,
       throw describeAiError(err);
     }
   });
+
+const OptionsSchema = z.object({ options: z.array(z.string()) });
+
+/** Writes 3 alternatives for one field (SEO title, meta, Pinterest text or keywords) without touching the article. */
+export const suggestSeoField = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { field: "seo_title" | "seo_description" | "pinterest" | "keywords"; title: string; keyword?: string; summary: string; kind?: "blog" | "recipe" }) => ({
+    field: (["seo_title", "seo_description", "pinterest", "keywords"].includes(d.field) ? d.field : "seo_title") as "seo_title" | "seo_description" | "pinterest" | "keywords",
+    title: String(d.title ?? "").slice(0, 200),
+    keyword: d.keyword ? String(d.keyword).slice(0, 80) : "",
+    summary: String(d.summary ?? "").slice(0, 4000),
+    kind: d.kind === "recipe" ? "recipe" : "blog",
+  }))
+  .handler(async ({ data, context }) => {
+    await requireBoss(context.supabase, context.userId);
+    const spec = {
+      seo_title: "3 SEO titles, 30-60 characters each, keyword near the start, no clickbait.",
+      seo_description: "3 meta descriptions, 120-155 characters each, include the keyword and a clear benefit.",
+      pinterest: "3 Pinterest descriptions, 150-400 characters each, include the keyword and 2-3 natural search phrases, no hashtags spam.",
+      keywords: "3 supporting search phrases (2-5 words each) a home cook would type into Google related to the main keyword.",
+    }[data.field];
+    const model = await textModel("blog-core");
+    try {
+      const { output } = await generateText({
+        model,
+        output: Output.object({ schema: OptionsSchema }),
+        prompt: `You write SEO copy for PlantedAndSimple, a plant-based food brand. Write ${spec}
+Only use facts present below — never invent numbers, awards or claims. Warm home-cook voice, no AI cliches.
+Type: ${data.kind}. Title: ${data.title}. Main keyword: ${data.keyword || "(choose from title)"}.
+Content summary:
+${data.summary}`,
+      });
+      return { options: output.options.map((s) => s.trim()).filter(Boolean).slice(0, 3) };
+    } catch (err) {
+      if (NoObjectGeneratedError.isInstance(err)) throw new Error("AI returned invalid output — try again.");
+      throw describeAiError(err);
+    }
+  });

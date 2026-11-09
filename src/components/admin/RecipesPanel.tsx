@@ -355,7 +355,10 @@ export function RecipesSection() {
           </div>
         <SeoDoctor
             kind="recipe"
+            extra={{ prepMinutes: Number(form.prep_minutes), cookMinutes: Number(form.cook_minutes), servings: String(form.servings ?? ""), calories: String(form.calories ?? ""), protein: String(form.protein ?? ""), hasImage: !!form.hero_image_id }}
             value={{
+              slug: form.slug,
+              pinterest_description: form.pinterest_description,
               title: form.title,
               seo_title: form.seo_title,
               seo_description: form.seo_description,
@@ -377,6 +380,7 @@ export function RecipesSection() {
               seo_title: p.seo_title ?? form.seo_title,
               seo_description: p.seo_description ?? form.seo_description,
               description: p.excerpt ?? form.description,
+              pinterest_description: p.pinterest_description ?? form.pinterest_description,
             })}
           />
         </PanelCard>
