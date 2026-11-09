@@ -1,4 +1,31 @@
 import { ConnectionsCard, type ConnLink } from "./ConnectionsCard";
+import { BLOG_FORMATS, detectBlogFormat, findBannedPhrases } from "@/lib/ai/blog-formats";
+
+/** Read-only standard check for existing posts: blog type, photo count, AI-sounding phrases, long paragraphs. Never rewrites. */
+function WritingCheck({ title, html }: { title: string; html: string }) {
+  const format = BLOG_FORMATS[detectBlogFormat(title)];
+  const photos = (html.match(/<img\b/gi) ?? []).length;
+  const banned = findBannedPhrases(html.replace(/<[^>]+>/g, " "));
+  const longParas = (html.match(/<p\b[^>]*>([\s\S]*?)<\/p>/gi) ?? [])
+    .filter((p) => p.replace(/<[^>]+>/g, " ").trim().split(/\s+/).length > 80).length;
+  const exclam = (html.replace(/<[^>]+>/g, " ").match(/!/g) ?? []).length;
+  const row = (ok: boolean, text: string) => (
+    <li className="flex gap-2"><span className={ok ? "text-forest" : "text-destructive"}>{ok ? "✓" : "!"}</span><span>{text}</span></li>
+  );
+  return (
+    <section className="rounded-2xl border border-forest/10 bg-white p-4">
+      <p className="text-sm font-semibold text-forest-deep">Writing standard — <span className="text-sage">{format.label}</span></p>
+      <ul className="mt-2 space-y-1 text-xs text-charcoal/75">
+        {row(photos >= format.sectionPhotos, `${photos} photo${photos === 1 ? "" : "s"} in the article (this type needs about ${format.sectionPhotos}: ${format.photos})`)}
+        {row(!banned.length, banned.length ? `AI-sounding words to replace: ${banned.join(", ")}` : "No AI-sounding words found")}
+        {row(!longParas, longParas ? `${longParas} paragraph${longParas === 1 ? " is" : "s are"} over 80 words — split for phone readers` : "Paragraphs are short and easy to read")}
+        {row(exclam === 0, exclam ? `${exclam} exclamation mark${exclam === 1 ? "" : "s"}` : "No exclamation marks")}
+      </ul>
+      <p className="mt-2 text-[11px] text-charcoal/50">Suggested section order:</p>
+      <pre className="mt-1 whitespace-pre-wrap font-sans text-[11px] text-charcoal/60">{format.structure}</pre>
+    </section>
+  );
+}
 import { useEffect, useRef, useState } from "react";
 import { Sparkles, Plus, ExternalLink, Image as ImageIcon, Eye, Pencil } from "lucide-react";
 import { generateStudioImage } from "@/lib/ai/image-studio.functions";
@@ -300,6 +327,7 @@ export function BlogEditor({
           <p className="line-clamp-2 text-xs text-charcoal/70">{value.seo_description || value.excerpt}</p>
         </div>
       </section>
+      <WritingCheck title={value.title} html={value.content} />
       <SeoDoctor value={{ ...value, image: value.featured_image_url }} onApply={(patch) => set(patch as any)} />
       {links && onLinksChange && <ConnectionsCard links={links} onChange={onLinksChange} contextText={`${value.title} ${value.tags} ${value.category}`} />}
 
