@@ -7,6 +7,7 @@ import {
   CONTENT_GOALS,
   type Research,
 } from "@/lib/ai/blog-studio.functions";
+import { BLOG_FORMATS, BLOG_FORMAT_LIST, detectBlogFormat, type BlogFormatId } from "@/lib/ai/blog-formats";
 
 const card = "rounded-2xl border border-forest/10 bg-white p-5 shadow-sm";
 const input =
@@ -87,6 +88,8 @@ export function BlogStudioPanel() {
   const [includeProduct, setIncludeProduct] = useState(true);
   const [includeCta, setIncludeCta] = useState(true);
 
+  const [formatPick, setFormatPick] = useState<BlogFormatId | "auto">("auto");
+  const format = BLOG_FORMATS[formatPick === "auto" ? detectBlogFormat(topic) : formatPick];
   const [research, setResearch] = useState<Research | null>(null);
   const [result, setResult] = useState<any>(null);
 
@@ -122,7 +125,8 @@ export function BlogStudioPanel() {
           wordCount,
           readingLevel,
           goal,
-          includeRecipe,
+          includeRecipe: formatPick === "auto" ? format.includeRecipe && includeRecipe : includeRecipe,
+          format: format.id,
           includeFaq,
           includeToc,
           includeInternalLinks,
@@ -289,10 +293,18 @@ export function BlogStudioPanel() {
               <input type="range" min={800} max={3500} step={100} value={wordCount} onChange={(e) => setWordCount(Number(e.target.value))} className="mt-2 w-full accent-forest" />
             </div>
             <div className="rounded-xl bg-forest/5 p-4">
-              <p className="text-xs font-semibold text-charcoal/70">Photography: automatic</p>
-              <p className="mt-1 text-[11px] text-charcoal/50">
-                The AI rates how much each section would gain from a photo and only shoots the ones that earn it — plus
-                the hero, recipe and Pinterest shots.
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <p className="text-xs font-semibold text-charcoal/70">
+                  Blog type: <span className="text-forest-deep">{format.label}</span>
+                  {formatPick === "auto" ? <span className="ml-1 rounded-full bg-forest px-2 py-0.5 text-[10px] text-cream">auto from title</span> : null}
+                </p>
+                <select className="rounded-lg border border-forest/20 bg-white px-2 py-1 text-xs" value={formatPick} onChange={(e) => setFormatPick(e.target.value as BlogFormatId | "auto")}>
+                  <option value="auto">Auto-detect</option>
+                  {BLOG_FORMAT_LIST.map((f) => <option key={f.id} value={f.id}>{f.label}</option>)}
+                </select>
+              </div>
+              <p className="mt-2 text-[11px] text-charcoal/50">
+                Up to {format.sectionPhotos} in-article photos ({format.photos}), plus the hero{format.includeRecipe ? ", recipe" : ""} and Pinterest shots.
               </p>
             </div>
           </div>
