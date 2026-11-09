@@ -135,6 +135,9 @@ function RecipeDetail() {
                   <div className="min-w-0">
                     {s.title ? <p className="font-semibold text-forest-deep">{cleanStepText(s.title)}</p> : null}
                     <p className="text-sm leading-relaxed text-charcoal/75">{cleanStep(s.body)}</p>
+                    {s.image_url ? (
+                      <img src={s.image_url} alt={`${r.title} — step ${i + 1}${s.title ? `: ${cleanStepText(s.title)}` : ""}`} loading="lazy" className="mt-3 aspect-[4/3] w-full max-w-md rounded-2xl object-cover" />
+                    ) : null}
                   </div>
                 </li>
               ))}

@@ -39,7 +39,7 @@ export type Collection = {
 };
 
 export type RecipeIngredient = { group?: string | null; items: string[] };
-export type RecipeStep = { title?: string | null; body: string };
+export type RecipeStep = { title?: string | null; body: string; image_url?: string };
 export type NutritionRow = { label: string; value: string };
 
 export type Recipe = {

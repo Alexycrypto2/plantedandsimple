@@ -14,7 +14,7 @@ export type ImagePreset =
   | "facebook_image"
   | "cookbook_promo";
 
-const BRAND = "warm natural window light, editorial food photography, cream and forest-green palette, matte linen backdrop, wooden serving board, fresh herbs, high resolution, sharp focus";
+const BRAND = "real photograph shot on a Canon R5 with an 85mm lens at f/2.2, soft natural window light, true-to-life muted earth tones, real home-kitchen textures (wood grain, creased linen, cast-iron patina), uneven browning, crumbs and a little steam, slightly imperfect plating; no CGI, no 3D render, no plastic-looking food, no extra fingers";
 
 const PRESETS: Record<ImagePreset, { label: string; framing: string }> = {
   blog_hero: { label: "Blog hero (1200x630)", framing: "wide 1.9:1 landscape composition, safe-crop for social sharing, subject centered" },
