@@ -39,8 +39,8 @@ describe("rendered Recipe JSON-LD validation", () => {
     expect(failures({ "@type": "Article" }).map((e) => e.property)).toContain("Recipe");
   });
   it("checks serialized route output rather than inferred editor flags", () => {
-    const recipe = { title: "Tofu bowl", description: "Cook tofu.", tags: [], servings: "2", ingredients: [{ items: ["200 g tofu"] }], instructions: [{ body: "Cook tofu." }], nutrition: [], tips: [] };
-    const schema = recipeJsonLd(recipe as Parameters<typeof recipeJsonLd>[0], "https://plantedandsimple.com/recipes/tofu");
+    const recipe: Parameters<typeof recipeJsonLd>[0] = { id: "test", slug: "tofu", title: "Tofu bowl", subtitle: null, description: "Cook tofu.", tags: [], servings: "2", ingredients: [{ items: ["200 g tofu"] }], instructions: [{ body: "Cook tofu." }], nutrition: [], tips: [], hero_image_id: null, hero_image_url: null, gallery_ids: [], gallery_urls: [], prep_minutes: null, cook_minutes: null, difficulty: "Easy", pinterest_description: null, seo_title: null, seo_description: null, status: "published", is_featured: false, published_at: null };
+    const schema = recipeJsonLd(recipe, "https://plantedandsimple.com/recipes/tofu");
     expect(failures(schema).map((e) => e.property)).toContain("image");
     expect(failures({ ...schema, image: [minimal.image] })).toEqual([]);
   });
