@@ -12,7 +12,7 @@ import { getRecipeBySlug } from "@/lib/library/library.functions";
 import { trackEvent } from "@/lib/analytics";
 import type { Recipe } from "@/lib/library/types";
 import { getPageLinks, type PageLinks } from "@/lib/linking/linking.functions";
-import { RelatedSection } from "@/components/site/RelatedLinks";
+import { RelatedSection, HubPills, PairingCallout } from "@/components/site/RelatedLinks";
 
 type Data = { recipe: Recipe; related: { recipes: any[]; blogs: any[]; products: any[] }; links?: PageLinks | null };
 
@@ -98,6 +98,7 @@ function RecipeDetail() {
             {cleanServings(r.servings) ? <Pill>Serves {cleanServings(r.servings)}</Pill> : null}
             <Pill>{r.difficulty}</Pill>
           </div>
+          <HubPills links={links ?? null} />
         </header>
 
         <MediaImage src={r.hero_image_url} alt={r.title} ratio="aspect-[3/2]" className="mt-10 rounded-[2rem]" priority />
@@ -141,6 +142,8 @@ function RecipeDetail() {
           </section>
         </div>
 
+        {links ? <PairingCallout heading="Read next" items={links.blogs} /> : null}
+
         {(r.nutrition ?? []).length ? (
           <section className="mt-14 rounded-[2rem] bg-cream-warm p-8">
             <h2 className="font-display text-2xl italic text-forest-deep">Nutrition per serving</h2>
@@ -166,7 +169,7 @@ function RecipeDetail() {
           </section>
         ) : null}
 
-        {links ? <RelatedSection links={links} heading="More recipes you'll love" readLabel="Read next:" /> : null}
+        {links ? <RelatedSection links={links} heading="More recipes you'll love" readLabel="Read next:" hideBlogs /> : null}
 
         {(related?.products ?? []).length ? (
           <section className="mt-16">
