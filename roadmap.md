@@ -1,4 +1,5 @@
 # Roadmap
+- [x] Validate saved recipe pages' rendered JSON-LD in SEO Doctor; separate Google requirements, recommendations and editorial scores (17 tests passed; saved-page control verified with real recipe data on desktop/mobile, not in authenticated admin).
 - [x] Rebuild Pinterest Studio with curated food-publisher styles, editable canvas, exports, and approval handoff; authenticated export and approval save verified.
 - [x] Add content-aware automatic style selection and free-cookbook source; source-title mode works without AI.
 - [ ] Verify Magic Hour and Pixazo generation and fallback (blocked: provider keys not configured); Gemini smart-copy verification blocked by upstream high-demand 503.

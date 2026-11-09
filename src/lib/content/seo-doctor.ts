@@ -18,7 +18,7 @@ export type SeoCheck = { id: string; label: string; pass: boolean; weight: numbe
 export type SeoReport = { score: number; checks: SeoCheck[]; words: number; keyword: string; readMinutes: number; categoryScores: Record<SeoCategory, number> };
 
 export const SEO_PASS_SCORE = 85;
-export const SEO_CATEGORY_LABELS: Record<SeoCategory, string> = { snippet: "Google snippet", keywords: "Keywords", content: "Content", links: "Links & images", rich: "Rich results" };
+export const SEO_CATEGORY_LABELS: Record<SeoCategory, string> = { snippet: "Snippet suggestions", keywords: "Keywords", content: "Content", links: "Links & images", rich: "Editorial nutrition" };
 
 const strip = (h: string) => h.replace(/<script[\s\S]*?<\/script>/gi, " ").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
 const STOP = ["the", "and", "for", "with", "how", "your", "best"];
@@ -78,25 +78,21 @@ export function auditSeo(input: SeoInput): SeoReport {
     };
     const count = (h: string) => (h.match(/<li/g) ?? []).length;
     const replace: Record<string, SeoCheck> = {
-      h2_count: { id: "ingredients", category: "content", label: "6+ ingredients with quantities", weight: 10, pass: count(section("Ingredients")) >= 6, fix: "List every ingredient with an exact quantity." },
-      h2_kw: { id: "steps", category: "content", label: "5+ clear steps", weight: 8, pass: count(section("Instructions")) >= 5, fix: "Break the method into 5+ steps with times and cues." },
+      h2_count: { id: "ingredients", category: "content", label: "Ingredients listed", weight: 10, pass: count(section("Ingredients")) > 0, fix: "List the actual ingredients; no minimum count is needed." },
+      h2_kw: { id: "steps", category: "content", label: "Instructions listed", weight: 8, pass: count(section("Instructions")) > 0, fix: "Describe the real method clearly; no minimum step count is needed." },
       length: { id: "length", category: "content", label: "250+ words", weight: 10, pass: words >= 250, fix: "Add a richer description and helpful tips." },
-      internal: { id: "protein", category: "rich", label: "Protein listed in nutrition", weight: 4, pass: /protein/i.test(section("Nutrition")), fix: "Add protein per serving to the nutrition list." },
+      internal: { id: "protein", category: "rich", label: "Protein listed (editorial suggestion)", weight: 4, pass: /protein/i.test(section("Nutrition")), fix: "Add protein per serving only if verified; Google does not require it." },
       paragraphs: { id: "tips", category: "content", label: "3+ cooking tips", weight: 4, pass: count(section("Tips")) >= 3, fix: "Add make-ahead, swap and storage tips." },
     };
     for (let i = 0; i < checks.length; i++) {
-      const r = replace[checks[i]!.id];
+      const current = checks[i];
+      if (!current) continue;
+      const r = replace[current.id];
       if (r) checks[i] = r;
     }
-    const e = input.extra ?? {};
     const qty = /\d|½|¼|¾|cup|tbsp|tsp|g\b|ml\b/i;
     const ing = [...section("Ingredients").matchAll(/<li>([\s\S]*?)<\/li>/g)].map((m) => m[1] ?? "");
     checks.push(
-      { id: "times", category: "rich", label: "Prep and cook time set", weight: 5, pass: (e.prepMinutes ?? 0) > 0 && (e.cookMinutes ?? -1) >= 0, fix: "Fill in prep and cook minutes — Google shows them in recipe results." },
-      { id: "servings", category: "rich", label: "Servings set", weight: 3, pass: !!e.servings?.trim(), fix: "Add how many servings the recipe makes." },
-      { id: "calories", category: "rich", label: "Calories per serving", weight: 3, pass: !!e.calories?.trim(), fix: "Add calories per serving for the recipe card." },
-      { id: "photo", category: "rich", label: "Main photo chosen", weight: 6, pass: !!e.hasImage, fix: "Pick a main photo — recipes without one can't show as rich results or Rich Pins." },
-      { id: "pin_desc", category: "rich", label: "Pinterest description 100–500 characters", weight: 3, pass: (e.pinterestDescription ?? "").length >= 100 && (e.pinterestDescription ?? "").length <= 500, fix: "Write a 100–500 character Pinterest description with the keyword." },
       { id: "qty", category: "content", label: "Every ingredient has an amount", weight: 4, pass: ing.length > 0 && ing.every((x) => qty.test(x) || /to taste|pinch|optional/i.test(x)), fix: "Give each ingredient an amount (e.g. 1 cup, 200g)." },
     );
   }
