@@ -3,10 +3,24 @@ import { Stethoscope, Check, X, Loader2, Wand2, Monitor, Smartphone } from "luci
 import { auditSeo, SEO_PASS_SCORE } from "@/lib/content/seo-doctor";
 import { autoFixSeo } from "@/lib/ai/seo-doctor.functions";
 
+const GENERIC = new Set(["american", "mediterranean", "mexican", "thai", "indian", "italian", "asian", "middle eastern", "dinner", "lunch", "breakfast", "vegan", "high-protein", "high protein", "dessert", "snack", "side"]);
+const HOLIDAYS = ["thanksgiving", "christmas", "easter", "halloween", "valentine", "new year"];
+
+/** Picks the target keyword: holiday tags first, then the longest tag found in the title, never a bare cuisine/meal word. */
+export function pickKeyword(tagsText: string, title: string): string {
+  const tags = tagsText.split(",").map((t) => t.trim().toLowerCase()).filter(Boolean);
+  const t = title.toLowerCase();
+  const holiday = tags.find((x) => HOLIDAYS.some((h) => x.includes(h)));
+  if (holiday) return holiday;
+  const useful = tags.filter((x) => !GENERIC.has(x));
+  const inTitle = useful.filter((x) => t.includes(x)).sort((a, b) => b.length - a.length)[0];
+  return inTitle ?? useful[0] ?? "";
+}
+
 type Fields = { title: string; seo_title: string; seo_description: string; excerpt: string; content: string; tags?: string };
 
 export function SeoDoctor({ value, onApply, kind = "blog" }: { value: Fields; onApply: (patch: Partial<Fields>) => void; kind?: "blog" | "recipe" }) {
-  const [keyword, setKeyword] = useState(() => (value.tags ?? "").split(",")[0]?.trim() ?? "");
+  const [keyword, setKeyword] = useState(() => pickKeyword(value.tags ?? "", value.title));
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);

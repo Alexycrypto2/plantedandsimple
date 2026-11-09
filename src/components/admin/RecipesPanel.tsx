@@ -365,7 +365,10 @@ export function RecipesSection() {
                 description: form.description,
                 ingredients: lines(form.ingredientsText),
                 instructions: lines(form.instructionsText),
-                nutrition: lines(form.nutritionText),
+                nutrition: [
+                  ...MACROS.filter(([k]) => String((form as any)[k]).trim()).map(([k, label, unit]) => `${label}: ${String((form as any)[k]).trim()}${unit}`),
+                  ...lines(form.nutritionText),
+                ],
                 tips: lines(form.tipsText),
               }),
             }}
