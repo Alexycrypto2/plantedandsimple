@@ -10,6 +10,7 @@ import { adminListMedia, adminUploadMedia, adminAddMediaByUrl } from "@/lib/libr
 import { EmptyState, PanelCard, SkeletonList } from "./AdminShell";
 import { SeoDoctor } from "./SeoDoctor";
 import { ConnectionsCard } from "./ConnectionsCard";
+import { StepPhotosCard } from "./StepPhotosCard";
 import { recipeToHtml } from "@/lib/content/seo-doctor";
 import { btnCls, inputCls } from "./LibraryPanel";
 
@@ -202,7 +203,8 @@ export function RecipesSection() {
   const load = () => adminListEntity({ data: { entity: "recipes" } }).then((r) => setRows(r as Recipe[]));
   useEffect(() => { load(); }, []);
 
-  const openNew = () => { setForm(blank()); setLinks([]); setEditing("new"); };
+  const [stepImages, setStepImages] = useState<(string | null)[]>([]);
+  const openNew = () => { setForm(blank()); setLinks([]); setStepImages([]); setEditing("new"); };
 
   const openEdit = async (r: Recipe) => {
     setForm({ ...blank(),
@@ -217,6 +219,7 @@ export function RecipesSection() {
       seo_title: r.seo_title ?? "", seo_description: r.seo_description ?? "",
       status: r.status ?? "draft", is_featured: !!r.is_featured,
     });
+    setStepImages(Array.isArray(r.instructions) ? r.instructions.map((s: any) => (typeof s?.image_url === "string" ? s.image_url : null)) : []);
     setEditing(r.id);
     const l = await adminGetLinks({ data: { contentType: "recipe", contentId: r.id } });
     setLinks((l as any).relations ?? []);
@@ -232,7 +235,7 @@ export function RecipesSection() {
         subtitle: form.subtitle || null,
         description: form.description,
         ingredients: textToIngredients(form.ingredientsText),
-        instructions: textToInstructions(form.instructionsText),
+        instructions: textToInstructions(form.instructionsText).map((s, i) => (stepImages[i] ? { ...s, image_url: stepImages[i] } : s)),
         nutrition: [
           ...MACROS.filter(([k]) => String((form as any)[k]).trim()).map(([k, label, unit]) => ({ label, value: `${String((form as any)[k]).trim()}${unit}` })),
           ...lines(form.nutritionText).map((l) => {
@@ -337,6 +340,12 @@ export function RecipesSection() {
           )}
         </PanelCard>
 
+        <StepPhotosCard
+          title={form.title}
+          steps={textToInstructions(form.instructionsText).map((s) => (s.title ? `${s.title}: ${s.body}` : s.body))}
+          images={stepImages}
+          onChange={setStepImages}
+        />
         <ConnectionsCard links={links} onChange={setLinks} selfId={editing === "new" ? null : editing} contextText={`${form.title} ${form.tagsText} ${form.ingredientsText}`} />
 
         <PanelCard title="SEO & publishing">

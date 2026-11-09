@@ -47,7 +47,11 @@ function mapRecipe(r: any, media: Map<string, string>): Recipe {
   const instructions = rawInstructions.map((step: any) =>
     typeof step === "string"
       ? { title: null, body: step }
-      : { title: typeof step?.title === "string" ? step.title : null, body: typeof step?.body === "string" ? step.body : "" },
+      : {
+          title: typeof step?.title === "string" ? step.title : null,
+          body: typeof step?.body === "string" ? step.body : "",
+          ...(typeof step?.image_url === "string" && /^(https:\/\/|\/)/.test(step.image_url) ? { image_url: step.image_url } : {}),
+        },
   ).filter((step: any) => step.body);
   const nutrition = (Array.isArray(r.nutrition) ? r.nutrition : []).filter(
     (item: any) => item && typeof item.label === "string" && typeof item.value === "string",
