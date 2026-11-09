@@ -7,7 +7,7 @@ import { fallbackPost, fallbackRecipe } from "@/lib/fallback-content";
 import { getPublishedPostBySlug, type PublicPost } from "@/lib/blog.functions";
 import { getRecipeBySlug } from "@/lib/library/library.functions";
 import { getPageLinks, type PageLinks } from "@/lib/linking/linking.functions";
-import { RelatedSection, RoundupList } from "@/components/site/RelatedLinks";
+import { RelatedSection, RoundupList, HubPills, PairingCallout } from "@/components/site/RelatedLinks";
 
 export const Route = createFileRoute("/blog/$slug")({
   component: PostPage,
@@ -86,6 +86,7 @@ function PostPage() {
         {post.category && (
           <p className="mt-8 font-mono text-[11px] font-bold uppercase tracking-[0.25em] text-sage">{post.category}</p>
         )}
+        <HubPills links={links} />
         <h1 className="mt-3 font-display text-4xl italic text-forest-deep md:text-5xl">{post.title}</h1>
         {post.published_at && (
           <p className="mt-3 text-xs text-charcoal/50">
@@ -105,6 +106,7 @@ function PostPage() {
           return (
             <>
               <div className="article-body mt-10" dangerouslySetInnerHTML={{ __html: first }} />
+              {second && links ? <PairingCallout heading="Recipes from this guide" items={links.recipes.slice(0, 2)} /> : null}
               {second ? <MidArticleBridge /> : null}
               {second ? <div className="article-body" dangerouslySetInnerHTML={{ __html: second }} /> : null}
             </>
@@ -120,7 +122,7 @@ function PostPage() {
           </div>
         )}
         {links ? <RoundupList roundup={links.roundup} /> : null}
-        {links ? <RelatedSection links={links} heading="Recipes to try next" readLabel="More from the journal:" /> : null}
+        {links ? <RelatedSection links={links} heading="Recipes to try next" readLabel="More from the journal:" skipRecipes={splitArticle(post.content ?? "")[1] ? 2 : 0} /> : null}
         <ContentEndFunnel source="blog" />
         <NewsletterPopup />
       </article>

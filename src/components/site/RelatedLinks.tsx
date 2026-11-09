@@ -34,7 +34,8 @@ function Joined({ items }: { items: LinkCard[] }) {
   return <>{items.map((c, i) => <span key={c.href}>{i ? " · " : ""}<TextLink c={c} /></span>)}</>;
 }
 
-export function RelatedSection({ links, heading, readLabel }: { links: PageLinks; heading: string; readLabel: string }) {
+export function RelatedSection({ links: all, heading, readLabel, skipRecipes = 0, hideBlogs = false }: { links: PageLinks; heading: string; readLabel: string; skipRecipes?: number; hideBlogs?: boolean }) {
+  const links = { ...all, recipes: all.recipes.slice(skipRecipes), blogs: hideBlogs ? [] : all.blogs };
   if (!links.recipes.length && !links.blogs.length) return null;
   return (
     <section className="mt-16" aria-label={heading}>
@@ -84,6 +85,51 @@ export function HubSections({ hubs }: { hubs: Hub[] }) {
           </div>
         </section>
       ))}
+    </>
+  );
+}
+
+/** Top-of-page pills linking to the occasion hubs this page belongs to. */
+export function HubPills({ links }: { links: PageLinks | null }) {
+  if (!links?.hubs.length) return null;
+  return (
+    <div className="mt-4 flex flex-wrap justify-center gap-2">
+      {links.hubs.map((h) => (
+        <Link key={h.name} to="/recipes" hash={h.anchor}
+          className="rounded-full border border-forest/20 bg-cream-warm px-3 py-1 text-xs font-semibold text-forest hover:border-forest">
+          Part of our {h.name} recipes →
+        </Link>
+      ))}
+    </div>
+  );
+}
+
+/** Mid-content pairing callout: compact thumbnails, as food publishers use. */
+export function PairingCallout({ heading, items }: { heading: string; items: LinkCard[] }) {
+  if (!items.length) return null;
+  return (
+    <aside className="my-10 rounded-[1.5rem] border border-forest/15 bg-cream-warm p-5" aria-label={heading}>
+      <p className="font-mono text-[11px] font-bold uppercase tracking-[0.22em] text-sage">{heading}</p>
+      <ul className="mt-3 space-y-3">
+        {items.map((c) => (
+          <li key={c.href}>
+            {c.type === "recipe"
+              ? <Link to="/recipes/$slug" params={{ slug: c.slug }} className="group flex items-center gap-3"><Mini c={c} /></Link>
+              : <Link to="/blog/$slug" params={{ slug: c.slug }} className="group flex items-center gap-3"><Mini c={c} /></Link>}
+          </li>
+        ))}
+      </ul>
+    </aside>
+  );
+}
+function Mini({ c }: { c: LinkCard }) {
+  return (
+    <>
+      <div className="w-16 shrink-0"><MediaImage src={c.image} alt={c.title} ratio="aspect-square" className="rounded-xl" /></div>
+      <span className="min-w-0">
+        <span className="block font-display text-base italic leading-snug text-forest-deep group-hover:underline">{c.title}</span>
+        <span className="text-xs text-charcoal/60">{c.type === "recipe" ? (c.prep_minutes ? `${c.prep_minutes} min prep · Recipe` : "Recipe") : "Read the guide →"}</span>
+      </span>
     </>
   );
 }
