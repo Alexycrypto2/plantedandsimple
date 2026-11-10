@@ -185,7 +185,7 @@ function HighProteinGuide() {
             </details>
           ))}
         </div>
-        <Link to="/free-cookbook" className="mt-8 flex items-center justify-between gap-4 rounded-2xl bg-forest-deep px-5 py-4 text-primary-foreground">
+        <Link to="/free" className="mt-8 flex items-center justify-between gap-4 rounded-2xl bg-forest-deep px-5 py-4 text-primary-foreground">
           <span><span className="block text-xs uppercase tracking-wider opacity-75">Free download</span><span className="font-semibold">Get the free 12-recipe guide</span></span>
           <span aria-hidden="true" className="text-xl">→</span>
         </Link>

@@ -170,7 +170,7 @@ function MidArticleBridge() {
       </div>
       <div className="mt-4 flex flex-wrap items-center gap-3">
         <Link to="/shop" className="rounded-full bg-forest px-5 py-2.5 text-sm font-semibold text-primary-foreground no-underline">Get the Cookbook — $14.99</Link>
-        <Link to="/free-cookbook" className="text-sm text-forest underline underline-offset-4">or grab the free 12-recipe guide</Link>
+        <Link to="/free" className="text-sm text-forest underline underline-offset-4">or grab the free 12-recipe guide</Link>
       </div>
     </aside>
   );
