@@ -27,3 +27,6 @@
 - [x] Replace the flagship cover with a digital cookbook bundle showcase (phone-sized rendering verified).
 - [x] Make Brevo key management and connection/testing prominent in Admin.
 - [ ] Verify catalog recommendations and authenticated Brevo save/test end-to-end (blocked: Lovable Cloud is paused).
+- [x] Recipe library + blog: live search and clean category chips (verified on mobile preview).
+- [x] Recipe milestone step photos: 18 added (3–4 per recipe) and shown inside Cook mode (verified).
+- [x] Page loading bar at top of screen (already in place).

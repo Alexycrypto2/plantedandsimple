@@ -25,7 +25,7 @@ export function openPinterest(pagePath: string, image?: string | null, text?: st
   if (!win) window.open(target, "_blank", "noopener,noreferrer");
 }
 
-type Step = { title?: string | null; body: string };
+type Step = { title?: string | null; body: string; image_url?: string | null };
 
 export function RecipeToolbar({ title, image, path, pinText, steps, groups }: {
   title: string; image?: string | null; path: string; pinText?: string | null; steps: Step[]; groups: Group[];
@@ -116,6 +116,7 @@ function CookMode({ title, steps, groups, onClose }: { title: string; steps: Ste
           <div className="mx-auto max-w-2xl">
             <p className="text-sm font-bold uppercase tracking-[0.2em] text-sage">Step {i + 1} of {total}</p>
             {s.title ? <h2 className="mt-3 font-display text-3xl italic text-forest-deep">{cleanStepText(s.title)}</h2> : null}
+            {s.image_url ? <img src={s.image_url} alt={`Step ${i + 1}${s.title ? `: ${cleanStepText(s.title)}` : ""}`} className="mt-5 max-h-[32vh] w-full rounded-2xl object-cover" /> : null}
             <p className="mt-5 text-2xl leading-relaxed text-charcoal md:text-3xl">{cleanStep(s.body)}</p>
             {steps[i + 1] ? <p className="mt-10 border-t border-forest/15 pt-4 text-base text-charcoal/55"><span className="font-bold text-forest">Next:</span> {cleanStepText(steps[i + 1].title || steps[i + 1].body).slice(0, 120)}</p> : <p className="mt-10 font-display text-2xl italic text-forest">Last step — enjoy your meal!</p>}
           </div>
