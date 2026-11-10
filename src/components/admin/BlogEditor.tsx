@@ -26,7 +26,8 @@ function WritingCheck({ title, html }: { title: string; html: string }) {
     </section>
   );
 }
-import { useEffect, useRef, useState } from "react";
+import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
+import { listImages, setImage } from "@/lib/content/blog-clean";
 import { Sparkles, Plus, ExternalLink, Image as ImageIcon, Eye, Pencil } from "lucide-react";
 import { generateStudioImage } from "@/lib/ai/image-studio.functions";
 import { adminListMedia, adminUploadMedia, adminAddMediaByUrl, adminListEntity } from "@/lib/library/admin.functions";
@@ -97,7 +98,9 @@ export function BlogEditor({
   const [prompt, setPrompt] = useState("");
   const [imgBusy, setImgBusy] = useState<string | null>(null);
   const [imgErr, setImgErr] = useState<string | null>(null);
-  const [mode, setMode] = useState<"edit" | "preview">("edit");
+  const [mode, setMode] = useState<"visual" | "code" | "preview">("visual");
+  const [slot, setSlot] = useState<number | null>(null);
+  const vis = useRef<HTMLDivElement>(null);
   const ta = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
@@ -111,6 +114,13 @@ export function BlogEditor({
   }, [value.title]);
 
   const insert = (before: string, after = "") => {
+    if (mode === "visual" && vis.current) {
+      vis.current.focus();
+      const sel = window.getSelection()?.toString() ?? "";
+      document.execCommand("insertHTML", false, before + escapeHtml(sel) + after);
+      set({ content: vis.current.innerHTML });
+      return;
+    }
     const el = ta.current;
     const c = value.content;
     const s = el?.selectionStart ?? c.length;
@@ -126,11 +136,28 @@ export function BlogEditor({
   };
 
   const useImage = (url: string, alt: string) => {
+    if (slot !== null) { set({ content: setImage(value.content, slot, url) }); setSlot(null); setPick(null); return; }
     if (pick === "inline") {
       insert(`\n<figure class="article-figure"><img src="${url}" alt="${alt.replace(/"/g, "")}" loading="lazy" /><figcaption>${alt}</figcaption></figure>\n`);
     } else set({ featured_image_url: url });
     setPick(null);
   };
+
+  const regenSlot = async (i: number, alt: string) => {
+    setImgBusy(`Creating photo ${i + 1}… (about 30–60s)`);
+    setImgErr(null);
+    try {
+      const g: any = await generateStudioImage({ data: { preset: "blog_hero", subject: `${alt || value.title}, plant-based food, natural light editorial food photography`, title: value.title } });
+      const row: any = await adminAddMediaByUrl({ data: { url: g.preview_url, alt: alt || value.title, title: value.title, tags: ["blog"] } });
+      setMedia((m) => [row, ...m]);
+      set({ content: setImage(value.content, i, row.public_url) });
+    } catch (e: any) {
+      setImgErr(e?.message ?? "Photo generation failed");
+    } finally {
+      setImgBusy(null);
+    }
+  };
+  const photos = listImages(value.content);
 
   const regenerate = async () => {
     if (!prompt.trim()) return;
@@ -148,7 +175,7 @@ export function BlogEditor({
     }
   };
 
-  const upload = async (f: File | undefined, target: "hero" | "inline") => {
+  const upload = async (f: File | undefined, target: "hero" | "inline" | number) => {
     if (!f) return;
     setImgBusy("Uploading…");
     setImgErr(null);
@@ -157,7 +184,8 @@ export function BlogEditor({
         data: { fileName: f.name, contentType: f.type as any, base64: await toB64(f), alt: value.title, tags: ["blog"] },
       });
       setMedia((m) => [row, ...m]);
-      if (target === "hero") set({ featured_image_url: row.public_url });
+      if (typeof target === "number") set({ content: setImage(value.content, target, row.public_url) });
+      else if (target === "hero") set({ featured_image_url: row.public_url });
       else insert(`\n<figure class="article-figure"><img src="${row.public_url}" alt="${value.title}" loading="lazy" /><figcaption></figcaption></figure>\n`);
     } catch (e: any) {
       setImgErr(e?.message ?? "Upload failed");
@@ -275,11 +303,12 @@ export function BlogEditor({
       {/* Article body */}
       <section className="rounded-xl border border-forest/10">
         <div className="flex flex-wrap items-center gap-2 border-b border-forest/10 p-2">
-          <button type="button" onClick={() => setMode("edit")} className={`${ghost} ${mode === "edit" ? "bg-forest/10" : ""}`}><Pencil className="size-3.5" /> Edit</button>
+          <button type="button" onClick={() => setMode("visual")} className={`${ghost} ${mode === "visual" ? "bg-forest/10" : ""}`}><Pencil className="size-3.5" /> Write</button>
           <button type="button" onClick={() => setMode("preview")} className={`${ghost} ${mode === "preview" ? "bg-forest/10" : ""}`}><Eye className="size-3.5" /> Preview</button>
+          <button type="button" onClick={() => setMode("code")} className={`${ghost} ${mode === "code" ? "bg-forest/10" : ""}`}>HTML</button>
           <span className="ml-auto text-[11px] text-charcoal/50">{words} words · {Math.max(1, Math.round(words / 220))} min read</span>
         </div>
-        {mode === "edit" ? (
+        {mode !== "preview" ? (
           <>
             <div className="flex flex-wrap gap-1.5 border-b border-forest/10 p-2">
               {tools.map(([l, b, a]) => (
@@ -301,13 +330,41 @@ export function BlogEditor({
                 <button key={k} type="button" onClick={() => insert(`\n${html}\n`)} className={ghost}>+ {k}</button>
               ))}
             </div>
-            <textarea ref={ta} className="h-[28rem] w-full resize-y bg-cream/30 p-3 font-mono text-[13px] outline-none" value={value.content} onChange={(e) => set({ content: e.target.value })} />
+            {mode === "visual" ? (
+              <VisualBody ref={vis} html={value.content} onChange={(h) => set({ content: h })} />
+            ) : (
+              <textarea ref={ta} className="h-[28rem] w-full resize-y bg-cream/30 p-3 font-mono text-[13px] outline-none" value={value.content} onChange={(e) => set({ content: e.target.value })} />
+            )}
           </>
         ) : (
           <div className="max-h-[40rem] overflow-y-auto p-4">
             {value.featured_image_url && <img src={value.featured_image_url} alt="" className="mb-4 aspect-[16/9] w-full rounded-xl object-cover" />}
             <h1 className="font-display text-3xl italic text-forest-deep">{value.title}</h1>
             <div className="article-body mt-6" dangerouslySetInnerHTML={{ __html: value.content }} />
+          </div>
+        )}
+      </section>
+
+      {/* Article photos */}
+      <section className="rounded-xl border border-forest/10 p-4">
+        <p className="mb-1 text-sm font-semibold text-forest-deep">Article photos ({photos.length})</p>
+        <p className="mb-3 text-[11px] text-charcoal/50">Every photo inside the article. Swap one without touching the text.</p>
+        {photos.length === 0 ? <p className="text-xs text-charcoal/50">No photos in the article yet — use “Photo” in the toolbar to add one.</p> : (
+          <div className="grid gap-3 sm:grid-cols-2">
+            {photos.map((ph, i) => (
+              <div key={i} className="flex gap-3 rounded-xl border border-forest/10 p-2">
+                <div className="size-20 shrink-0 overflow-hidden rounded-lg bg-forest/5">{ph.src ? <img src={ph.src} alt="" className="size-full object-cover" /> : null}</div>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-xs font-semibold text-forest-deep">Photo {i + 1}{ph.alt ? ` · ${ph.alt}` : ""}</p>
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    <button type="button" disabled={!!imgBusy} onClick={() => regenSlot(i, ph.alt)} className={ghost}><Sparkles className="size-3.5" /> Regenerate</button>
+                    <label className={`${ghost} cursor-pointer`}><Plus className="size-3.5" /> Upload<input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={(e) => upload(e.target.files?.[0], i)} /></label>
+                    <button type="button" onClick={() => { setSlot(i); setPick("inline"); }} className={ghost}><ImageIcon className="size-3.5" /> Library</button>
+                    <button type="button" onClick={() => set({ content: setImage(value.content, i, null) })} className={ghost}>Remove</button>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         )}
       </section>
@@ -339,6 +396,28 @@ export function BlogEditor({
       </div>
     </div>
   );
+}
+
+const VisualBody = forwardRef<HTMLDivElement, { html: string; onChange: (h: string) => void }>(function VisualBody({ html, onChange }, ref) {
+  const inner = useRef<HTMLDivElement>(null);
+  useImperativeHandle(ref, () => inner.current as HTMLDivElement);
+  useEffect(() => {
+    const el = inner.current;
+    if (el && el.innerHTML !== html && document.activeElement !== el) el.innerHTML = html;
+  }, [html]);
+  return (
+    <div
+      ref={inner}
+      contentEditable
+      suppressContentEditableWarning
+      onInput={(e) => onChange((e.target as HTMLDivElement).innerHTML)}
+      className="article-body min-h-[28rem] max-h-[40rem] overflow-y-auto bg-cream/20 p-4 outline-none"
+    />
+  );
+});
+
+function escapeHtml(s: string) {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
 function prompt_(q: string) {
