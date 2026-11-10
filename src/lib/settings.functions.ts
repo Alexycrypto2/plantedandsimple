@@ -16,6 +16,7 @@ const FIELDS: { key: string; label: string; hint: string }[] = [
   { key: "AI_TEXT_PROVIDER", label: "Writing AI", hint: "Which AI writes blogs, recipes, SEO and pin copy: gemini or claude" },
   { key: "ANTHROPIC_API_KEY", label: "Claude API key", hint: "From console.anthropic.com → API keys · billed by Anthropic" },
   { key: "CLAUDE_TEXT_MODEL", label: "Claude model", hint: "Default: claude-sonnet-4-5 (e.g. claude-opus-4-1, claude-haiku-4-5)" },
+  { key: "HUGGING_FACE_API_KEY", label: "Hugging Face token", hint: "Free, watermark-free FLUX photos · primary image provider (huggingface.co → Settings → Access Tokens, Read role)" },
   { key: "MAGIC_HOUR_API_KEY", label: "Magic Hour API key", hint: "Pinterest photography · primary image provider · billed by Magic Hour" },
   { key: "PIXAZO_API_KEY", label: "Pixazo API key", hint: "Pinterest photography · backup image provider · billed by Pixazo" },
   { key: "GEMINI_TEXT_MODEL", label: "Gemini text model", hint: "Default: gemini-2.5-flash — powers blogs, recipes, pins, assistant" },
