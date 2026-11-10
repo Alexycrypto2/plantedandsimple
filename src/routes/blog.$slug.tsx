@@ -54,6 +54,7 @@ export const Route = createFileRoute("/blog/$slug")({
         headline: post.title, description, image,
         datePublished: post.published_at || undefined,
         mainEntityOfPage: pageUrl(path),
+        author: { "@type": "Organization", name: "PlantedAndSimple", url: pageUrl("/about") },
         publisher: { "@type": "Organization", name: "PlantedAndSimple", url: pageUrl("/") },
       }), breadcrumbs("Blog", "/blog", post.title, path)],
     };
