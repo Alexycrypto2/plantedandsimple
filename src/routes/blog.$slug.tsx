@@ -2,6 +2,7 @@ import { pageHead, pageUrl, plainDescription, jsonLd, breadcrumbs, absoluteImage
 import { createFileRoute, Link, notFound, redirect, useRouter } from "@tanstack/react-router";
 import { SiteLayout } from "@/components/SiteLayout";
 import { ContentEndFunnel } from "@/components/site/ContentEndFunnel";
+import { cleanBlogHtml } from "@/lib/content/blog-clean";
 import { NewsletterPopup } from "@/components/NewsletterPopup";
 import { fallbackPost, fallbackRecipe } from "@/lib/fallback-content";
 import { getPublishedPostBySlug, type PublicPost } from "@/lib/blog.functions";
@@ -80,7 +81,7 @@ function BlogError({ error, reset }: { error: unknown; reset: () => void }) {
 
 function PostPage() {
   const { post, links } = Route.useLoaderData() as { post: PublicPost; links: PageLinks | null };
-  const { html: body, toc } = withHeadingIds(post.content ?? "");
+  const { html: body, toc } = withHeadingIds(cleanBlogHtml(post.content ?? ""));
   const minutes = readingMinutes(post.content ?? "");
   return (
     <SiteLayout>
@@ -113,8 +114,7 @@ function PostPage() {
           return (
             <>
               <div className="article-body mt-10" dangerouslySetInnerHTML={{ __html: first }} />
-              {second && links ? <PairingCallout heading="Recipes from this guide" items={links.recipes.slice(0, 2)} /> : null}
-              {second ? <MidArticleBridge /> : null}
+              {second ? (links && links.recipes.length > 0 ? <PairingCallout heading="Recipes from this guide" items={links.recipes.slice(0, 2)} /> : <MidArticleBridge />) : null}
               {second ? <div className="article-body" dangerouslySetInnerHTML={{ __html: second }} /> : null}
             </>
           );
@@ -130,7 +130,7 @@ function PostPage() {
         )}
         <KitchenNote kind="blog" />
         {links ? <RoundupList roundup={links.roundup} /> : null}
-        {links ? <RelatedSection links={links} heading="Recipes to try next" readLabel="More from the journal:" skipRecipes={splitArticle(post.content ?? "")[1] ? 2 : 0} /> : null}
+        {links ? <RelatedSection links={links} heading="Recipes to try next" readLabel="More from the journal:" skipRecipes={splitArticle(body)[1] ? 2 : 0} /> : null}
         <ContentEndFunnel source="blog" />
         <NewsletterPopup />
       </article>
