@@ -324,6 +324,25 @@ async function generateWithMagicHour(key: string, prompt: string, aspect: string
 }
 
 /** Site photography: Hugging Face FLUX first (free, no watermark), Magic Hour as automatic fallback. */
+const LOVABLE_IMAGE_MODEL = "openai/gpt-image-2.5-sunburst";
+async function generateWithLovable(key: string, prompt: string, aspect: string) {
+  const size = aspect === "9:16" || aspect === "4:5" ? "1024x1536" : "1536x1024";
+  const res = await fetch("https://ai.gateway.lovable.dev/v1/images/generations", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ model: LOVABLE_IMAGE_MODEL, prompt, size, quality: "medium" }),
+  });
+  if (!res.ok) {
+    let msg = `HTTP ${res.status}`;
+    try { const j: any = await res.json(); msg = j?.error?.message || j?.message || msg; } catch {}
+    throw Object.assign(new Error(msg), { status: res.status });
+  }
+  const j: any = await res.json();
+  const b64 = j?.data?.[0]?.b64_json;
+  if (!b64) throw Object.assign(new Error("No photo returned (the request may have been declined)."), { status: 400 });
+  return { base64: b64 as string, mime: "image/png" };
+}
+
 export async function generateImageBase64(
   prompt: string,
   opts?: { feature?: string; requestedModel?: string; requestedProvider?: AiProviderKey; requestedBy?: string; aspectRatio?: string },
@@ -332,8 +351,24 @@ export async function generateImageBase64(
   const [hfKey, mhKey] = await Promise.all([getConfig("HUGGING_FACE_API_KEY"), getConfig("MAGIC_HOUR_API_KEY")]);
   const feature = opts?.feature ?? "image";
   const aspect = opts?.aspectRatio ?? (/2:3|vertical|Pinterest/i.test(prompt) ? "9:16" : /4:5/.test(prompt) ? "4:5" : "16:9");
-  if (!hfKey && !mhKey) throw new Error("Add your Hugging Face token (or Magic Hour key) in Connections to generate photos.");
+  const lovableKey = process.env.LOVABLE_API_KEY;
+  if (!lovableKey && !hfKey && !mhKey) throw new Error("Add your Hugging Face token (or Magic Hour key) in Connections to generate photos.");
   const errors: string[] = [];
+  // Lovable AI makes the photo first; our writer AI supplies the detailed photo direction in `prompt`.
+  if (lovableKey) {
+    try {
+      const out = await generateWithLovable(lovableKey, prompt, aspect);
+      await recordAiUsage({ feature, operation: "generate", provider: "lovable_gateway", modelId: LOVABLE_IMAGE_MODEL, outcome: "success", requestedBy: opts?.requestedBy });
+      return { ...out, provider: "lovable_gateway", modelId: LOVABLE_IMAGE_MODEL, fallback: false };
+    } catch (err) {
+      const status = (err as any)?.status;
+      const msg = String((err as Error)?.message ?? err);
+      await recordAiUsage({ feature, operation: "generate", provider: "lovable_gateway", modelId: LOVABLE_IMAGE_MODEL, outcome: "failed", statusCode: status, errorMessage: msg.slice(0, 300), requestedBy: opts?.requestedBy });
+      errors.push(`Lovable AI: ${msg}`);
+      // Credit, permission and refusal errors are final — never fall through for them.
+      if (status === 400 || status === 402 || status === 403 || (!hfKey && !mhKey)) throw new Error(errors[0]);
+    }
+  }
   if (hfKey) {
     try {
       const out = await generateWithHuggingFace(hfKey, prompt, aspect);
@@ -344,7 +379,7 @@ export async function generateImageBase64(
       const msg = String((err as Error)?.message ?? err);
       await recordAiUsage({ feature, operation: "generate", provider: "hugging_face", modelId: HF_MODEL, outcome: "failed", statusCode: status, errorMessage: msg.slice(0, 300), requestedBy: opts?.requestedBy });
       errors.push(status === 429 ? "Hugging Face free limit reached — try again in about an hour" : `Hugging Face: ${msg}`);
-      if (!mhKey) throw new Error(errors[0]);
+      if (!mhKey) throw new Error(errors.join(" · "));
     }
   }
   try {

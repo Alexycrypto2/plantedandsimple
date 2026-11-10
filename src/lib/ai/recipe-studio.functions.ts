@@ -33,7 +33,7 @@ const RecipeSchema = z.object({
   hero_image_prompt: z.string(),
   hero_image_alt: z.string(),
   ingredients_image_prompt: z.string(),
-  step_image_prompts: z.array(z.object({ prompt: z.string(), alt: z.string() })),
+  step_image_prompts: z.array(z.object({ step: z.number(), prompt: z.string(), alt: z.string() })),
 });
 
 export type RecipeBrief = {
@@ -88,7 +88,7 @@ Non-negotiable rules:
 - servings: the number only, e.g. "4" (never "4 servings").
 - Step titles and bodies must NOT start with a number, "Step", or a dash. Every step body ends with exactly one period — never a comma or ".,".
 - Image prompts must describe THIS exact dish in concrete detail — the real ingredients, colours, textures, props and plating — so no two photos look alike. Never mention text, labels, logos, hands holding phones, or brand names.
-- step_image_prompts: 2-3 of the most visually instructive steps only, each alt describing the step.`;
+- step_image_prompts: 3-4 milestone photos for the most visually instructive steps. "step" is the 1-based instruction number it shows. Each prompt is a full food-photography direction of exactly that moment (the pan, what is in it, colour and texture at that point, camera angle, natural window light), realistic home kitchen, no hands with phones, no text. alt describes the step.`;
 
     let out: z.infer<typeof RecipeSchema>;
     try {
@@ -114,16 +114,18 @@ Non-negotiable rules:
     const gallery: string[] = [];
     let heroId: string | null = null;
     let heroUrl: string | null = null;
+    const stepImages: Record<number, string> = {};
 
     if (data.withImages) {
       const jobs = [
         { prompt: out.hero_image_prompt, framing: FRAMING.finished, alt: out.hero_image_alt, hero: true },
         { prompt: out.ingredients_image_prompt, framing: FRAMING.flatlay, alt: `${out.title} ingredients`, hero: false },
-        ...out.step_image_prompts.slice(0, 3).map((s) => ({ prompt: s.prompt, framing: FRAMING.step, alt: s.alt, hero: false })),
-      ];
+        ...out.step_image_prompts.slice(0, 4).map((s) => ({ prompt: s.prompt, framing: FRAMING.step, alt: s.alt, hero: false, step: Math.round(s.step) - 1 })),
+      ] as { prompt: string; framing: any; alt: string; hero: boolean; step?: number }[];
       for (const job of jobs) {
         const r = await renderImageSafe(`${out.title}. ${job.prompt}`, `recipes/${slug}`, job.framing);
         if (!r?.url) continue;
+        if (job.step !== undefined && out.instructions[job.step]) stepImages[job.step] = r.url;
         const { data: m } = await (supabaseAdmin as any)
           .from("media")
           .insert({
@@ -155,7 +157,7 @@ Non-negotiable rules:
         subtitle: out.subtitle,
         description: out.description,
         ingredients: out.ingredients,
-        instructions: out.instructions.map((s) => ({ title: cleanStepText(s.title), body: cleanStep(s.body) })),
+        instructions: out.instructions.map((s, i) => ({ title: cleanStepText(s.title), body: cleanStep(s.body), ...(stepImages[i] ? { image_url: stepImages[i] } : {}) })),
         nutrition: fixCalories(out.nutrition.map((n) => ({ ...n, label: usNutritionLabel(n.label) }))),
         tips: out.tips.map(cleanTip).filter(Boolean),
         prep_minutes: Math.max(0, Math.round(out.prep_minutes)),
