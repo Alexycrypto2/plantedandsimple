@@ -189,6 +189,8 @@ export async function buildAndStoreArticle(opts: {
   extra?: Record<string, unknown>;
 }) {
   const { article: output, brief } = opts;
+  if (looksLikeTitle(brief.topic)) output.h1 = brief.topic.trim();
+  output.seo_title = anchorSeoTitle(output.h1, output.seo_title);
   const folder = `blog/${output.slug}`;
   const words = brief.wordCount ?? 1600;
   const plan = imagePlanFor(words, formatFor(brief));
