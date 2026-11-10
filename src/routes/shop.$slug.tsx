@@ -10,6 +10,7 @@ import {
 import { productImage } from "@/components/site/ProductFamily";
 import { PRODUCT_STORIES } from "@/components/site/product-stories";
 import { SiteLayout } from "@/components/SiteLayout";
+import { NewsletterPopup } from "@/components/NewsletterPopup";
 import { fallbackProduct } from "@/lib/fallback-content";
 import actionKitchen from "@/assets/product-action-kitchen.jpg";
 import actionMealPrep from "@/assets/product-action-meal-prep.jpg";
@@ -396,6 +397,7 @@ function ProductDetail() {
           </button>
         </div>
       </div>
+      <NewsletterPopup />
     </SiteLayout>
   );
 }
