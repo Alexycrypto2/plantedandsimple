@@ -593,11 +593,33 @@
 .print-only { display: none; }
 .article-body h2 { scroll-margin-top: 6rem; }
 html { scroll-behavior: smooth; }
+.print-sheet { display: none; }
 @media print {
-  body * { visibility: hidden; }
-  .print-area, .print-area * { visibility: visible; }
-  .print-area { position: absolute; inset: 0 auto auto 0; width: 100%; display: block !important; margin: 0 !important; padding: 0 1rem; }
-  .print-area .print-only { display: block; margin-bottom: 1rem; }
-  .print-area img, .print-area .no-print, .print-area input { display: none !important; }
-  .print-area section + section { margin-top: 1.5rem; }
+  @page { margin: 14mm 12mm; }
+  html, body { background: #fff !important; }
+  body > *:not(.print-sheet) { display: none !important; }
+  .print-sheet { display: block !important; color: #1f2a22; font-size: 10.5pt; line-height: 1.45; }
+  .print-sheet h1 { font-family: var(--font-display, Georgia, serif); font-style: italic; font-size: 24pt; line-height: 1.1; margin: 0; color: #24412f; }
+  .print-sheet h2 { font-family: var(--font-display, Georgia, serif); font-style: italic; font-size: 15pt; margin: 0 0 6pt; color: #24412f; border-bottom: 1.5pt solid #24412f; padding-bottom: 3pt; }
+  .print-sheet h3 { font-size: 8pt; text-transform: uppercase; letter-spacing: .15em; color: #6b8a68; margin: 8pt 0 3pt; }
+  .ps-head { display: flex; gap: 12pt; align-items: center; padding-bottom: 8pt; border-bottom: 0.5pt solid #ccd5c8; }
+  .ps-head img { width: 48pt; height: 48pt; object-fit: contain; }
+  .ps-desc { margin: 4pt 0 0; color: #4a544c; font-size: 10pt; }
+  .ps-meta { display: flex; gap: 0; margin: 10pt 0 12pt; border: 0.5pt solid #ccd5c8; border-radius: 6pt; }
+  .ps-meta > div { flex: 1; padding: 5pt 8pt; border-right: 0.5pt solid #ccd5c8; }
+  .ps-meta > div:last-child { border-right: 0; }
+  .ps-meta span { display: block; font-size: 7pt; text-transform: uppercase; letter-spacing: .15em; color: #6b8a68; }
+  .ps-meta strong { font-size: 11pt; }
+  .ps-grid { display: grid; grid-template-columns: 38% 1fr; gap: 16pt; }
+  .print-sheet ul, .print-sheet ol { list-style: none; margin: 0; padding: 0; }
+  .ps-ing li { display: flex; gap: 6pt; padding: 2.5pt 0; border-bottom: 0.5pt dotted #ccd5c8; break-inside: avoid; }
+  .ps-box { flex: none; width: 8pt; height: 8pt; margin-top: 3pt; border: 0.8pt solid #24412f; border-radius: 2pt; }
+  .ps-steps li { display: flex; gap: 8pt; margin-bottom: 7pt; break-inside: avoid; }
+  .ps-num { flex: none; width: 15pt; height: 15pt; border-radius: 50%; background: #24412f; color: #fff; font-size: 8pt; font-weight: 700; display: flex; align-items: center; justify-content: center; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+  .ps-nutri { display: flex; flex-wrap: wrap; gap: 4pt 14pt; margin-top: 12pt; padding: 6pt 10pt; background: #f2efe6; border-radius: 6pt; break-inside: avoid; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+  .ps-label { width: 100%; font-size: 7pt; text-transform: uppercase; letter-spacing: .15em; color: #6b8a68; }
+  .ps-tips { margin-top: 12pt; break-inside: avoid; }
+  .ps-tips li { padding-left: 10pt; position: relative; margin-bottom: 3pt; }
+  .ps-tips li::before { content: "•"; position: absolute; left: 0; color: #6b8a68; }
+  .ps-foot { margin-top: 14pt; padding-top: 6pt; border-top: 0.5pt solid #ccd5c8; font-size: 8pt; color: #6b8a68; text-align: center; }
 }
