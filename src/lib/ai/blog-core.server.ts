@@ -1,4 +1,5 @@
 import { generateText, NoObjectGeneratedError, Output } from "ai";
+import { anchorSeoTitle, looksLikeTitle } from "@/lib/content/title-lock";
 import { z } from "zod";
 import { textModel, describeAiError, DEFAULT_CHAT_MODEL, DEFAULT_IMAGE_MODEL } from "./gateway.server";
 import { assembleArticleHtml, FRAMING, renderImageSafe } from "./studio.server";
@@ -109,7 +110,7 @@ export function buildArticlePrompt(brief: ArticleBrief, memory: string) {
 
 ${memory}
 
-Topic: "${brief.topic}"
+${looksLikeTitle(brief.topic) ? `Article title (author-mandated): "${brief.topic}". Use this EXACT text word-for-word as "h1". Never rename or reword it; seo_title must contain it.` : `Topic: "${brief.topic}"`}
 ${brief.category ? `Category: ${brief.category}` : ""}
 ${brief.primaryKeyword ? `Primary keyword: ${brief.primaryKeyword} (use it in the H1, the first 100 words, one H2 and the meta — naturally, never stuffed)` : ""}
 ${brief.secondaryKeywords ? `Secondary keywords: ${brief.secondaryKeywords}` : ""}
@@ -188,6 +189,8 @@ export async function buildAndStoreArticle(opts: {
   extra?: Record<string, unknown>;
 }) {
   const { article: output, brief } = opts;
+  if (looksLikeTitle(brief.topic)) output.h1 = brief.topic.trim();
+  output.seo_title = anchorSeoTitle(output.h1, output.seo_title);
   const folder = `blog/${output.slug}`;
   const words = brief.wordCount ?? 1600;
   const plan = imagePlanFor(words, formatFor(brief));

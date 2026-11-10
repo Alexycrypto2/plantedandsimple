@@ -227,7 +227,7 @@ export function AiBlogWriterModal({
 
         <div className="mt-6 space-y-5">
           <div>
-            <label className="text-sm font-semibold text-forest-deep">What should the blog post be about? *</label>
+            <label className="text-sm font-semibold text-forest-deep">Article title (kept exactly as typed) *</label>
             <textarea
               value={topic}
               onChange={(e) => setTopic(e.target.value)}

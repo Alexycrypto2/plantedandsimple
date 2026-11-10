@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { anchorSeoTitle, looksLikeTitle } from "@/lib/content/title-lock";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { generateText, NoObjectGeneratedError, Output } from "ai";
 import { z } from "zod";
@@ -70,7 +71,7 @@ export const generateStudioRecipe = createServerFn({ method: "POST" })
 
 ${memory}
 
-Recipe idea: "${data.idea}"
+${looksLikeTitle(data.idea) ? `Recipe title (author-mandated): "${data.idea}". Use this EXACT title word-for-word as "title". Never rename, reword or embellish it.` : `Recipe idea: "${data.idea}"`}
 Diet: ${data.diet}. ${data.cuisine ? `Cuisine: ${data.cuisine}. ` : ""}${data.mealType ? `Meal: ${data.mealType}. ` : ""}Difficulty: ${data.difficulty}. Servings: ${data.servings}. Total time must be at or under ${data.maxMinutes} minutes.
 
 Non-negotiable rules:
@@ -101,9 +102,11 @@ Non-negotiable rules:
       if (NoObjectGeneratedError.isInstance(err)) throw new Error("AI returned invalid JSON — try again.");
       throw describeAiError(err);
     }
+    if (looksLikeTitle(data.idea)) out.title = data.idea.trim();
+    out.seo_title = anchorSeoTitle(out.title, out.seo_title);
 
     const slug =
-      (out.slug || out.title).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 80);
+      (looksLikeTitle(data.idea) ? out.title : out.slug || out.title).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 80);
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 

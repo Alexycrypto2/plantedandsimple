@@ -25,7 +25,7 @@ const STOP = ["the", "and", "for", "with", "how", "your", "best"];
 
 export function guessKeyword(input: SeoInput): string {
   if (input.keyword?.trim()) return input.keyword.trim().toLowerCase();
-  const base = (input.seoTitle || input.title).toLowerCase().replace(/[^a-z0-9\s-]/g, "");
+  const base = (input.title || input.seoTitle).toLowerCase().replace(/[^a-z0-9\s-]/g, "");
   return base.split(/\s+/).filter((w) => w.length > 2 && !STOP.includes(w)).slice(0, 3).join(" ");
 }
 

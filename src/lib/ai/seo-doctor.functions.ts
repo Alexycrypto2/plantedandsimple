@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { anchorSeoTitle } from "@/lib/content/title-lock";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { generateText, NoObjectGeneratedError, Output } from "ai";
 import { z } from "zod";
@@ -42,7 +43,7 @@ export const autoFixSeo = createServerFn({ method: "POST" })
         prompt: `You are an SEO editor for PlantedAndSimple (plant-based food brand). Fix ONLY these failing checks for the target keyword "${report.keyword}":
 ${failing.map((c) => `- ${c.label}: ${c.fix}`).join("\n")}
 
-${data.kind === "recipe" ? "This is a RECIPE. Only rewrite seo_title, seo_description and excerpt (the recipe description, 2-3 warm sentences that include the keyword). Return content_html unchanged. Mention any ingredient/step/tip gaps in changes as advice for the editor.\n" : ""}Rules: keep every fact, quantity, recipe, link, image and product card exactly as is. Keep the warm home-cook voice. Do not add AI cliches (delve, elevate, unlock, game-changer). seo_title 30-60 chars, seo_description 120-155 chars. Return the full corrected content_html (edit minimally) and a short list of changes.
+${data.kind === "recipe" ? "This is a RECIPE. Only rewrite seo_title, seo_description and excerpt (the recipe description, 2-3 warm sentences that include the keyword). Return content_html unchanged. Mention any ingredient/step/tip gaps in changes as advice for the editor.\n" : ""}Rules: keep every fact, quantity, recipe, link, image and product card exactly as is. Keep the warm home-cook voice. Do not add AI cliches (delve, elevate, unlock, game-changer). seo_title 30-60 chars and MUST contain the exact Title word-for-word — only add natural modifiers (time, diet, protein) or " · Planted & Simple"; never rename the dish. seo_description 120-155 chars. Return the full corrected content_html (edit minimally) and a short list of changes.
 
 Title: ${data.title}
 SEO title: ${data.seoTitle}
@@ -51,6 +52,7 @@ Excerpt: ${data.excerpt}
 CONTENT HTML:
 ${data.html}`,
       });
+      output.seo_title = anchorSeoTitle(data.title, output.seo_title);
       const html = data.kind === "recipe" ? data.html.replace(/^<p>[\s\S]*?<\/p>/, `<p>${output.excerpt}</p>`) : output.content_html;
       const after = auditSeo({ title: data.title, seoTitle: output.seo_title, seoDescription: output.seo_description, html, keyword: report.keyword, kind: data.kind });
       // Never accept a "fix" that makes things worse or drops most of the article.
@@ -89,7 +91,7 @@ export const suggestSeoField = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await requireBoss(context.supabase, context.userId);
     const spec = {
-      seo_title: "3 SEO titles, 30-60 characters each, keyword near the start, no clickbait.",
+      seo_title: "3 SEO titles, 30-60 characters each. Each MUST start with the exact Title word-for-word, then add natural modifiers (cook time, diet, protein) or ' · Planted & Simple'. Never rename the dish, no clickbait.",
       seo_description: "3 meta descriptions, 120-155 characters each, include the keyword and a clear benefit.",
       pinterest: "3 Pinterest descriptions, 150-400 characters each, include the keyword and 2-3 natural search phrases, no hashtags spam.",
       keywords: "3 supporting search phrases (2-5 words each) a home cook would type into Google related to the main keyword.",
@@ -105,7 +107,8 @@ Type: ${data.kind}. Title: ${data.title}. Main keyword: ${data.keyword || "(choo
 Content summary:
 ${data.summary}`,
       });
-      return { options: output.options.map((s) => s.trim()).filter(Boolean).slice(0, 3) };
+      const opts = output.options.map((s) => s.trim()).filter(Boolean);
+      return { options: (data.field === "seo_title" ? [...new Set(opts.map((o) => anchorSeoTitle(data.title, o)))] : opts).slice(0, 3) };
     } catch (err) {
       if (NoObjectGeneratedError.isInstance(err)) throw new Error("AI returned invalid output — try again.");
       throw describeAiError(err);
