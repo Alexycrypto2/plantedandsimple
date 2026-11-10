@@ -46,13 +46,52 @@ export function RecipeToolbar({ title, image, path, pinText, steps, groups }: {
   );
 }
 
-/** Full-screen, one-step-at-a-time view with big text; keeps the screen awake where the phone allows it. */
+/** Finds the first cooking time in a step, e.g. "bake 25 minutes" or "10–12 min" → seconds (uses the upper bound). */
+export function stepTimerSeconds(text: string): number | null {
+  const m = text.match(/(\d+)(?:\s*(?:-|–|to)\s*(\d+))?\s*(hours?|hrs?|minutes?|mins?|seconds?|secs?)\b/i);
+  if (!m) return null;
+  const n = Number(m[2] ?? m[1]);
+  const unit = m[3]!.toLowerCase();
+  const secs = unit.startsWith("h") ? n * 3600 : unit.startsWith("s") ? n : n * 60;
+  return secs > 0 && secs <= 6 * 3600 ? secs : null;
+}
+
+const fmt = (s: number) => {
+  const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), x = s % 60;
+  return h ? `${h}:${String(m).padStart(2, "0")}:${String(x).padStart(2, "0")}` : `${m}:${String(x).padStart(2, "0")}`;
+};
+
+function chime() {
+  try {
+    const Ctx = (window as any).AudioContext || (window as any).webkitAudioContext;
+    const ctx = new Ctx();
+    [0, 0.35, 0.7].forEach((t) => {
+      const o = ctx.createOscillator(), g = ctx.createGain();
+      o.frequency.value = 880; o.connect(g); g.connect(ctx.destination);
+      g.gain.setValueAtTime(0.25, ctx.currentTime + t); g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + t + 0.3);
+      o.start(ctx.currentTime + t); o.stop(ctx.currentTime + t + 0.3);
+    });
+  } catch { /* ignore */ }
+  navigator.vibrate?.([300, 150, 300, 150, 300]);
+}
+
+type Timer = { step: number; label: string; end: number; total: number; paused?: number; done?: boolean };
+
+/** Full-screen, one-step-at-a-time view: timers, swipe, ingredient sheet, step dots, read aloud; keeps the screen awake. */
 function CookMode({ title, steps, groups, onClose }: { title: string; steps: Step[]; groups: Group[]; onClose: () => void }) {
   const [i, setI] = useState(0);
   const [showIng, setShowIng] = useState(false);
   const [awake, setAwake] = useState<"on" | "off" | "unsupported">("off");
+  const [timers, setTimers] = useState<Timer[]>([]);
+  const [now, setNow] = useState(() => Date.now());
+  const [speaking, setSpeaking] = useState(false);
+  const [checked, setChecked] = useState<Record<string, boolean>>({});
   const lock = useRef<any>(null);
+  const touch = useRef<{ x: number; y: number } | null>(null);
   const total = steps.length;
+  const canSpeak = typeof window !== "undefined" && "speechSynthesis" in window;
+
+  const go = (n: number) => { setI(Math.max(0, Math.min(total - 1, n))); if (canSpeak) { window.speechSynthesis.cancel(); setSpeaking(false); } };
 
   useEffect(() => {
     let cancelled = false;
@@ -82,52 +121,137 @@ function CookMode({ title, steps, groups, onClose }: { title: string; steps: Ste
       window.removeEventListener("keydown", onKey);
       document.body.style.overflow = prevOverflow;
       lock.current?.release?.(); lock.current = null;
+      if ("speechSynthesis" in window) window.speechSynthesis.cancel();
     };
   }, [onClose, total]);
 
+  // Tick running timers; chime once when each finishes.
+  useEffect(() => {
+    if (!timers.some((t) => !t.done && !t.paused)) return;
+    const id = window.setInterval(() => {
+      const n = Date.now(); setNow(n);
+      setTimers((ts) => ts.map((t) => (!t.done && !t.paused && t.end <= n ? (chime(), { ...t, done: true }) : t)));
+    }, 500);
+    return () => window.clearInterval(id);
+  }, [timers]);
+
   const s = steps[i];
+  const stepText = s ? cleanStep(s.body) : "";
+  const suggested = s ? stepTimerSeconds(`${s.title ?? ""} ${s.body}`) : null;
+  const hasTimer = timers.some((t) => t.step === i && !t.done);
+  const startTimer = (secs: number) => {
+    const label = s?.title ? cleanStepText(s.title) : `Step ${i + 1}`;
+    setNow(Date.now());
+    setTimers((ts) => [...ts.filter((t) => t.step !== i), { step: i, label, end: Date.now() + secs * 1000, total: secs }]);
+  };
+  const remaining = (t: Timer) => Math.max(0, Math.ceil(((t.paused ?? t.end) - (t.paused ? 0 : now)) / 1000));
+  const toggle = (t: Timer) => setTimers((ts) => ts.map((x) => x !== t ? x : x.paused ? { ...x, end: Date.now() + x.paused, paused: undefined } : { ...x, paused: x.end - Date.now() }));
+
+  const speak = () => {
+    if (!canSpeak) return;
+    const synth = window.speechSynthesis;
+    if (speaking) { synth.cancel(); setSpeaking(false); return; }
+    const u = new SpeechSynthesisUtterance(`Step ${i + 1}. ${s?.title ? cleanStepText(s.title) + ". " : ""}${stepText}`);
+    u.rate = 0.95; u.onend = () => setSpeaking(false); u.onerror = () => setSpeaking(false);
+    synth.cancel(); synth.speak(u); setSpeaking(true);
+  };
+
+  const onTouchStart = (e: React.TouchEvent) => { const t = e.touches[0]!; touch.current = { x: t.clientX, y: t.clientY }; };
+  const onTouchEnd = (e: React.TouchEvent) => {
+    const start = touch.current; touch.current = null;
+    if (!start || showIng) return;
+    const t = e.changedTouches[0]!; const dx = t.clientX - start.x, dy = t.clientY - start.y;
+    if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) go(i + (dx < 0 ? 1 : -1));
+  };
+
   return (
-    <div role="dialog" aria-modal="true" aria-label={`Cook mode: ${title}`} className="no-print fixed inset-0 z-[100] flex flex-col bg-cream">
-      <div className="flex items-center justify-between gap-3 border-b border-forest/15 px-5 py-3">
+    <div role="dialog" aria-modal="true" aria-label={`Cook mode: ${title}`} className="no-print fixed inset-0 z-[100] flex flex-col bg-cream text-left">
+      <div className="flex items-center justify-between gap-3 border-b border-forest/15 px-4 py-2.5">
         <div className="min-w-0">
-          <p className="truncate font-display text-lg italic text-forest-deep">{title}</p>
-          <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-sage">
-            {awake === "on" ? "● Screen staying on" : awake === "unsupported" ? "Screen lock not supported on this phone" : "Keeping screen on…"}
+          <p className="truncate font-display text-base italic text-forest-deep">{title}</p>
+          <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-sage">
+            {awake === "on" ? "● Screen staying on" : awake === "unsupported" ? "Screen lock not supported here" : "Keeping screen on…"}
           </p>
         </div>
         <button type="button" onClick={onClose} className="shrink-0 rounded-full bg-forest px-4 py-2 text-[11px] font-bold uppercase tracking-[0.16em] text-cream">Exit</button>
       </div>
-      <div className="h-1.5 bg-forest/10"><div className="h-full bg-forest transition-all" style={{ width: `${total ? ((i + 1) / total) * 100 : 0}%` }} /></div>
 
-      <div className="flex-1 overflow-y-auto px-6 py-8">
-        {showIng ? (
-          <div className="mx-auto max-w-2xl">
-            <h2 className="font-display text-3xl italic text-forest-deep">Ingredients</h2>
-            {groups.map((g, gi) => (
-              <div key={gi} className="mt-5">
-                {g.group ? <h3 className="text-xs font-bold uppercase tracking-[0.2em] text-sage">{g.group}</h3> : null}
-                <ul className="mt-2 space-y-2 text-lg leading-relaxed text-charcoal">
-                  {(g.items ?? []).map((it, j) => <li key={j} className="border-b border-forest/10 pb-2">{it}</li>)}
-                </ul>
-              </div>
-            ))}
-          </div>
-        ) : s ? (
-          <div className="mx-auto max-w-2xl">
-            <p className="text-sm font-bold uppercase tracking-[0.2em] text-sage">Step {i + 1} of {total}</p>
-            {s.title ? <h2 className="mt-3 font-display text-3xl italic text-forest-deep">{cleanStepText(s.title)}</h2> : null}
-            {s.image_url ? <img src={s.image_url} alt={`Step ${i + 1}${s.title ? `: ${cleanStepText(s.title)}` : ""}`} className="mt-5 max-h-[32vh] w-full rounded-2xl object-cover" /> : null}
-            <p className="mt-5 text-2xl leading-relaxed text-charcoal md:text-3xl">{cleanStep(s.body)}</p>
-            {steps[i + 1] ? <p className="mt-10 border-t border-forest/15 pt-4 text-base text-charcoal/55"><span className="font-bold text-forest">Next:</span> {cleanStepText(steps[i + 1].title || steps[i + 1].body).slice(0, 120)}</p> : <p className="mt-10 font-display text-2xl italic text-forest">Last step — enjoy your meal!</p>}
+      {/* Step dots: tap to jump */}
+      <div className="flex gap-1 overflow-x-auto px-4 py-2" aria-label="Steps">
+        {steps.map((_, n) => (
+          <button key={n} type="button" onClick={() => go(n)} aria-label={`Go to step ${n + 1}`} aria-current={n === i ? "step" : undefined}
+            className={`h-8 min-w-8 shrink-0 rounded-full text-xs font-bold transition ${n === i ? "bg-forest text-cream" : n < i ? "bg-sage-soft text-forest" : "border border-forest/20 text-forest/60"}`}>{n + 1}</button>
+        ))}
+      </div>
+
+      {timers.length ? (
+        <div className="flex gap-2 overflow-x-auto border-y border-forest/10 bg-cream-warm px-4 py-2">
+          {timers.map((t) => (
+            <div key={t.step} className={`flex shrink-0 items-center gap-2 rounded-full px-3 py-1.5 text-xs font-bold ${t.done ? "animate-pulse bg-destructive text-destructive-foreground" : "bg-card text-forest"}`}>
+              <button type="button" onClick={() => go(t.step)} className="max-w-[9rem] truncate">{t.label}</button>
+              <span className="font-mono">{t.done ? "Done!" : fmt(remaining(t))}</span>
+              {!t.done ? <button type="button" onClick={() => toggle(t)} aria-label={t.paused ? "Resume" : "Pause"}>{t.paused ? "▶" : "❚❚"}</button> : null}
+              <button type="button" onClick={() => setTimers((ts) => ts.filter((x) => x !== t))} aria-label="Remove timer">✕</button>
+            </div>
+          ))}
+        </div>
+      ) : null}
+
+      <div className="flex-1 overflow-y-auto px-5 py-5" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
+        {s ? (
+          <div className="mx-auto max-w-2xl pb-6">
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-sage">Step {i + 1} of {total}</p>
+              {canSpeak ? <button type="button" onClick={speak} className="rounded-full border border-forest/20 px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.14em] text-forest">{speaking ? "■ Stop" : "🔊 Read aloud"}</button> : null}
+            </div>
+            {s.title ? <h2 className="mt-2 font-display text-2xl italic text-forest-deep md:text-3xl">{cleanStepText(s.title)}</h2> : null}
+            {s.image_url ? <img src={s.image_url} alt={`Step ${i + 1}${s.title ? `: ${cleanStepText(s.title)}` : ""}`} className="mt-4 max-h-[30vh] w-full rounded-2xl object-cover" /> : null}
+            <p className="mt-4 text-xl leading-relaxed text-charcoal md:text-2xl">{stepText}</p>
+            {suggested && !hasTimer ? (
+              <button type="button" onClick={() => startTimer(suggested)} className="mt-5 inline-flex items-center gap-2 rounded-full bg-forest px-5 py-3 text-sm font-bold text-cream">⏱ Start {fmt(suggested)} timer</button>
+            ) : null}
+            {steps[i + 1] ? <p className="mt-6 border-t border-forest/15 pt-3 text-sm text-charcoal/60"><span className="font-bold text-forest">Next:</span> {cleanStepText(steps[i + 1]!.title || steps[i + 1]!.body).slice(0, 120)}</p> : <p className="mt-6 font-display text-xl italic text-forest">Last step — enjoy your meal!</p>}
+            <p className="mt-3 text-center text-[11px] text-charcoal/40 md:hidden">Swipe left or right to change steps</p>
           </div>
         ) : null}
       </div>
 
-      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 border-t border-forest/15 px-4 py-3">
-        <button type="button" disabled={i === 0 || showIng} onClick={() => setI((x) => Math.max(0, x - 1))} className="rounded-full border border-forest/25 py-4 text-sm font-bold uppercase tracking-[0.14em] text-forest disabled:opacity-30">← Back</button>
-        <button type="button" onClick={() => setShowIng((v) => !v)} className="rounded-full bg-cream-warm px-4 py-4 text-[11px] font-bold uppercase tracking-[0.14em] text-forest">{showIng ? "Steps" : "Ingredients"}</button>
-        <button type="button" disabled={i >= total - 1 || showIng} onClick={() => setI((x) => Math.min(total - 1, x + 1))} className="rounded-full bg-forest py-4 text-sm font-bold uppercase tracking-[0.14em] text-cream disabled:opacity-30">Next →</button>
+      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 border-t border-forest/15 px-3 pt-3" style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}>
+        <button type="button" disabled={i === 0} onClick={() => go(i - 1)} className="rounded-full border border-forest/25 py-3.5 text-sm font-bold uppercase tracking-[0.14em] text-forest disabled:opacity-30">← Back</button>
+        <button type="button" onClick={() => setShowIng(true)} className="rounded-full bg-cream-warm px-4 py-3.5 text-[11px] font-bold uppercase tracking-[0.14em] text-forest">Ingredients</button>
+        <button type="button" disabled={i >= total - 1} onClick={() => go(i + 1)} className="rounded-full bg-forest py-3.5 text-sm font-bold uppercase tracking-[0.14em] text-cream disabled:opacity-30">Next →</button>
       </div>
+
+      {/* Slide-up ingredients sheet: step stays underneath */}
+      {showIng ? (
+        <div className="absolute inset-0 z-10 flex items-end bg-charcoal/40" onClick={() => setShowIng(false)}>
+          <div className="max-h-[75%] w-full overflow-y-auto rounded-t-2xl bg-cream px-5 pb-8 pt-3 shadow-2xl animate-in slide-in-from-bottom-8" onClick={(e) => e.stopPropagation()}>
+            <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-forest/20" />
+            <div className="flex items-center justify-between">
+              <h2 className="font-display text-2xl italic text-forest-deep">Ingredients</h2>
+              <button type="button" onClick={() => setShowIng(false)} className="rounded-full bg-forest px-4 py-2 text-[11px] font-bold uppercase tracking-[0.14em] text-cream">Back to step {i + 1}</button>
+            </div>
+            {groups.map((g, gi) => (
+              <div key={gi} className="mt-4">
+                {g.group ? <h3 className="text-xs font-bold uppercase tracking-[0.2em] text-sage">{g.group}</h3> : null}
+                <ul className="mt-2 space-y-1">
+                  {(g.items ?? []).map((it, j) => {
+                    const k = `${gi}-${j}`;
+                    return (
+                      <li key={j}>
+                        <label className="flex cursor-pointer items-start gap-3 border-b border-forest/10 py-2 text-base text-charcoal">
+                          <input type="checkbox" className="mt-1 h-5 w-5 accent-[var(--color-forest)]" checked={!!checked[k]} onChange={() => setChecked((c) => ({ ...c, [k]: !c[k] }))} />
+                          <span className={checked[k] ? "text-charcoal/40 line-through" : ""}>{it}</span>
+                        </label>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
