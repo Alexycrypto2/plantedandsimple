@@ -1,3 +1,4 @@
+import { CookbookPrice } from "@/components/site/CookbookPrice";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import cookbookMockup from "@/assets/cookbook-mockup.jpg";
@@ -442,7 +443,7 @@ function NoSessionView() {
         href="/"
         className="mt-8 inline-flex items-center justify-center gap-2 rounded-full bg-forest px-8 py-4 font-semibold text-cream shadow-lg hover:bg-forest-deep"
       >
-        Get the Cookbook — $14.99
+        Get the Cookbook — <CookbookPrice />
       </a>
     </>
   );

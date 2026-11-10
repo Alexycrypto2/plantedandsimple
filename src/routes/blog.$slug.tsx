@@ -1,3 +1,4 @@
+import { CookbookPrice } from "@/components/site/CookbookPrice";
 import { pageHead, pageUrl, plainDescription, jsonLd, breadcrumbs, absoluteImage } from "@/lib/seo";
 import { createFileRoute, Link, notFound, redirect, useRouter } from "@tanstack/react-router";
 import { SiteLayout } from "@/components/SiteLayout";
@@ -114,7 +115,7 @@ function PostPage() {
           return (
             <>
               <div className="article-body mt-10" dangerouslySetInnerHTML={{ __html: first }} />
-              {second ? (links && links.recipes.length > 0 ? <PairingCallout heading="Recipes from this guide" items={links.recipes.slice(0, 2)} /> : <MidArticleBridge />) : null}
+              {second ? <MidArticleBridge /> : null}
               {second ? <div className="article-body" dangerouslySetInnerHTML={{ __html: second }} /> : null}
             </>
           );
@@ -169,7 +170,7 @@ function MidArticleBridge() {
         </div>
       </div>
       <div className="mt-4 flex flex-wrap items-center gap-3">
-        <Link to="/shop" className="rounded-full bg-forest px-5 py-2.5 text-sm font-semibold text-primary-foreground no-underline">Get the Cookbook — $14.99</Link>
+        <Link to="/shop" className="rounded-full bg-forest px-5 py-2.5 text-sm font-semibold text-primary-foreground no-underline">Get the Cookbook — <CookbookPrice /></Link>
         <Link to="/free" className="text-sm text-forest underline underline-offset-4">or grab the free 12-recipe guide</Link>
       </div>
     </aside>

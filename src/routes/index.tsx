@@ -1,3 +1,4 @@
+import { CookbookPrice } from "@/components/site/CookbookPrice";
 import { pageHead, withImage, jsonLd, SITE_NAME, SITE_URL } from "@/lib/seo";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { subscribeFreeGuide } from "@/lib/free-guide.functions";
@@ -208,7 +209,7 @@ function CookbookValueBadges() {
           ))}
         </div>
         <div className="mt-5 rounded-2xl border border-forest/15 bg-background p-5">
-          <p className="font-display text-xl italic text-forest-deep">Inside the $14.99 cookbook</p>
+          <p className="font-display text-xl italic text-forest-deep">Inside the <CookbookPrice /> cookbook</p>
           <ul className="mt-3 grid gap-2 text-sm text-charcoal/75 md:grid-cols-2">
             {inside.map((i) => <li key={i} className="flex gap-2"><span className="text-forest" aria-hidden="true">✓</span>{i}</li>)}
           </ul>
