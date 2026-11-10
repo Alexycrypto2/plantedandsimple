@@ -33,6 +33,7 @@ export function markSubscribed() {
 
 export function NewsletterPopup() {
   const [cfg, setCfg] = useState<PopupConfig | null>(null);
+  const [sales, setSales] = useState(false);
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
@@ -90,13 +91,13 @@ export function NewsletterPopup() {
       window.removeEventListener("scroll", onScroll);
       document.removeEventListener("mouseout", onLeave);
     };
-    return cleanup;
+    return () => stop();
   }, [cfg]);
 
   if (!open || !cfg) return null;
   return (
     <PopupView
-      cfg={cfg}
+      cfg={sales ? { ...cfg, ...SALES_COPY } : cfg}
       onClose={() => { window.localStorage.setItem(STORAGE_KEY, String(Date.now())); setOpen(false); }}
     />
   );
