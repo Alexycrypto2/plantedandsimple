@@ -10,6 +10,7 @@ import {
 import { productImage } from "@/components/site/ProductFamily";
 import { PRODUCT_STORIES } from "@/components/site/product-stories";
 import { SiteLayout } from "@/components/SiteLayout";
+import { GuaranteeCard } from "@/components/site/GuaranteeCard";
 import { NewsletterPopup } from "@/components/NewsletterPopup";
 import { fallbackProduct } from "@/lib/fallback-content";
 import actionKitchen from "@/assets/product-action-kitchen.jpg";
@@ -320,14 +321,7 @@ function ProductDetail() {
 
       {/* Guarantee */}
       <section className="px-6 py-20">
-        <div className="mx-auto max-w-4xl rounded-[2.5rem] bg-forest p-10 text-center text-cream md:p-16">
-          <div className="mx-auto grid h-16 w-16 place-items-center rounded-full border-2 border-cream/30 text-2xl">🛡️</div>
-          <p className="mt-6 font-mono text-[11px] font-semibold uppercase tracking-[0.25em] text-cream/70">Iron-clad promise</p>
-          <h2 className="mt-3 font-display text-4xl italic md:text-5xl">60-Day Money-Back Guarantee</h2>
-          <p className="mx-auto mt-5 max-w-xl text-base leading-relaxed text-cream/80">
-            {story?.guarantee ?? "Try your purchase. If it's not for you, email us within 60 days for a refund."}
-          </p>
-        </div>
+        <GuaranteeCard body={story?.guarantee} />
       </section>
 
       {/* FAQ */}
