@@ -1,3 +1,4 @@
+import { PopupPanel } from "@/components/admin/PopupPanel";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { adminGetLinks, adminSetLinks } from "@/lib/library/admin.functions";
 import { BlogEditor } from "@/components/admin/BlogEditor";
@@ -361,6 +362,7 @@ function AudienceSection() {
         { id: "buyers", label: "Buyers", icon: Users },
         { id: "reviews", label: "Reviews", icon: Star },
         { id: "affiliates", label: "Affiliates", icon: Handshake },
+        { id: "popup", label: "Free guide popup", icon: Sparkles },
       ]}
     >
       {(t) => (
@@ -369,6 +371,7 @@ function AudienceSection() {
           {t === "buyers" && <BuyersPanel />}
           {t === "reviews" && <ReviewsPanel />}
           {t === "affiliates" && <AffiliatesPanel />}
+          {t === "popup" && <PopupPanel />}
         </>
       )}
     </Section>
