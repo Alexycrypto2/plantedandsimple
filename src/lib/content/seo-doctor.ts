@@ -30,6 +30,11 @@ export function hasAmount(line: string): boolean {
   return AMOUNT.test(line) || NO_AMOUNT_NEEDED.test(line);
 }
 
+/** Lowercases and turns hyphens/punctuation into single spaces so "high-protein, vegan" matches "high protein vegan". */
+export const normKw = (s: string) => ` ${s.toLowerCase().replace(/<[^>]+>/g, " ").replace(/[^a-z0-9]+/g, " ").trim()} `;
+const has = (hay: string, kw: string) => !!kw.trim() && normKw(hay).includes(normKw(kw));
+const countKw = (hay: string, kw: string) => (kw.trim() ? normKw(hay).split(normKw(kw)).length - 1 : 0);
+
 export function guessKeyword(input: SeoInput): string {
   if (input.keyword?.trim()) return input.keyword.trim().toLowerCase();
   const base = (input.title || input.seoTitle).toLowerCase().replace(/[^a-z0-9\s-]/g, "");
@@ -42,6 +47,11 @@ export function auditSeo(input: SeoInput): SeoReport {
   const words = text ? text.split(" ").length : 0;
   const kw = guessKeyword(input);
   const intro = lower.split(" ").slice(0, 120).join(" ");
+  // Recipes: ingredient and step lists aren't stuffed with SEO phrases, so density reads the prose only.
+  const densityText = input.kind === "recipe"
+    ? strip(input.html.replace(/<h2[^>]*>(Ingredients|Instructions)<\/h2>[\s\S]*?(?=<h2|$)/gi, " "))
+    : text;
+  const densityWords = densityText ? densityText.split(" ").length : 0;
   const h2s = [...input.html.matchAll(/<h2[^>]*>([\s\S]*?)<\/h2>/gi)].map((m) => strip(m[1] ?? "").toLowerCase());
   const imgs = [...input.html.matchAll(/<img\b[^>]*>/gi)].map((m) => m[0]);
   // List items, headings and paragraphs end a sentence, so bullet lists aren't read as one run-on sentence.
@@ -49,8 +59,8 @@ export function auditSeo(input: SeoInput): SeoReport {
   const sentences = sentenceText.split(/[.!?]+\s/).map((s) => s.trim()).filter((s) => s.split(" ").length > 1);
   const sentenceWords = sentences.reduce((n, s) => n + s.split(" ").length, 0);
   const avgSentence = sentences.length ? sentenceWords / sentences.length : 0;
-  const kwCount = kw ? lower.split(kw).length - 1 : 0;
-  const density = words ? (kwCount * kw.split(" ").length * 100) / words : 0;
+  const kwCount = countKw(densityText, kw);
+  const density = densityWords ? (kwCount * kw.split(" ").length * 100) / densityWords : 0;
   const internal = (input.html.match(/href="\/(?!\/)/g) ?? []).length;
   const paragraphs = [...input.html.matchAll(/<p[^>]*>([\s\S]*?)<\/p>/gi)].map((m) => strip(m[1] ?? "").split(" ").length);
   const longParas = paragraphs.filter((n) => n > 120).length;
@@ -61,14 +71,14 @@ export function auditSeo(input: SeoInput): SeoReport {
 
   const checks: SeoCheck[] = [
     { id: "title_len", category: "snippet", label: "SEO title 30–60 characters", weight: 12, pass: input.seoTitle.length >= 30 && input.seoTitle.length <= 60, fix: "Rewrite the SEO title to 30–60 characters." },
-    { id: "title_front", category: "snippet", label: "Keyword in first half of SEO title", weight: 4, pass: !!kw && seoTitle.indexOf(kw) >= 0 && seoTitle.indexOf(kw) <= seoTitle.length / 2, fix: `Move "${kw}" toward the start of the SEO title.` },
+    { id: "title_front", category: "snippet", label: "Keyword in first half of SEO title", weight: 4, pass: (() => { const nt = normKw(seoTitle), i = nt.indexOf(normKw(kw)); return !!kw && i >= 0 && (i <= nt.length / 2 || (nt.startsWith(normKw(input.title)) && has(input.title, kw))); })(), fix: `Move "${kw}" toward the start of the SEO title.` },
     { id: "meta_len", category: "snippet", label: "Meta description 120–155 characters", weight: 10, pass: input.seoDescription.length >= 120 && input.seoDescription.length <= 155, fix: "Write a 120–155 character meta description with a clear benefit." },
-    { id: "title_kw", category: "keywords", label: "Keyword in SEO title", weight: 12, pass: !!kw && seoTitle.includes(kw), fix: `Put "${kw}" near the start of the SEO title.` },
-    { id: "meta_kw", category: "keywords", label: "Keyword in meta description", weight: 8, pass: !!kw && input.seoDescription.toLowerCase().includes(kw), fix: `Mention "${kw}" in the meta description.` },
-    { id: "intro_kw", category: "keywords", label: "Keyword in first 120 words", weight: 10, pass: !!kw && intro.includes(kw), fix: `Use "${kw}" naturally in the opening paragraph.` },
+    { id: "title_kw", category: "keywords", label: "Keyword in SEO title", weight: 12, pass: has(seoTitle, kw), fix: `Put "${kw}" near the start of the SEO title.` },
+    { id: "meta_kw", category: "keywords", label: "Keyword in meta description", weight: 8, pass: has(input.seoDescription, kw), fix: `Mention "${kw}" in the meta description.` },
+    { id: "intro_kw", category: "keywords", label: "Keyword in first 120 words", weight: 10, pass: has(intro, kw), fix: `Use "${kw}" naturally in the opening paragraph.` },
     { id: "density", category: "keywords", label: "Keyword density 0.4–2.5%", weight: 6, pass: density >= 0.4 && density <= 2.5, fix: density > 2.5 ? "Keyword is stuffed — use synonyms." : "Use the keyword a few more times naturally." },
     { id: "h2_count", category: "content", label: "At least 4 H2 sections", weight: 10, pass: h2s.length >= 4, fix: "Break the article into 4+ clear H2 sections." },
-    { id: "h2_kw", category: "keywords", label: "Keyword in at least one H2", weight: 8, pass: !!kw && h2s.some((h) => h.includes(kw)), fix: `Use "${kw}" in one H2 heading.` },
+    { id: "h2_kw", category: "keywords", label: "Keyword in at least one H2", weight: 8, pass: h2s.some((h) => has(h, kw)), fix: `Use "${kw}" in one H2 heading.` },
     { id: "length", category: "content", label: "800+ words", weight: 10, pass: words >= 800, fix: "Expand with practical detail to 800+ words." },
     { id: "readability", category: "content", label: "Average sentence under 22 words", weight: 6, pass: avgSentence > 0 && avgSentence < 22, fix: "Shorten long sentences." },
     { id: "paragraphs", category: "content", label: "No paragraph over 120 words", weight: 3, pass: longParas === 0, fix: `Split ${longParas} long paragraph(s) so they read well on phones.` },
@@ -76,10 +86,10 @@ export function auditSeo(input: SeoInput): SeoReport {
     { id: "internal", category: "links", label: "2+ internal links", weight: 4, pass: internal >= 2, fix: "Link to 2+ related recipes, posts or products." },
   ];
   if (slug) {
-    checks.push({ id: "slug", category: "snippet", label: "Short web address with keyword", weight: 4, pass: slug.length <= 60 && kwWords.every((w) => slug.includes(w)), fix: `Keep the web address under 60 characters and include "${kw}".` });
+    checks.push({ id: "slug", category: "snippet", label: "Short web address with keyword", weight: 4, pass: slug.length <= 60 && kwWords.every((w) => normKw(slug).includes(` ${w} `) || slug.includes(w)), fix: `Keep the web address under 60 characters and include "${kw}".` });
   }
   for (const s of secondary) {
-    checks.push({ id: `sec_${s}`, category: "keywords", label: `Supporting phrase "${s}" used`, weight: 3, pass: lower.includes(s) || input.seoDescription.toLowerCase().includes(s), fix: `Mention "${s}" once in the copy or meta description.` });
+    checks.push({ id: `sec_${s}`, category: "keywords", label: `Supporting phrase "${s}" used`, weight: 3, pass: has(text, s) || has(input.seoDescription, s), fix: `Mention "${s}" once in the copy or meta description.` });
   }
   if (input.kind === "recipe") {
     const section = (name: string) => {

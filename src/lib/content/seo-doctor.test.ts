@@ -27,3 +27,10 @@ describe("SEO Doctor recipe fixes", () => {
     expect(hasAmount("Fresh parsley")).toBe(false);
   });
 });
+
+import { auditSeo as audit2 } from "./seo-doctor";
+import { it as it2, expect as expect2 } from "vitest";
+it2("matches hyphenated keywords", () => {
+  const r = audit2({ title: "High-Protein Vegan Bowl", seoTitle: "High-Protein Vegan Bowl · Planted & Simple", seoDescription: "A high-protein, vegan bowl.", html: "<p>This high-protein vegan bowl is quick.</p><h2>Why high-protein vegan works</h2>", keyword: "high protein vegan" });
+  for (const id of ["title_kw", "title_front", "meta_kw", "intro_kw", "h2_kw"]) expect2(r.checks.find((c) => c.id === id)?.pass).toBe(true);
+});
