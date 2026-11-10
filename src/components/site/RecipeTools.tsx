@@ -165,7 +165,7 @@ function CookMode({ title, steps, groups, onClose }: { title: string; steps: Ste
   };
 
   return (
-    <div role="dialog" aria-modal="true" aria-label={`Cook mode: ${title}`} className="no-print fixed inset-0 z-[100] flex flex-col bg-cream">
+    <div role="dialog" aria-modal="true" aria-label={`Cook mode: ${title}`} className="no-print fixed inset-0 z-[100] flex flex-col bg-cream text-left">
       <div className="flex items-center justify-between gap-3 border-b border-forest/15 px-4 py-2.5">
         <div className="min-w-0">
           <p className="truncate font-display text-base italic text-forest-deep">{title}</p>
