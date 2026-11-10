@@ -13,6 +13,7 @@ import { trackEvent } from "@/lib/analytics";
 import type { Recipe } from "@/lib/library/types";
 import { getPageLinks, type PageLinks } from "@/lib/linking/linking.functions";
 import { RelatedSection, HubPills, PairingCallout } from "@/components/site/RelatedLinks";
+import { RecipeToolbar, ScalableIngredients, KitchenNote } from "@/components/site/RecipeTools";
 
 type Data = { recipe: Recipe; related: { recipes: any[]; blogs: any[]; products: any[] }; links?: PageLinks | null };
 
@@ -99,30 +100,16 @@ function RecipeDetail() {
             <Pill>{r.difficulty}</Pill>
           </div>
           <HubPills links={links ?? null} />
+          <RecipeToolbar title={r.title} image={r.hero_image_url} />
         </header>
 
         <MediaImage src={r.hero_image_url} alt={r.title} ratio="aspect-[3/2]" className="mt-10 rounded-[2rem]" priority />
 
         {r.description ? <p className="mt-10 text-lg leading-relaxed text-charcoal/75">{r.description}</p> : null}
 
-        <div className="mt-14 grid gap-12 md:grid-cols-[minmax(0,1fr)_1.4fr]">
-          <section>
-            <h2 className="font-display text-3xl italic text-forest-deep">Ingredients</h2>
-            {(r.ingredients ?? []).map((g, i) => (
-              <div key={i} className="mt-6">
-                {g.group ? (
-                  <h3 className="text-[11px] font-bold uppercase tracking-[0.2em] text-sage">{g.group}</h3>
-                ) : null}
-                <ul className="mt-3 space-y-2 text-sm leading-relaxed text-charcoal/75">
-                  {(g.items ?? []).map((it, j) => (
-                    <li key={j} className="border-b border-forest/10 pb-2">
-                      {it}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </section>
+        <div id="recipe-card" className="print-area mt-14 grid scroll-mt-24 gap-12 md:grid-cols-[minmax(0,1fr)_1.4fr]">
+          <h2 className="print-only font-display text-3xl italic">{r.title}</h2>
+          <ScalableIngredients groups={r.ingredients ?? []} servings={r.servings} />
 
           <section>
             <h2 className="font-display text-3xl italic text-forest-deep">Method</h2>
@@ -171,6 +158,8 @@ function RecipeDetail() {
             </ul>
           </section>
         ) : null}
+
+        <KitchenNote kind="recipe" />
 
         {links ? <RelatedSection links={links} heading="More recipes you'll love" readLabel="Read next:" hideBlogs /> : null}
 

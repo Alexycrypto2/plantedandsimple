@@ -8,6 +8,8 @@ import { getPublishedPostBySlug, type PublicPost } from "@/lib/blog.functions";
 import { getRecipeBySlug } from "@/lib/library/library.functions";
 import { getPageLinks, type PageLinks } from "@/lib/linking/linking.functions";
 import { RelatedSection, RoundupList, HubPills, PairingCallout } from "@/components/site/RelatedLinks";
+import { KitchenNote } from "@/components/site/RecipeTools";
+import { TableOfContents, ShareBar, withHeadingIds, readingMinutes } from "@/components/site/BlogTools";
 
 export const Route = createFileRoute("/blog/$slug")({
   component: PostPage,
@@ -52,6 +54,7 @@ export const Route = createFileRoute("/blog/$slug")({
         headline: post.title, description, image,
         datePublished: post.published_at || undefined,
         mainEntityOfPage: pageUrl(path),
+        author: { "@type": "Organization", name: "PlantedAndSimple", url: pageUrl("/about") },
         publisher: { "@type": "Organization", name: "PlantedAndSimple", url: pageUrl("/") },
       }), breadcrumbs("Blog", "/blog", post.title, path)],
     };
@@ -77,6 +80,8 @@ function BlogError({ error, reset }: { error: unknown; reset: () => void }) {
 
 function PostPage() {
   const { post, links } = Route.useLoaderData() as { post: PublicPost; links: PageLinks | null };
+  const { html: body, toc } = withHeadingIds(post.content ?? "");
+  const minutes = readingMinutes(post.content ?? "");
   return (
     <SiteLayout>
       <article className="mx-auto max-w-3xl px-6 py-16">
@@ -88,11 +93,12 @@ function PostPage() {
         )}
         <HubPills links={links} />
         <h1 className="mt-3 font-display text-4xl italic text-forest-deep md:text-5xl">{post.title}</h1>
-        {post.published_at && (
-          <p className="mt-3 text-xs text-charcoal/50">
-            {new Date(post.published_at).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}
-          </p>
-        )}
+        <p className="mt-3 text-xs text-charcoal/55">
+          By the PlantedAndSimple Kitchen
+          {post.published_at ? <> · {new Date(post.published_at).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}</> : null}
+          {" · "}{minutes} min read
+        </p>
+        <ShareBar title={post.title} image={post.featured_image_url} />
         {post.featured_image_url && (
           <div className="mt-10 overflow-hidden rounded-[2rem] bg-cream-warm">
             <img src={post.featured_image_url} alt={post.title} className="h-full w-full object-cover" />
@@ -101,8 +107,9 @@ function PostPage() {
         {post.excerpt && (
           <p className="mt-10 font-display text-xl italic text-forest-deep md:text-2xl">{post.excerpt}</p>
         )}
+        <TableOfContents toc={toc} />
         {(() => {
-          const [first, second] = splitArticle(post.content ?? "");
+          const [first, second] = splitArticle(body);
           return (
             <>
               <div className="article-body mt-10" dangerouslySetInnerHTML={{ __html: first }} />
@@ -121,6 +128,7 @@ function PostPage() {
             ))}
           </div>
         )}
+        <KitchenNote kind="blog" />
         {links ? <RoundupList roundup={links.roundup} /> : null}
         {links ? <RelatedSection links={links} heading="Recipes to try next" readLabel="More from the journal:" skipRecipes={splitArticle(post.content ?? "")[1] ? 2 : 0} /> : null}
         <ContentEndFunnel source="blog" />

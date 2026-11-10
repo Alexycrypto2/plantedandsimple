@@ -588,3 +588,16 @@
 
 /* Article-end funnel replaces mid-article offer cards */
 .article-body .ps-product-bridge { display: none; }
+
+/* Recipe print card + heading anchors */
+.print-only { display: none; }
+.article-body h2 { scroll-margin-top: 6rem; }
+html { scroll-behavior: smooth; }
+@media print {
+  body * { visibility: hidden; }
+  .print-area, .print-area * { visibility: visible; }
+  .print-area { position: absolute; inset: 0 auto auto 0; width: 100%; display: block !important; margin: 0 !important; padding: 0 1rem; }
+  .print-area .print-only { display: block; margin-bottom: 1rem; }
+  .print-area img, .print-area .no-print, .print-area input { display: none !important; }
+  .print-area section + section { margin-top: 1.5rem; }
+}
