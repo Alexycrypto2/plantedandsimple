@@ -2,6 +2,8 @@ import { useMemo, useState } from "react";
 import { Stethoscope, Check, X, Loader2, Wand2, Monitor, Smartphone, Sparkles, Pin } from "lucide-react";
 import { auditSeo, SEO_PASS_SCORE, SEO_CATEGORY_LABELS, type SeoCategory } from "@/lib/content/seo-doctor";
 import { autoFixSeo, suggestSeoField } from "@/lib/ai/seo-doctor.functions";
+import { suggestInternalLinks, type LinkSuggestion } from "@/lib/linking/linking.functions";
+import { Link2, Copy } from "lucide-react";
 import { RenderedRecipeAudit } from "./RenderedRecipeAudit";
 
 const GENERIC = new Set(["american", "mediterranean", "mexican", "thai", "indian", "italian", "asian", "middle eastern", "dinner", "lunch", "breakfast", "vegan", "high-protein", "high protein", "dessert", "snack", "side"]);
@@ -42,6 +44,25 @@ export function SeoDoctor({ value, onApply, kind = "blog", extra }: { value: Fie
   const [suggesting, setSuggesting] = useState<SuggestField | null>(null);
   const [options, setOptions] = useState<{ field: SuggestField; items: string[] } | null>(null);
 
+  const [links, setLinks] = useState<LinkSuggestion[] | null>(null);
+  const [linkBusy, setLinkBusy] = useState(false);
+  const findLinks = async () => {
+    setLinkBusy(true); setErr(null);
+    try { setLinks(await suggestInternalLinks({ data: { kind, title: value.title, slug: value.slug, tags: value.tags, html: value.content } })); }
+    catch (e: any) { setErr(e?.message ?? "Couldn't load link ideas"); }
+    finally { setLinkBusy(false); }
+  };
+  /** Adds one natural sentence with the link to the end of the paragraph before the 2nd heading (or the first paragraph). */
+  const insertLink = (l: LinkSuggestion) => {
+    const sentence = ` You might also like our <a href="${l.href}">${l.title.replace(/[<>&"]/g, "")}</a>.`;
+    const html = value.content;
+    const h2 = [...html.matchAll(/<h2\b/gi)][1]?.index ?? html.length;
+    const before = html.slice(0, h2);
+    const at = before.lastIndexOf("</p>");
+    const next = at >= 0 ? html.slice(0, at) + sentence + html.slice(at) : `<p>${sentence.trim()}</p>` + html;
+    onApply({ content: next });
+    setLinks((xs) => (xs ?? []).filter((x) => x.href !== l.href));
+  };
   const secondary = useMemo(() => secondaryText.split(",").map((s) => s.trim()).filter(Boolean).slice(0, 3), [secondaryText]);
   const report = useMemo(
     () => auditSeo({
@@ -58,13 +79,15 @@ export function SeoDoctor({ value, onApply, kind = "blog", extra }: { value: Fie
   const fix = async () => {
     setBusy(true); setErr(null); setMsg(null);
     try {
+      const manualLeft = report.checks.filter((c) => !c.pass && c.manual).map((c) => c.label);
       const r: any = await autoFixSeo({ data: { title: value.title, seoTitle: value.seo_title, seoDescription: value.seo_description, excerpt: value.excerpt, html: value.content, keyword: keyword || undefined, kind } });
       onApply(kind === "recipe"
         ? { seo_title: r.seoTitle, seo_description: r.seoDescription, excerpt: r.excerpt }
         : { seo_title: r.seoTitle, seo_description: r.seoDescription, excerpt: r.excerpt, content: r.html });
-      setMsg(`Editorial suggestions applied. ${(r.changes ?? []).slice(0, 4).join(" · ")} Your title, web address${kind === "recipe" ? ", ingredients and steps" : ", facts and links"} are left unchanged on purpose — fix any remaining red items by hand. Save and recheck the page separately.`);
+      setMsg(`Editorial suggestions applied. ${(r.changes ?? []).slice(0, 4).join(" · ")} Your title, web address${kind === "recipe" ? ", ingredients and steps" : ", facts and links"} are left unchanged on purpose — fix any remaining red items by hand. ${manualLeft.length ? ` Still needs you: ${manualLeft.join(" · ")}.` : ""}`);
     } catch (e: any) {
-      setErr(e?.message ?? "Auto-fix failed");
+      const m = String(e?.message ?? "Auto-fix failed");
+      setErr(/too many requests|429|rate|quota|exhausted/i.test(m) ? "The AI service is busy right now (too many requests), so nothing was changed. Wait a minute and try again." : m);
     } finally {
       setBusy(false);
     }
@@ -165,10 +188,33 @@ export function SeoDoctor({ value, onApply, kind = "blog", extra }: { value: Fie
         {shown.map((c) => (
           <li key={c.id} className="flex items-start gap-2 text-xs">
             {c.pass ? <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-forest" /> : <X className="mt-0.5 h-3.5 w-3.5 shrink-0 text-red-600" />}
-            <span className={c.pass ? "text-charcoal/60" : "text-charcoal"}>{c.label}{!c.pass && <span className="block text-charcoal/50">{c.fix}</span>}</span>
+            <span className={c.pass ? "text-charcoal/60" : "text-charcoal"}>{c.label}{!c.pass && <span className={`ml-1.5 rounded-full px-1.5 py-0.5 text-[9px] font-bold uppercase ${c.manual ? "bg-amber-100 text-amber-800" : "bg-forest/10 text-forest-deep"}`}>{c.manual ? "Needs you" : "Auto-fix"}</span>}{!c.pass && <span className="block text-charcoal/50">{c.fix}</span>}</span>
           </li>
         ))}
       </ul>
+      <div className="mt-4 rounded-xl border border-forest/10 bg-white/70 p-3">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-charcoal/60">Internal link ideas from live pages</p>
+          <button type="button" onClick={findLinks} disabled={linkBusy} className="flex items-center gap-1 rounded-full border border-forest/20 bg-white px-3 py-1.5 text-[11px] font-semibold text-forest-deep disabled:opacity-50">
+            {linkBusy ? <Loader2 className="h-3 w-3 animate-spin" /> : <Link2 className="h-3 w-3" />} Find links
+          </button>
+        </div>
+        {links && links.length === 0 && <p className="mt-2 text-xs text-charcoal/60">No new matching live pages — everything related is already linked.</p>}
+        {links && links.length > 0 && (
+          <ul className="mt-2 space-y-2">
+            {links.map((l) => (
+              <li key={l.href} className="rounded-lg border border-forest/10 bg-cream-warm/40 p-2 text-xs">
+                <p className="font-semibold text-charcoal">{l.title} <span className="font-normal text-charcoal/50">· {l.type} · {l.reason}</span></p>
+                <div className="mt-1.5 flex flex-wrap gap-2">
+                  <button type="button" onClick={() => insertLink(l)} className="rounded-full bg-forest px-2.5 py-1 text-[10px] font-bold text-cream">Add to article</button>
+                  <button type="button" onClick={() => navigator.clipboard?.writeText(l.url)} className="flex items-center gap-1 rounded-full border border-forest/20 px-2.5 py-1 text-[10px] font-semibold text-forest-deep"><Copy className="h-3 w-3" /> Copy link</button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+        <p className="mt-2 text-[10px] text-charcoal/50">"Add to article" places one natural sentence with the link early in the article. You can reword it in the editor.</p>
+      </div>
       {msg && <p className="mt-3 rounded-xl bg-forest/10 px-3 py-2 text-xs text-forest-deep">{msg}</p>}
       {err && <p className="mt-3 rounded-xl bg-red-50 px-3 py-2 text-xs text-red-700">{err}</p>}
 

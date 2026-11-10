@@ -322,3 +322,46 @@ export const adminFixInternalLink = createServerFn({ method: "POST" })
     }
     return { ok: true };
   });
+
+/* ------------------------------------------------- SEO Doctor link ideas */
+
+export type LinkSuggestion = { type: PageType; title: string; href: string; url: string; reason: string };
+
+/** Admin: live published pages that best match a draft, skipping pages it already links to. */
+export const suggestInternalLinks = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { kind: PageType; title: string; slug?: string; tags?: string; html?: string }) => ({
+    kind: d.kind === "recipe" ? ("recipe" as const) : ("blog" as const),
+    title: String(d.title ?? "").slice(0, 200),
+    slug: String(d.slug ?? "").slice(0, 200),
+    tags: String(d.tags ?? "").slice(0, 600),
+    html: String(d.html ?? "").slice(0, 80000),
+  }))
+  .handler(async ({ data, context }): Promise<LinkSuggestion[]> => {
+    await requireBoss(context.supabase, context.userId);
+    const { recipes, blogs } = await loadPages(serverPublic() as any, true);
+    const tags = data.tags.split(",").map((t) => t.trim()).filter(Boolean);
+    const current: LinkPage = {
+      type: data.kind, id: "draft", slug: data.slug, title: data.title, image: null, prep_minutes: null, difficulty: null, published_at: null,
+      ...inferTaxonomy({ type: data.kind, title: data.title, tags, excerpt: data.html.replace(/<[^>]+>/g, " ").slice(0, 3000) }),
+    };
+    const linked = new Set([...data.html.matchAll(/href="(?:https?:\/\/(?:www\.)?plantedandsimple\.com)?(\/[^"#?]*)/gi)].map((m) => m[1]));
+    const words = new Set(data.title.toLowerCase().split(/[^a-z]+/).filter((w) => w.length > 3));
+    const now = Date.now();
+    const { scorePage } = await import("./related");
+    return [...recipes, ...blogs]
+      .map((x) => x.page)
+      .filter((p) => !(p.type === data.kind && p.slug === data.slug) && !linked.has(pageHref(p)))
+      .map((p) => {
+        const overlap = p.title.toLowerCase().split(/[^a-z]+/).filter((w) => words.has(w)).length;
+        const shared = [p.category === current.category ? p.category : null, ...p.main_ingredients.filter((i) => current.main_ingredients.includes(i)), ...p.occasions.filter((o) => current.occasions.includes(o))].filter(Boolean) as string[];
+        return { p, score: scorePage(current, p, now) + overlap * 2, shared, overlap };
+      })
+      .filter((x) => x.score > 0)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 6)
+      .map(({ p, shared, overlap }) => ({
+        type: p.type, title: p.title, href: pageHref(p), url: `https://plantedandsimple.com${pageHref(p)}`,
+        reason: shared.length ? `Shares ${[...new Set(shared)].slice(0, 2).join(", ")}` : overlap ? "Similar topic in title" : "Related page",
+      }));
+  });

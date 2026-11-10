@@ -14,7 +14,9 @@ export type SeoInput = {
   /** Extra recipe/blog facts for rich-result checks. */
   extra?: { prepMinutes?: number; cookMinutes?: number; servings?: string; hasImage?: boolean; pinterestDescription?: string; calories?: string; protein?: string };
 };
-export type SeoCheck = { id: string; label: string; pass: boolean; weight: number; fix: string; category: SeoCategory };
+export type SeoCheck = { id: string; label: string; pass: boolean; weight: number; fix: string; category: SeoCategory; manual?: boolean };
+/** Checks Auto-fix can rewrite. Everything else needs the editor (facts, photos, links, web address). */
+export const AUTO_FIXABLE = new Set(["title_len", "title_front", "meta_len", "title_kw", "meta_kw", "intro_kw", "h2_kw", "density"]);
 export type SeoReport = { score: number; checks: SeoCheck[]; words: number; keyword: string; readMinutes: number; categoryScores: Record<SeoCategory, number> };
 
 export const SEO_PASS_SCORE = 85;
@@ -79,10 +81,10 @@ export function auditSeo(input: SeoInput): SeoReport {
     { id: "density", category: "keywords", label: "Keyword density 0.4–2.5%", weight: 6, pass: density >= 0.4 && density <= 2.5, fix: density > 2.5 ? "Keyword is stuffed — use synonyms." : "Use the keyword a few more times naturally." },
     { id: "h2_count", category: "content", label: "At least 4 H2 sections", weight: 10, pass: h2s.length >= 4, fix: "Break the article into 4+ clear H2 sections." },
     { id: "h2_kw", category: "keywords", label: "Keyword in at least one H2", weight: 8, pass: h2s.some((h) => has(h, kw)), fix: `Use "${kw}" in one H2 heading.` },
-    { id: "length", category: "content", label: "800+ words", weight: 10, pass: words >= 800, fix: "Expand with practical detail to 800+ words." },
+    { id: "length", category: "content", label: "800+ words", weight: 10, pass: words >= 800, fix: `Thin content: ${Math.max(0, 800 - words)} more words needed. Add real sections like storage, swaps or an FAQ — written by you, not padding.` },
     { id: "readability", category: "content", label: "Average sentence under 22 words", weight: 6, pass: avgSentence > 0 && avgSentence < 22, fix: "Shorten long sentences." },
     { id: "paragraphs", category: "content", label: "No paragraph over 120 words", weight: 3, pass: longParas === 0, fix: `Split ${longParas} long paragraph(s) so they read well on phones.` },
-    { id: "alt", category: "links", label: "All images have alt text", weight: 4, pass: imgs.every((i) => /alt="[^"]+"/.test(i)), fix: "Add descriptive alt text to every image." },
+    { id: "alt", category: "links", label: "All images have alt text", weight: 4, pass: imgs.every((i) => /alt="[^"]*\S[^"]*"/.test(i)), fix: (() => { const miss = imgs.map((i, n) => (/alt="[^"]*\S[^"]*"/.test(i) ? 0 : n + 1)).filter(Boolean); return miss.length ? `Photo ${miss.join(", ")} of ${imgs.length} has no description. Describe what is in the photo in Article photos.` : "Add descriptive alt text to every image."; })() },
     { id: "internal", category: "links", label: "2+ internal links", weight: 4, pass: internal >= 2, fix: "Link to 2+ related recipes, posts or products." },
   ];
   if (slug) {
@@ -100,7 +102,7 @@ export function auditSeo(input: SeoInput): SeoReport {
     const replace: Record<string, SeoCheck> = {
       h2_count: { id: "ingredients", category: "content", label: "Ingredients listed", weight: 10, pass: count(section("Ingredients")) > 0, fix: "List the actual ingredients; no minimum count is needed." },
       h2_kw: { id: "steps", category: "content", label: "Instructions listed", weight: 8, pass: count(section("Instructions")) > 0, fix: "Describe the real method clearly; no minimum step count is needed." },
-      length: { id: "length", category: "content", label: "250+ words", weight: 10, pass: words >= 250, fix: "Add a richer description and helpful tips." },
+      length: { id: "length", category: "content", label: "250+ words", weight: 10, pass: words >= 250, fix: `Thin content: ${Math.max(0, 250 - words)} more words needed. Add a richer description and real tips.` },
       internal: { id: "protein", category: "rich", label: "Protein listed (editorial suggestion)", weight: 4, pass: /protein/i.test(section("Nutrition")), fix: "Add protein per serving only if verified; Google does not require it." },
       paragraphs: { id: "tips", category: "content", label: "3+ cooking tips", weight: 4, pass: count(section("Tips")) >= 3, fix: "Add make-ahead, swap and storage tips." },
     };
@@ -116,6 +118,7 @@ export function auditSeo(input: SeoInput): SeoReport {
       { id: "qty", category: "content", label: "Every ingredient has an amount", weight: 4, pass: ing.length > 0 && missing.length === 0, fix: missing.length ? `Add an amount to: ${missing.slice(0, 3).join("; ")}${missing.length > 3 ? ` (+${missing.length - 3} more)` : ""}.` : "Give each ingredient an amount (e.g. 1 cup, 200g)." },
     );
   }
+  for (const c of checks) c.manual = !AUTO_FIXABLE.has(c.id);
   const total = checks.reduce((s, c) => s + c.weight, 0);
   const got = checks.reduce((s, c) => s + (c.pass ? c.weight : 0), 0);
   const categoryScores = {} as Record<SeoCategory, number>;
