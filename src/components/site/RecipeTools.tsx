@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { scaleLine, baseServings } from "@/lib/recipe-scale";
+import logo from "@/assets/plantedandsimple-logo.png.asset.json";
 
 const btn = "inline-flex items-center gap-2 rounded-full border border-forest/20 bg-card px-4 py-2 text-[11px] font-bold uppercase tracking-[0.16em] text-forest transition hover:bg-forest hover:text-cream";
 
@@ -100,7 +101,7 @@ export function ScalableIngredients({ groups, servings }: { groups: Group[]; ser
 export function KitchenNote({ kind }: { kind: "recipe" | "blog" }) {
   return (
     <aside className="no-print mt-14 flex gap-4 rounded-[1.5rem] border border-forest/15 bg-cream-warm p-5">
-      <img src="/favicon.png" onError={(e) => ((e.currentTarget.style.display = "none"))} alt="" className="h-12 w-12 shrink-0 rounded-full bg-card object-contain p-1" />
+      <img src={logo.url} alt="" className="h-12 w-12 shrink-0 rounded-full bg-card object-contain p-1" />
       <div>
         <p className="font-display text-lg italic text-forest-deep">From the PlantedAndSimple kitchen</p>
         <p className="mt-1 text-sm leading-relaxed text-charcoal/70">
