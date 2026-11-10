@@ -50,7 +50,8 @@ export function NewsletterPopup() {
     const dismissed = Number(window.localStorage.getItem(STORAGE_KEY) || 0);
     if (dismissed && Date.now() - dismissed < cfg.dismissDays * 86400000) return;
     let shown = false;
-    const show = () => { if (!shown && !isSubscribed()) { shown = true; if (salesPage) setCfg((c) => (c ? { ...c, ...SALES_COPY } : c)); setOpen(true); cleanup(); } };
+    let stop = () => {};
+    const show = () => { if (!shown && !isSubscribed()) { shown = true; setSales(salesPage); setOpen(true); stop();  } };
     if (salesPage) {
       // Sales pages: never interrupt a buyer early — only catch them as they leave.
       const onLeaveS = (e: MouseEvent) => { if (e.clientY <= 0 && !e.relatedTarget) show(); };
@@ -67,13 +68,13 @@ export function NewsletterPopup() {
       document.addEventListener("mouseout", onLeaveS);
       window.addEventListener("scroll", onScrollS, { passive: true });
       document.addEventListener("visibilitychange", onHide);
-      const cleanup = () => {
+      stop = () => {
         window.clearTimeout(idle);
         document.removeEventListener("mouseout", onLeaveS);
         window.removeEventListener("scroll", onScrollS);
         document.removeEventListener("visibilitychange", onHide);
       };
-      return cleanup;
+      return () => stop();
     }
     const onScroll = () => {
       const h = document.documentElement;
@@ -84,7 +85,7 @@ export function NewsletterPopup() {
     if (cfg.scrollPercent) window.addEventListener("scroll", onScroll, { passive: true });
     const desktop = window.matchMedia("(pointer: fine)").matches;
     if (cfg.exitIntent && desktop) document.addEventListener("mouseout", onLeave);
-    const cleanup = () => {
+    stop = () => {
       if (timer) window.clearTimeout(timer);
       window.removeEventListener("scroll", onScroll);
       document.removeEventListener("mouseout", onLeave);
