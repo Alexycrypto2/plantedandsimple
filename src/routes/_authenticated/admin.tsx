@@ -119,6 +119,7 @@ type Tab =
   | "meal-prep"
   | "prep-cookbooks"
   | "audience"
+  | "popup"
   | "approvals"
   | "analytics"
   | "settings";
@@ -198,6 +199,7 @@ function AdminPage() {
         "meal-prep",
         "prep-cookbooks",
         "audience",
+        "popup",
         "approvals",
         "analytics",
         "settings",
@@ -239,6 +241,7 @@ function AdminPage() {
       {activeTab === "meal-prep" && isBoss && <MealPrepPanel />}
       {activeTab === "prep-cookbooks" && isBoss && <CookbookLibraryPanel />}
       {activeTab === "audience" && isBoss && <AudienceSection />}
+      {activeTab === "popup" && isBoss && <PopupPanel />}
       {activeTab === "approvals" && isBoss && <ApprovalQueuePanel />}
       {activeTab === "analytics" && <AnalyticsSection isBoss={isBoss} />}
       {activeTab === "settings" && isBoss && <SettingsSection meId={me.userId} />}
