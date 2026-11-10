@@ -10,6 +10,16 @@ import bundle from "@/assets/free-cookbook-bundle.jpg";
 const STORAGE_KEY = "planted-newsletter-closed";
 const SUBSCRIBED_KEY = "planted-subscribed";
 
+const SALES_COPY = {
+  eyebrow: "Not ready yet?",
+  headline: "Start with 12 free high-protein recipes.",
+  body: "Try our recipes free first — get the guide instantly by email.",
+}; 
+
+export function isSalesPage(path: string) {
+  return /^\/(shop|products)\/[^/]+/.test(path);
+}
+
 export function isSubscribed() {
   try {
     return window.localStorage.getItem(SUBSCRIBED_KEY) === "1" || window.localStorage.getItem(STORAGE_KEY) === "subscribed";
@@ -33,12 +43,38 @@ export function NewsletterPopup() {
 
   useEffect(() => {
     if (!cfg || !cfg.enabled) return;
-    if (!popupAllowedOn(cfg.pages, window.location.pathname)) return;
+    const path = window.location.pathname;
+    const salesPage = isSalesPage(path);
+    if (!salesPage && !popupAllowedOn(cfg.pages, path)) return;
     if (isSubscribed()) return;
     const dismissed = Number(window.localStorage.getItem(STORAGE_KEY) || 0);
     if (dismissed && Date.now() - dismissed < cfg.dismissDays * 86400000) return;
     let shown = false;
-    const show = () => { if (!shown && !isSubscribed()) { shown = true; setOpen(true); cleanup(); } };
+    const show = () => { if (!shown && !isSubscribed()) { shown = true; if (salesPage) setCfg((c) => (c ? { ...c, ...SALES_COPY } : c)); setOpen(true); cleanup(); } };
+    if (salesPage) {
+      // Sales pages: never interrupt a buyer early — only catch them as they leave.
+      const onLeaveS = (e: MouseEvent) => { if (e.clientY <= 0 && !e.relatedTarget) show(); };
+      let maxY = 0;
+      const onScrollS = () => {
+        const y = window.scrollY;
+        maxY = Math.max(maxY, y);
+        const h = document.documentElement;
+        const deep = maxY / Math.max(1, h.scrollHeight - h.clientHeight) > 0.4;
+        if (deep && maxY - y > h.clientHeight * 0.8) show(); // fast scroll back up = leaving
+      };
+      const idle = window.setTimeout(show, 45000);
+      const onHide = () => { if (document.visibilityState === "hidden") window.clearTimeout(idle); };
+      document.addEventListener("mouseout", onLeaveS);
+      window.addEventListener("scroll", onScrollS, { passive: true });
+      document.addEventListener("visibilitychange", onHide);
+      const cleanup = () => {
+        window.clearTimeout(idle);
+        document.removeEventListener("mouseout", onLeaveS);
+        window.removeEventListener("scroll", onScrollS);
+        document.removeEventListener("visibilitychange", onHide);
+      };
+      return cleanup;
+    }
     const onScroll = () => {
       const h = document.documentElement;
       if (h.scrollTop / Math.max(1, h.scrollHeight - h.clientHeight) > cfg.scrollPercent / 100) show();
