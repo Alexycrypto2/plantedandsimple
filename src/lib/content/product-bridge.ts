@@ -37,7 +37,7 @@ export const OFFERS: Record<OfferKey, Offer> = {
     title: "Get the free plant-protein cookbook",
     pitch: "Quick, high-protein plant-based recipes straight to your inbox — free.",
     cta: "Send me the free cookbook",
-    href: "/free-cookbook",
+    href: "/free",
   },
 };
 

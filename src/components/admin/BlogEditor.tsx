@@ -59,7 +59,7 @@ const toB64 = (f: File) =>
   });
 
 const BRIDGES: Record<string, string> = {
-  "Free cookbook": '<p class="bridge"><strong>Free:</strong> Get 12 fast high-protein recipes in our <a href="/free-cookbook">free cookbook</a>.</p>',
+  "Free cookbook": '<p class="bridge"><strong>Free:</strong> Get 12 fast high-protein recipes in our <a href="/free">free cookbook</a>.</p>',
   "Meal Prep System": '<p class="bridge"><strong>Plan your week:</strong> The <a href="/prep">Meal Prep System</a> builds your weekly plan and grocery list.</p>',
   "$14.99 cookbook": '<p class="bridge"><strong>Want all 30 recipes?</strong> Get the <a href="/shop/high-protein-cookbook">High-Protein Plant-Based Cookbook</a>.</p>',
 };
