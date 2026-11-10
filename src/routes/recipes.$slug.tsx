@@ -13,7 +13,7 @@ import { trackEvent } from "@/lib/analytics";
 import type { Recipe } from "@/lib/library/types";
 import { getPageLinks, type PageLinks } from "@/lib/linking/linking.functions";
 import { RelatedSection, HubPills, PairingCallout } from "@/components/site/RelatedLinks";
-import { RecipeToolbar, ScalableIngredients, KitchenNote } from "@/components/site/RecipeTools";
+import { RecipeToolbar, ScalableIngredients, KitchenNote, PrintSheet } from "@/components/site/RecipeTools";
 
 type Data = { recipe: Recipe; related: { recipes: any[]; blogs: any[]; products: any[] }; links?: PageLinks | null };
 
@@ -100,15 +100,14 @@ function RecipeDetail() {
             <Pill>{r.difficulty}</Pill>
           </div>
           <HubPills links={links ?? null} />
-          <RecipeToolbar title={r.title} image={r.hero_image_url} />
+          <RecipeToolbar title={r.title} image={r.hero_image_url} path={`/recipes/${r.slug}`} pinText={r.pinterest_description || r.seo_description || r.description} steps={r.instructions ?? []} groups={r.ingredients ?? []} />
         </header>
 
         <MediaImage src={r.hero_image_url} alt={r.title} ratio="aspect-[3/2]" className="mt-10 rounded-[2rem]" priority />
 
         {r.description ? <p className="mt-10 text-lg leading-relaxed text-charcoal/75">{r.description}</p> : null}
 
-        <div id="recipe-card" className="print-area mt-14 grid scroll-mt-24 gap-12 md:grid-cols-[minmax(0,1fr)_1.4fr]">
-          <h2 className="print-only font-display text-3xl italic">{r.title}</h2>
+        <div id="recipe-card" className="mt-14 grid scroll-mt-24 gap-12 md:grid-cols-[minmax(0,1fr)_1.4fr]">
           <ScalableIngredients groups={r.ingredients ?? []} servings={r.servings} />
 
           <section>
@@ -160,6 +159,7 @@ function RecipeDetail() {
         ) : null}
 
         <KitchenNote kind="recipe" />
+        <PrintSheet recipe={r} url={`plantedandsimple.com/recipes/${r.slug}`} />
 
         {links ? <RelatedSection links={links} heading="More recipes you'll love" readLabel="Read next:" hideBlogs /> : null}
 

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { pinterestUrl } from "./RecipeTools";
+import { openPinterest } from "./RecipeTools";
 
 export function slugifyHeading(t: string) {
   return t.toLowerCase().replace(/<[^>]+>/g, "").replace(/&[a-z#0-9]+;/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 60);
@@ -55,11 +55,10 @@ export function ShareBar({ title, image }: { title: string; image?: string | nul
   const [copied, setCopied] = useState(false);
   useEffect(() => setHref(window.location.href), []);
   if (!href) return null;
-  const abs = image ? new URL(image, href).toString() : null;
   const cls = "rounded-full border border-forest/20 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.16em] text-forest hover:bg-forest hover:text-cream";
   return (
     <div className="no-print mt-6 flex flex-wrap gap-2">
-      <a href={pinterestUrl(href, abs, title)} target="_blank" rel="noopener noreferrer" className={cls}>Save to Pinterest</a>
+      <button type="button" className={cls} onClick={() => openPinterest(window.location.pathname, image, title)}>Save to Pinterest</button>
       <button type="button" className={cls} onClick={async () => { try { await navigator.clipboard.writeText(href); setCopied(true); setTimeout(() => setCopied(false), 1800); } catch { /* ignore */ } }}>
         {copied ? "Link copied" : "Copy link"}
       </button>
