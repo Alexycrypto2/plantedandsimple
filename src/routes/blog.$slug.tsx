@@ -9,7 +9,7 @@ import { fallbackPost, fallbackRecipe } from "@/lib/fallback-content";
 import { getPublishedPostBySlug, type PublicPost } from "@/lib/blog.functions";
 import { getRecipeBySlug } from "@/lib/library/library.functions";
 import { getPageLinks, type PageLinks } from "@/lib/linking/linking.functions";
-import { RelatedSection, RoundupList, HubPills, PairingCallout } from "@/components/site/RelatedLinks";
+import { RelatedSection, RoundupList, HubPills } from "@/components/site/RelatedLinks";
 import { KitchenNote } from "@/components/site/RecipeTools";
 import { TableOfContents, ShareBar, withHeadingIds, readingMinutes } from "@/components/site/BlogTools";
 
@@ -131,7 +131,7 @@ function PostPage() {
         )}
         <KitchenNote kind="blog" />
         {links ? <RoundupList roundup={links.roundup} /> : null}
-        {links ? <RelatedSection links={links} heading="Recipes to try next" readLabel="More from the journal:" skipRecipes={splitArticle(body)[1] ? 2 : 0} /> : null}
+        {links ? <RelatedSection links={links} heading="Recipes to try next" readLabel="More from the journal:" skipRecipes={0} /> : null}
         <ContentEndFunnel source="blog" />
         <NewsletterPopup />
       </article>
