@@ -206,14 +206,14 @@ export function SeoDoctor({ value, onApply, kind = "blog", extra }: { value: Fie
               <li key={l.href} className="rounded-lg border border-forest/10 bg-cream-warm/40 p-2 text-xs">
                 <p className="font-semibold text-charcoal">{l.title} <span className="font-normal text-charcoal/50">· {l.type} · {l.reason}</span></p>
                 <div className="mt-1.5 flex flex-wrap gap-2">
-                  <button type="button" onClick={() => insertLink(l)} className="rounded-full bg-forest px-2.5 py-1 text-[10px] font-bold text-cream">Add to article</button>
+                  {kind === "blog" && <button type="button" onClick={() => insertLink(l)} className="rounded-full bg-forest px-2.5 py-1 text-[10px] font-bold text-cream">Add to article</button>}
                   <button type="button" onClick={() => navigator.clipboard?.writeText(l.url)} className="flex items-center gap-1 rounded-full border border-forest/20 px-2.5 py-1 text-[10px] font-semibold text-forest-deep"><Copy className="h-3 w-3" /> Copy link</button>
                 </div>
               </li>
             ))}
           </ul>
         )}
-        <p className="mt-2 text-[10px] text-charcoal/50">"Add to article" places one natural sentence with the link early in the article. You can reword it in the editor.</p>
+        <p className="mt-2 text-[10px] text-charcoal/50">{kind === "blog" ? '"Add to article" places one natural sentence with the link early in the article. You can reword it in the editor.' : "Copy a link and add it to a tip or the description in your own words."}</p>
       </div>
       {msg && <p className="mt-3 rounded-xl bg-forest/10 px-3 py-2 text-xs text-forest-deep">{msg}</p>}
       {err && <p className="mt-3 rounded-xl bg-red-50 px-3 py-2 text-xs text-red-700">{err}</p>}
