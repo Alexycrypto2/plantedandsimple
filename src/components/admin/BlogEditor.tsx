@@ -26,7 +26,8 @@ function WritingCheck({ title, html }: { title: string; html: string }) {
     </section>
   );
 }
-import { useEffect, useRef, useState } from "react";
+import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
+import { listImages, setImage } from "@/lib/content/blog-clean";
 import { Sparkles, Plus, ExternalLink, Image as ImageIcon, Eye, Pencil } from "lucide-react";
 import { generateStudioImage } from "@/lib/ai/image-studio.functions";
 import { adminListMedia, adminUploadMedia, adminAddMediaByUrl, adminListEntity } from "@/lib/library/admin.functions";
