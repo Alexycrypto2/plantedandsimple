@@ -1,3 +1,4 @@
+import { CookbookPrice } from "@/components/site/CookbookPrice";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useState, type ReactNode } from "react";
@@ -64,7 +65,7 @@ export function SiteNav() {
             params={{ slug: "high-protein-cookbook" }}
             className="hidden whitespace-nowrap rounded-full bg-forest px-4 py-2 text-xs font-bold uppercase tracking-widest text-cream transition hover:bg-forest-deep sm:inline-flex"
           >
-            Get Cookbook — $14.99
+            Get Cookbook — <CookbookPrice />
           </Link>
           <button
             aria-label="Menu"

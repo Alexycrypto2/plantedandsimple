@@ -1,3 +1,4 @@
+import { CookbookPrice } from "@/components/site/CookbookPrice";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { BookOpen, Check } from "lucide-react";
@@ -73,9 +74,9 @@ export function ContentEndFunnel({ source }: { source: "recipe" | "blog" }) {
           </ul>
           <div className="mt-5 flex flex-wrap items-center gap-3">
             <Button asChild size="lg" onClick={() => trackEvent("cta_click", { metadata: { action: "content_cookbook_click", source } })}>
-              <Link to="/shop/$slug" params={{ slug: "high-protein-cookbook" }}>Get the cookbook — $14.99</Link>
+              <Link to="/shop/$slug" params={{ slug: "high-protein-cookbook" }}>Get the cookbook — <CookbookPrice /></Link>
             </Button>
-            <span className="text-xs text-charcoal/50 line-through">$29.99</span>
+            <span className="text-xs text-charcoal/50 line-through"><CookbookPrice compare /></span>
           </div>
         </div>
       </section>
