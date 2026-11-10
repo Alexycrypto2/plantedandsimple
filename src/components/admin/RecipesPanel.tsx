@@ -145,7 +145,7 @@ function AiRecipeModal({ onClose, onDone, initialIdea = "" }: { onClose: () => v
           <div className="mt-5 space-y-3">
             <textarea
               className={inputCls} rows={2}
-              placeholder="What should we cook? e.g. high-protein smoky tofu noodle bowl"
+              placeholder="Recipe title (kept exactly), e.g. Smoky Tofu Noodle Bowl"
               value={brief.idea}
               onChange={(e) => setBrief({ ...brief, idea: e.target.value })}
             />
