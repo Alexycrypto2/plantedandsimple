@@ -23,6 +23,13 @@ export const SEO_CATEGORY_LABELS: Record<SeoCategory, string> = { snippet: "Snip
 const strip = (h: string) => h.replace(/<script[\s\S]*?<\/script>/gi, " ").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
 const STOP = ["the", "and", "for", "with", "how", "your", "best"];
 
+const AMOUNT = /\d|½|¼|¾|⅓|⅔|⅛|\b(one|two|three|four|half|a|an)\b\s+(cup|can|clove|bunch|handful|sprig|pinch|dash|block|lemon|lime)|\b(cups?|tbsp|tsp|tablespoons?|teaspoons?|g|kg|ml|l|oz|lb|lbs|grams?|pounds?|ounces?|cloves?|cans?|bunch|handful|sprigs?|pinch|dash|splash|drizzle|slices?|pieces?|blocks?|heads?|stalks?)\b/i;
+const NO_AMOUNT_NEEDED = /to taste|optional|for (garnish|serving|brushing|greasing|frying|drizzling|topping|the pan|dusting)|to serve|as needed|garnish/i;
+/** True when an ingredient line names a quantity or is one that customarily has none (garnish, to taste). */
+export function hasAmount(line: string): boolean {
+  return AMOUNT.test(line) || NO_AMOUNT_NEEDED.test(line);
+}
+
 export function guessKeyword(input: SeoInput): string {
   if (input.keyword?.trim()) return input.keyword.trim().toLowerCase();
   const base = (input.title || input.seoTitle).toLowerCase().replace(/[^a-z0-9\s-]/g, "");
@@ -37,8 +44,11 @@ export function auditSeo(input: SeoInput): SeoReport {
   const intro = lower.split(" ").slice(0, 120).join(" ");
   const h2s = [...input.html.matchAll(/<h2[^>]*>([\s\S]*?)<\/h2>/gi)].map((m) => strip(m[1] ?? "").toLowerCase());
   const imgs = [...input.html.matchAll(/<img\b[^>]*>/gi)].map((m) => m[0]);
-  const sentences = text.split(/[.!?]+\s/).filter((s) => s.trim().length > 0);
-  const avgSentence = sentences.length ? words / sentences.length : 0;
+  // List items, headings and paragraphs end a sentence, so bullet lists aren't read as one run-on sentence.
+  const sentenceText = strip(input.html.replace(/<\/(li|h[1-6]|p|td|th|div)>/gi, ". "));
+  const sentences = sentenceText.split(/[.!?]+\s/).map((s) => s.trim()).filter((s) => s.split(" ").length > 1);
+  const sentenceWords = sentences.reduce((n, s) => n + s.split(" ").length, 0);
+  const avgSentence = sentences.length ? sentenceWords / sentences.length : 0;
   const kwCount = kw ? lower.split(kw).length - 1 : 0;
   const density = words ? (kwCount * kw.split(" ").length * 100) / words : 0;
   const internal = (input.html.match(/href="\/(?!\/)/g) ?? []).length;
@@ -90,10 +100,10 @@ export function auditSeo(input: SeoInput): SeoReport {
       const r = replace[current.id];
       if (r) checks[i] = r;
     }
-    const qty = /\d|½|¼|¾|cup|tbsp|tsp|g\b|ml\b/i;
-    const ing = [...section("Ingredients").matchAll(/<li>([\s\S]*?)<\/li>/g)].map((m) => m[1] ?? "");
+    const ing = [...section("Ingredients").matchAll(/<li>([\s\S]*?)<\/li>/g)].map((m) => strip(m[1] ?? ""));
+    const missing = ing.filter((x) => !hasAmount(x));
     checks.push(
-      { id: "qty", category: "content", label: "Every ingredient has an amount", weight: 4, pass: ing.length > 0 && ing.every((x) => qty.test(x) || /to taste|pinch|optional/i.test(x)), fix: "Give each ingredient an amount (e.g. 1 cup, 200g)." },
+      { id: "qty", category: "content", label: "Every ingredient has an amount", weight: 4, pass: ing.length > 0 && missing.length === 0, fix: missing.length ? `Add an amount to: ${missing.slice(0, 3).join("; ")}${missing.length > 3 ? ` (+${missing.length - 3} more)` : ""}.` : "Give each ingredient an amount (e.g. 1 cup, 200g)." },
     );
   }
   const total = checks.reduce((s, c) => s + c.weight, 0);

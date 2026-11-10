@@ -15,7 +15,8 @@ export function pickKeyword(tagsText: string, title: string): string {
   if (holiday) return holiday;
   const useful = tags.filter((x) => !GENERIC.has(x));
   const inTitle = useful.filter((x) => t.includes(x)).sort((a, b) => b.length - a.length)[0];
-  return inTitle ?? useful[0] ?? "";
+  // No tag matches the title: let the audit derive the keyword from the dish name itself.
+  return inTitle ?? "";
 }
 
 type Fields = { title: string; seo_title: string; seo_description: string; excerpt: string; content: string; tags?: string; slug?: string; image?: string; pinterest_description?: string };
@@ -61,7 +62,7 @@ export function SeoDoctor({ value, onApply, kind = "blog", extra }: { value: Fie
       onApply(kind === "recipe"
         ? { seo_title: r.seoTitle, seo_description: r.seoDescription, excerpt: r.excerpt }
         : { seo_title: r.seoTitle, seo_description: r.seoDescription, excerpt: r.excerpt, content: r.html });
-      setMsg(`Editorial suggestions applied. ${(r.changes ?? []).slice(0, 4).join(" · ")} Save and recheck the page separately; this does not repair or validate structured data.`);
+      setMsg(`Editorial suggestions applied. ${(r.changes ?? []).slice(0, 4).join(" · ")} Your title, web address${kind === "recipe" ? ", ingredients and steps" : ", facts and links"} are left unchanged on purpose — fix any remaining red items by hand. Save and recheck the page separately.`);
     } catch (e: any) {
       setErr(e?.message ?? "Auto-fix failed");
     } finally {
