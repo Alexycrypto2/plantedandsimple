@@ -1,4 +1,5 @@
 import { pageHead } from "@/lib/seo";
+import { GuaranteeCard } from "@/components/site/GuaranteeCard";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { SiteLayout } from "@/components/SiteLayout";
@@ -166,9 +167,7 @@ function PlanningKitPage() {
               <span className="text-xl text-charcoal/40 line-through">${COMPARE}</span>
             </div>
             <Buy label="Get instant access" cta="offer" className="mt-6 w-full" />
-            <div className="mt-6 rounded-2xl bg-sage/10 p-4 text-sm text-charcoal/75">
-              <strong className="text-forest-deep">60-day money-back guarantee.</strong> If it doesn't make your week easier, email us for a full refund.
-            </div>
+            <div className="mt-6"><GuaranteeCard compact body="If it doesn't make your week easier, email us for a full refund." /></div>
           </div>
         </section>
 
