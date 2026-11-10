@@ -28,13 +28,20 @@ export const Route = createFileRoute("/recipes/")({
 function RecipesIndex() {
   const { recipes, categories, hubs } = Route.useLoaderData() as { recipes: Recipe[]; categories: Category[]; hubs: Hub[] };
   const [tag, setTag] = useState<string | null>(null);
+  const [q, setQ] = useState("");
 
-  const filtered = useMemo(
-    () => (tag ? recipes.filter((r) => r.tags.includes(tag)) : recipes),
-    [recipes, tag],
-  );
+  const tags = useMemo(() => RECIPE_FILTERS.filter((f) => recipes.some((r) => f.match(r))), [recipes]);
 
-  const tags = useMemo(() => [...new Set(recipes.flatMap((r) => r.tags))].slice(0, 12), [recipes]);
+  const filtered = useMemo(() => {
+    const f = RECIPE_FILTERS.find((x) => x.id === tag);
+    const words = q.trim().toLowerCase().split(/\s+/).filter(Boolean);
+    return recipes.filter((r) => {
+      if (f && !f.match(r)) return false;
+      if (!words.length) return true;
+      const hay = recipeText(r);
+      return words.every((w) => hay.includes(w));
+    });
+  }, [recipes, tag, q]);
 
   return (
     <SiteLayout>
@@ -46,14 +53,28 @@ function RecipesIndex() {
           live inside our cookbooks.
         </p>
 
+        <div className="sticky top-16 z-20 -mx-6 mt-10 bg-background/95 px-6 py-3 backdrop-blur">
+          <label className="relative block max-w-xl">
+            <span className="sr-only">Search recipes</span>
+            <span aria-hidden className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-charcoal/45">⌕</span>
+            <input
+              type="search"
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder="Search lentil, tofu, pumpkin…"
+              className="w-full rounded-full border border-forest/20 bg-card py-3 pl-10 pr-4 text-sm text-charcoal outline-none focus:border-forest"
+            />
+          </label>
+        </div>
+
         {tags.length ? (
-          <div className="mt-10 flex flex-wrap gap-2">
+          <div className="mt-4 flex gap-2 overflow-x-auto pb-1 sm:flex-wrap">
             <FilterChip active={tag === null} onClick={() => setTag(null)}>
               All
             </FilterChip>
             {tags.map((t) => (
-              <FilterChip key={t} active={tag === t} onClick={() => setTag(t)}>
-                {t}
+              <FilterChip key={t.id} active={tag === t.id} onClick={() => setTag(tag === t.id ? null : t.id)}>
+                {t.label}
               </FilterChip>
             ))}
           </div>
@@ -81,7 +102,7 @@ function RecipesIndex() {
           </div>
         ) : (
           <div className="mt-14 rounded-[2rem] border border-dashed border-forest/20 bg-white p-14 text-center">
-            <p className="font-display text-2xl italic text-forest-deep">The first recipes are on their way.</p>
+            <p className="font-display text-2xl italic text-forest-deep">{q || tag ? "No recipes match that search." : "The first recipes are on their way."}</p>
             <p className="mx-auto mt-3 max-w-md text-sm text-charcoal/60">
               In the meantime, our flagship cookbook has 30 tested plant-based recipes ready to download today.
             </p>
@@ -116,6 +137,22 @@ function RecipesIndex() {
   );
 }
 
+function recipeText(r: Recipe) {
+  const ing = (r.ingredients ?? []).flatMap((g: any) => g?.items ?? []).join(" ");
+  return [r.title, r.subtitle, r.description, (r.tags ?? []).join(" "), ing].filter(Boolean).join(" ").toLowerCase();
+}
+
+const has = (r: Recipe, re: RegExp) => re.test([r.title, (r.tags ?? []).join(" ")].join(" ").toLowerCase());
+const RECIPE_FILTERS: { id: string; label: string; match: (r: Recipe) => boolean }[] = [
+  { id: "protein", label: "High-Protein", match: (r) => has(r, /protein/) },
+  { id: "dinner", label: "Dinner", match: (r) => has(r, /dinner|pasta|noodle|taco|wrap|bowl|loaf|chili|stew|dahl|curry/) },
+  { id: "breakfast", label: "Breakfast", match: (r) => has(r, /breakfast|oats|scramble|pancake|smoothie/) },
+  { id: "quick", label: "Quick & Easy", match: (r) => (r.prep_minutes ?? 0) + (r.cook_minutes ?? 0) > 0 && (r.prep_minutes ?? 0) + (r.cook_minutes ?? 0) <= 30 },
+  { id: "soups", label: "Soups & Stews", match: (r) => has(r, /soup|stew|chili|dahl|curry/) },
+  { id: "thanksgiving", label: "Thanksgiving", match: (r) => has(r, /thanksgiving|holiday|casserole/) },
+  { id: "mealprep", label: "Meal Prep", match: (r) => has(r, /meal prep|meal-prep|batch/) },
+];
+
 function FilterChip({
   active,
   onClick,
@@ -127,8 +164,9 @@ function FilterChip({
 }) {
   return (
     <button
+      type="button"
       onClick={onClick}
-      className={`rounded-full px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.18em] transition ${
+      className={`shrink-0 rounded-full px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.18em] transition ${
         active ? "bg-forest text-cream" : "border border-forest/15 bg-white text-charcoal/70 hover:border-forest"
       }`}
     >
