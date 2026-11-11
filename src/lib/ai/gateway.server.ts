@@ -112,11 +112,11 @@ export function describeAiError(err: unknown, info?: AiProviderInfo): Error {
   if (status === 401 || status === 403 || /API_KEY_INVALID|PERMISSION_DENIED|Unauthorized/i.test(raw + body)) {
     return new Error(`AI key rejected by ${where}: ${body || raw}`);
   }
+  if (status === 429 || /too many requests|quota|resource.?exhausted/i.test(raw + body)) return new Error("Google's AI is very busy right now and every backup model was too. Nothing was changed — please try again in a minute.");
+  if (status === 503 || /high demand|overloaded|unavailable/i.test(raw + body)) return new Error("Google's AI is overloaded right now. Nothing was changed — please try again in a minute.");
   if (status === 404 || /NOT_FOUND|is not found for API version|model/i.test(body)) {
     return new Error(`Model not available for this key — ${where}: ${body || raw}`);
   }
-  if (status === 429 || /too many requests|quota|resource.?exhausted/i.test(raw + body)) return new Error("Google's AI is very busy right now and every backup model was too. Nothing was changed — please try again in a minute.");
-  if (status === 503 || /high demand|overloaded|unavailable/i.test(raw + body)) return new Error("Google's AI is overloaded right now. Nothing was changed — please try again in a minute.");
   return new Error(`${where} failed: ${body || raw}`);
 }
 
