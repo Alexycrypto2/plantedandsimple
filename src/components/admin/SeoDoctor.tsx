@@ -77,6 +77,7 @@ export function SeoDoctor({ value, onApply, kind = "blog", extra }: { value: Fie
   const failing = report.checks.filter((c) => !c.pass).length;
 
   const fix = async () => {
+    if (busy) return; // one auto-fix at a time
     setBusy(true); setErr(null); setMsg(null);
     try {
       const manualLeft = report.checks.filter((c) => !c.pass && c.manual).map((c) => c.label);
