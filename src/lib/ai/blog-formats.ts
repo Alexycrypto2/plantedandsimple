@@ -11,7 +11,8 @@ export type BlogFormat = {
   photos: string;
 };
 
-export const BLOG_FORMATS: Record<BlogFormatId, BlogFormat> = {
+export const BLOG_FORMATS: Record<BlogFormatId, BlogFormat> = {} as Record<BlogFormatId, BlogFormat>;
+Object.assign(BLOG_FORMATS, {
   hero_recipe: {
     id: "hero_recipe", label: "Hero recipe", sectionPhotos: 3, includeRecipe: true,
     structure: `1. Two-sentence sensory hook: texture, flavour and total time; say the full recipe card is below.
@@ -58,7 +59,7 @@ Never invent links. Each dish must be different in protein source or cooking met
 No medical claims.`,
     photos: "a whole-food ingredient lineup (tempeh, lentils, edamame, hemp seeds) and real plated meals",
   },
-};
+});
 
 BLOG_FORMATS.holiday_menu = {
   id: "holiday_menu", label: "Holiday menu & timeline", sectionPhotos: 5, includeRecipe: false,
