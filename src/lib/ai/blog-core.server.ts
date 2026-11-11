@@ -45,6 +45,8 @@ export const ArticleSchema = z.object({
       ingredients: z.array(z.string()),
       steps: z.array(z.object({ title: z.string(), body: z.string() })),
       tips: z.array(z.string()),
+      nutrition: z.object({ calories: z.number(), protein_g: z.number(), carbs_g: z.number(), fat_g: z.number(), fiber_g: z.number(), sugar_g: z.number(), sodium_mg: z.number() }).nullable().optional(),
+      photo_prompt: z.string().nullable().optional(),
     }),
   ),
   recipe: z
@@ -126,7 +128,7 @@ function catalogRules(catalog?: Array<{ slug: string; title: string }>) {
 ${list || "(none)"}
 RECIPE GROUNDING (strict):
 - Whenever a section features a dish, first use a recipe from SITE RECIPES that is the same dish or a close fit. Describe THAT recipe accurately (its real main ingredients from its title) and set the section's recipe_slug to its slug exactly. Never describe a different version of a site recipe.
-- Only when no site recipe fits, invent a new dish: set recipe_slug to null AND add a complete recipe for it to new_recipes (lowercase hyphen slug, metric + US amounts for every ingredient, 3-8 steps with exact times and temperatures in both °C and °F, realistic prep/cook minutes including any cooling or chilling, 2-3 tips). Those are saved as drafts for the editor to review.
+- Only when no site recipe fits, invent a new dish: set recipe_slug to null AND add a complete recipe for it to new_recipes (lowercase hyphen slug, metric + US amounts for every ingredient, 3-8 steps with exact times and temperatures in both °C and °F, realistic prep/cook minutes including any cooling or chilling, 2-3 tips, per-serving nutrition estimated from the ingredient amounts, and a photo_prompt describing the finished dish exactly as plated). Those are saved as drafts for the editor to review.
 - Sections that are not about one dish (planning, timeline, storage) use recipe_slug null and add nothing to new_recipes.
 - Never use full-domain links. Internal links are root-relative, e.g. /recipes/slug or /free.`;
 }
@@ -205,6 +207,13 @@ export async function loadRecipeCatalog(): Promise<Array<{ slug: string; title: 
   }
 }
 
+/** Per-serving nutrition rows for AI-drafted recipes, always labelled as estimates. */
+export function draftNutritionRows(n: { calories: number; protein_g: number; carbs_g: number; fat_g: number; fiber_g: number; sugar_g: number; sodium_mg: number }) {
+  const r = (x: number) => Math.round(x);
+  return [["Calories", `${r(n.calories)} kcal`], ["Protein", `${r(n.protein_g)} g`], ["Carbs", `${r(n.carbs_g)} g`], ["Fat", `${r(n.fat_g)} g`], ["Fiber", `${r(n.fiber_g)} g`], ["Sugar", `${r(n.sugar_g)} g`], ["Sodium", `${r(n.sodium_mg)} mg`]]
+    .map(([label, value]) => ({ label, value: `${value} (estimated)` }));
+}
+
 /** Save the writer's invented dishes as draft recipes (never published, never overwriting an existing slug). */
 async function saveDraftRecipes(list: Article["new_recipes"], userId: string, tags: string[]) {
   const saved: Array<{ slug: string; title: string; id: string }> = [];
@@ -216,13 +225,22 @@ async function saveDraftRecipes(list: Article["new_recipes"], userId: string, ta
     if (!slug || !r.ingredients.length || !r.steps.length) continue;
     const { data: exists } = await (supabaseAdmin as any).from("recipes").select("id").eq("slug", slug).maybeSingle();
     if (exists) continue;
+    const n = r.nutrition ?? null;
+    let heroId: string | null = null;
+    const photo = await renderImageSafe(`${r.name}. ${r.photo_prompt || r.description}`, `recipes/${slug}`, FRAMING.finished);
+    if (photo?.url) {
+      const { data: m } = await (supabaseAdmin as any).from("media").insert({ public_url: photo.url, storage_path: photo.path, alt: r.name, alt_text: r.name, title: `${r.name} — hero`, tags: ["ai", "recipe", slug] }).select("id").single();
+      heroId = m?.id ?? null;
+    }
     const tax = inferHolidayTaxonomy({ title: r.name, description: r.description, tags: tags.filter((t) => t !== "homepage").slice(0, 6), occasions: [] });
     const { data: row } = await (supabaseAdmin as any).from("recipes").insert({
       slug, title: r.name, subtitle: r.subtitle, description: r.description,
       prep_minutes: Math.round(r.prep_minutes) || null, cook_minutes: Math.round(r.cook_minutes) || null,
       servings: r.servings, difficulty: "Easy", status: "draft",
       ingredients: [{ group: "Ingredients", items: r.ingredients }], instructions: r.steps, tips: r.tips,
-      nutrition: [], gallery_ids: [], equipment: [], tags: tax.tags, occasions: tax.occasions, author_id: userId,
+      nutrition: n ? draftNutritionRows(n) : [], calories: n ? Math.round(n.calories) : null,
+      protein_grams: n?.protein_g ?? null, carbs_grams: n?.carbs_g ?? null, fat_grams: n?.fat_g ?? null, fiber_grams: n?.fiber_g ?? null,
+      hero_image_id: heroId, gallery_ids: [], equipment: [], tags: tax.tags, occasions: tax.occasions, author_id: userId,
     }).select("id").single();
     if (row) saved.push({ slug, title: r.name, id: row.id });
   }
