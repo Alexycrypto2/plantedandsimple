@@ -181,6 +181,13 @@ export function AdminShell({
   children: ReactNode;
 }) {
   const [open, setOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
+  useEffect(() => { setCollapsed(window.localStorage.getItem("pd-admin-collapsed") === "1"); }, []);
+  const toggleMenu = () => {
+    if (window.matchMedia("(min-width: 1024px)").matches) {
+      setCollapsed((c) => { const n = !c; try { window.localStorage.setItem("pd-admin-collapsed", n ? "1" : "0"); } catch { /* ignore */ } return n; });
+    } else setOpen((o) => !o);
+  };
   const [q, setQ] = useState("");
   const motion = useMotionToggle();
   const skin = useAdminTheme();
@@ -366,7 +373,7 @@ export function AdminShell({
     >
       <Ambience />
       {/* Desktop sidebar */}
-      <aside className="fixed inset-y-0 left-0 z-40 hidden w-64 border-r border-white/50 bg-white/55 backdrop-blur-2xl lg:flex lg:flex-col">
+      <aside className={`fixed inset-y-0 left-0 z-40 hidden w-64 border-r border-white/50 bg-white/55 backdrop-blur-2xl transition-transform duration-500 lg:flex lg:flex-col ${collapsed ? "-translate-x-full" : "translate-x-0"}`}>
         {nav}
       </aside>
 
@@ -386,7 +393,7 @@ export function AdminShell({
         {nav}
       </aside>
 
-      <div className="relative z-10 lg:pl-64">
+      <div className={`relative z-10 transition-[padding] duration-500 ${collapsed ? "lg:pl-0" : "lg:pl-64"}`}>
         <header className="sticky top-0 z-30 border-b border-white/50 bg-cream/60 backdrop-blur-2xl">
           <div
             aria-hidden
@@ -395,10 +402,10 @@ export function AdminShell({
           />
           <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 px-4 py-3.5 sm:px-6">
             <button
-              onClick={() => setOpen((o) => !o)}
-              aria-label={open ? "Close menu" : "Open menu"}
-              aria-expanded={open}
-              className="grid size-9 place-items-center rounded-2xl border border-white/60 bg-white/70 text-forest backdrop-blur transition active:scale-95 lg:hidden"
+              onClick={toggleMenu}
+              aria-label="Toggle menu"
+              aria-expanded={open || !collapsed}
+              className="grid size-11 place-items-center rounded-2xl border border-white/60 bg-white/70 text-forest backdrop-blur transition hover:bg-white active:scale-95"
             >
               <Menu className="size-4" />
             </button>

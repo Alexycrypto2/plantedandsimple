@@ -107,8 +107,8 @@ function AiRecipeModal({ onClose, onDone, initialIdea = "" }: { onClose: () => v
   };
 
   return (
-    <div className="fixed inset-0 z-50 grid place-items-center bg-charcoal/50 p-4 backdrop-blur-sm duration-200 animate-in fade-in">
-      <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-[1.75rem] border border-white/60 bg-white p-6 shadow-2xl duration-300 animate-in zoom-in-95 slide-in-from-bottom-4">
+    <div className="fixed inset-0 z-50 grid place-items-center bg-charcoal/50 p-0 backdrop-blur-sm sm:p-6 duration-200 animate-in fade-in">
+      <div className="h-[100dvh] w-full max-w-4xl overflow-y-auto sm:h-auto sm:max-h-[94vh] sm:rounded-[1.75rem] border border-white/60 bg-white p-6 shadow-2xl duration-300 animate-in zoom-in-95 slide-in-from-bottom-4">
         <div className="flex items-start justify-between gap-3">
           <div>
             <p className="flex items-center gap-1.5 font-mono text-[9px] font-bold uppercase tracking-[0.24em] text-[var(--ws-accent)]">

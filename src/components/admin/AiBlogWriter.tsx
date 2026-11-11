@@ -196,7 +196,7 @@ export function AiBlogWriterModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-charcoal/50 p-0 backdrop-blur-sm sm:items-center sm:p-6">
-      <div className="max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-t-3xl bg-cream p-6 shadow-2xl duration-300 animate-in fade-in slide-in-from-bottom-4 sm:rounded-3xl sm:p-8">
+      <div className="h-[100dvh] w-full max-w-4xl overflow-y-auto sm:h-auto sm:max-h-[94vh] rounded-none bg-cream p-6 shadow-2xl duration-300 animate-in fade-in slide-in-from-bottom-4 sm:rounded-3xl sm:p-8">
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-center gap-4">
             <span className="grid h-14 w-14 place-items-center rounded-2xl bg-forest text-cream">
