@@ -132,6 +132,7 @@ export function AiBlogWriterModal({
   };
 
   const doGenerate = async () => {
+    if (busy) return;
     setBusy("generate");
     setErr(null);
     setResult(null);
