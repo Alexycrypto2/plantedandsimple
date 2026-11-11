@@ -1,5 +1,5 @@
 import { pageHead, pageUrl, plainDescription, jsonLd, breadcrumbs, absoluteImage } from "@/lib/seo";
-import { recipeJsonLd } from "@/lib/recipe-schema";
+import { recipeJsonLd, recipeTotalMinutes } from "@/lib/recipe-schema";
 import { cleanStep, cleanStepText, cleanTip, cleanServings, usNutritionLabel } from "@/lib/recipe-clean";
 import { createFileRoute, Link, notFound, useRouter } from "@tanstack/react-router";
 import { useEffect } from "react";
@@ -79,7 +79,7 @@ function RecipeMissing() {
 
 function RecipeDetail() {
   const { recipe: r, related, links } = Route.useLoaderData() as Data;
-  const total = (r.prep_minutes ?? 0) + (r.cook_minutes ?? 0);
+  const total = recipeTotalMinutes(r);
 
   useEffect(() => {
     void trackEvent("recipe_view", { refId: (r as any).id ?? null, refSlug: r.slug });

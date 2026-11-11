@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { normalizeCategory, sanitizeBlogHtml } from "@/lib/content/content-sanitize";
 import { createClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
@@ -140,9 +141,9 @@ export const adminUpsertPost = createServerFn({ method: "POST" })
       slug: data.slug,
       title: data.title,
       excerpt: data.excerpt ?? null,
-      content: data.content ?? "",
+      content: sanitizeBlogHtml(data.content ?? ""),
       featured_image_url: data.featured_image_url ?? null,
-      category: data.category ?? null,
+      category: normalizeCategory(data.category),
       tags: data.tags ?? [],
       seo_title: data.seo_title ?? null,
       seo_description: data.seo_description ?? null,

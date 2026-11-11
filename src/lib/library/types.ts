@@ -58,6 +58,8 @@ export type Recipe = {
   tips: string[];
   prep_minutes: number | null;
   cook_minutes: number | null;
+  /** Full time including cooling/chilling; overrides prep+cook when larger. */
+  total_time_minutes?: number | null;
   servings: string | null;
   difficulty: string;
   tags: string[];

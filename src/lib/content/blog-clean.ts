@@ -1,6 +1,8 @@
+import { sanitizeBlogHtml } from "./content-sanitize";
+
 /** Reader-facing cleanup of saved blog HTML (does not change stored content). */
 export function cleanBlogHtml(html: string): string {
-  let out = html ?? "";
+  let out = sanitizeBlogHtml(html ?? "");
   // Free guide links must go through the signup page, never straight to the download.
   out = out.replace(/href=(["'])(?:https?:\/\/(?:www\.)?plantedandsimple\.com)?\/free-cookbook\/?\1/gi, 'href=$1/free$1');
   // Drop in-article promo boxes: the page already shows one mid-article card and one end card.

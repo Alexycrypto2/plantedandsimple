@@ -71,6 +71,7 @@ function mapRecipe(r: any, media: Map<string, string>): Recipe {
     nutrition,
     tips: (Array.isArray(r.tips) ? r.tips : []).filter((item: unknown): item is string => typeof item === "string"),
     prep_minutes: r.prep_minutes ?? null,
+    total_time_minutes: r.total_time_minutes ?? null,
     cook_minutes: r.cook_minutes ?? null,
     servings: r.servings ?? null,
     difficulty: r.difficulty ?? "easy",
@@ -86,7 +87,7 @@ function mapRecipe(r: any, media: Map<string, string>): Recipe {
 }
 
 const RECIPE_COLUMNS =
-  "id, slug, title, subtitle, description, hero_image_id, gallery_ids, ingredients, instructions, nutrition, tips, prep_minutes, cook_minutes, servings, difficulty, tags, pinterest_description, seo_title, seo_description, status, is_featured, published_at, created_at";
+  "id, slug, title, subtitle, description, hero_image_id, gallery_ids, ingredients, instructions, nutrition, tips, prep_minutes, cook_minutes, total_time_minutes, servings, difficulty, tags, pinterest_description, seo_title, seo_description, status, is_featured, published_at, created_at";
 
 /* ------------------------------------------------------------------ homepage */
 

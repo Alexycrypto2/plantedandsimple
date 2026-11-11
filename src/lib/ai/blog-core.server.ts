@@ -4,6 +4,7 @@ import { z } from "zod";
 import { textModel, describeAiError, DEFAULT_CHAT_MODEL, DEFAULT_IMAGE_MODEL } from "./gateway.server";
 import { assembleArticleHtml, FRAMING, renderImageSafe } from "./studio.server";
 import { scoreArticle, QUALITY_THRESHOLD } from "./quality.server";
+import { normalizeCategory, sanitizeBlogHtml } from "@/lib/content/content-sanitize";
 import { offerCardHtml, pickOffer } from "@/lib/content/product-bridge";
 import { BLOG_FORMATS, BANNED_PHRASES, detectBlogFormat, sanitizeBanned, titleItemCount, type BlogFormat, type BlogFormatId } from "./blog-formats";
 
@@ -29,6 +30,21 @@ export const ArticleSchema = z.object({
       image_prompt: z.string().nullable(),
       image_alt: z.string().nullable(),
       image_caption: z.string().nullable(),
+      recipe_slug: z.string().nullable(),
+    }),
+  ),
+  new_recipes: z.array(
+    z.object({
+      name: z.string(),
+      slug: z.string(),
+      subtitle: z.string(),
+      description: z.string(),
+      prep_minutes: z.number(),
+      cook_minutes: z.number(),
+      servings: z.string(),
+      ingredients: z.array(z.string()),
+      steps: z.array(z.object({ title: z.string(), body: z.string() })),
+      tips: z.array(z.string()),
     }),
   ),
   recipe: z
@@ -89,6 +105,8 @@ export type ArticleBrief = {
   research?: unknown;
   rewriteBrief?: string | null;
   format?: BlogFormatId | null;
+  /** Live published recipes the article must feature and link before inventing dishes. */
+  catalog?: Array<{ slug: string; title: string }>;
 };
 
 export function formatFor(brief: Pick<ArticleBrief, "format" | "topic">): BlogFormat {
@@ -100,6 +118,17 @@ export function imagePlanFor(words: number, format?: BlogFormat) {
   const base = format?.sectionPhotos ?? 3;
   const sections = Math.max(1, Math.min(base, Math.round((base * words) / 1600)));
   return { sections, total: sections + 3 };
+}
+
+function catalogRules(catalog?: Array<{ slug: string; title: string }>) {
+  const list = (catalog ?? []).slice(0, 150).map((r) => `- ${r.slug} | ${r.title}`).join("\n");
+  return `SITE RECIPES (these are the only recipes that exist on PlantedAndSimple):
+${list || "(none)"}
+RECIPE GROUNDING (strict):
+- Whenever a section features a dish, first use a recipe from SITE RECIPES that is the same dish or a close fit. Describe THAT recipe accurately (its real main ingredients from its title) and set the section's recipe_slug to its slug exactly. Never describe a different version of a site recipe.
+- Only when no site recipe fits, invent a new dish: set recipe_slug to null AND add a complete recipe for it to new_recipes (lowercase hyphen slug, metric + US amounts for every ingredient, 3-8 steps with exact times and temperatures in both °C and °F, realistic prep/cook minutes including any cooling or chilling, 2-3 tips). Those are saved as drafts for the editor to review.
+- Sections that are not about one dish (planning, timeline, storage) use recipe_slug null and add nothing to new_recipes.
+- Never use full-domain links. Internal links are root-relative, e.g. /recipes/slug or /free.`;
 }
 
 export function buildArticlePrompt(brief: ArticleBrief, memory: string) {
@@ -119,6 +148,8 @@ Tone: ${brief.tone ?? "Editorial"}. Reading level: ${brief.readingLevel ?? "Stan
 Target length: ~${words} words across intro + sections + conclusion.
 ${brief.research ? `Research to build on:\n${JSON.stringify(brief.research).slice(0, 4000)}` : ""}
 ${brief.rewriteBrief ? `\nTHIS IS A REWRITE. The previous draft failed the editor's quality check. Fix all of this:\n${brief.rewriteBrief}\n` : ""}
+
+${catalogRules(brief.catalog)}
 
 ARTICLE FORMAT: ${format.label}. Follow this standard section order (map each numbered part to one or more sections):
 ${format.structure}
@@ -164,10 +195,45 @@ ${brief.includeInternalLinks ? "- internal_link_slugs: 3-5 related blog slugs." 
 - seo_score and quality_score: honest 0-100 self assessment.`;
 }
 
+export async function loadRecipeCatalog(): Promise<Array<{ slug: string; title: string }>> {
+  try {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data } = await (supabaseAdmin as any).from("recipes").select("slug, title").eq("status", "published").limit(300);
+    return (data ?? []).map((r: any) => ({ slug: r.slug, title: String(r.title ?? "").trim() }));
+  } catch {
+    return [];
+  }
+}
+
+/** Save the writer's invented dishes as draft recipes (never published, never overwriting an existing slug). */
+async function saveDraftRecipes(list: Article["new_recipes"], userId: string, tags: string[]) {
+  const saved: Array<{ slug: string; title: string; id: string }> = [];
+  if (!list?.length) return saved;
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { inferHolidayTaxonomy } = await import("@/lib/content/content-sanitize");
+  for (const r of list.slice(0, 8)) {
+    const slug = r.slug.toLowerCase().replace(/[^a-z0-9-]+/g, "-").replace(/^-+|-+$/g, "");
+    if (!slug || !r.ingredients.length || !r.steps.length) continue;
+    const { data: exists } = await (supabaseAdmin as any).from("recipes").select("id").eq("slug", slug).maybeSingle();
+    if (exists) continue;
+    const tax = inferHolidayTaxonomy({ title: r.name, description: r.description, tags: tags.filter((t) => t !== "homepage").slice(0, 6), occasions: [] });
+    const { data: row } = await (supabaseAdmin as any).from("recipes").insert({
+      slug, title: r.name, subtitle: r.subtitle, description: r.description,
+      prep_minutes: Math.round(r.prep_minutes) || null, cook_minutes: Math.round(r.cook_minutes) || null,
+      servings: r.servings, difficulty: "Easy", status: "draft",
+      ingredients: [{ group: "Ingredients", items: r.ingredients }], instructions: r.steps, tips: r.tips,
+      nutrition: [], gallery_ids: [], equipment: [], tags: tax.tags, occasions: tax.occasions, author_id: userId,
+    }).select("id").single();
+    if (row) saved.push({ slug, title: r.name, id: row.id });
+  }
+  return saved;
+}
+
 export async function writeArticle(brief: ArticleBrief): Promise<Article> {
   const model = await textModel("blog-core");
   const { getMemoryContext } = await import("@/lib/learning/engine.server");
   const memory = await getMemoryContext("blog");
+  if (!brief.catalog) brief = { ...brief, catalog: await loadRecipeCatalog() };
   try {
     const res = await generateText({
       model,
@@ -227,9 +293,14 @@ export async function buildAndStoreArticle(opts: {
   const firstPin = output.pinterest_pins[0];
   if (firstPin) await render("pinterest", firstPin.image_prompt, FRAMING.pin, firstPin.alt);
 
+  // Every dish section that maps to a live recipe links to it; invented dishes become draft recipes.
+  const live = new Map((brief.catalog ?? (await loadRecipeCatalog())).map((r) => [r.slug, r.title]));
+  const draftRecipes = await saveDraftRecipes(output.new_recipes ?? [], opts.userId, output.tags);
   const sections = output.sections.map((s, i) => ({
     heading: s.heading,
-    html: s.html,
+    html: s.recipe_slug && live.has(s.recipe_slug) && !s.html.includes(`/recipes/${s.recipe_slug}`)
+      ? `${s.html}<p><a href="/recipes/${s.recipe_slug}">Get the full ${live.get(s.recipe_slug)} recipe →</a></p>`
+      : s.html,
     callout: s.callout,
     pullquote: s.pullquote,
     imageUrl: images[`section-${i}`]?.url ?? null,
@@ -237,7 +308,7 @@ export async function buildAndStoreArticle(opts: {
     imageCaption: s.image_caption,
   }));
 
-  const content = assembleArticleHtml({
+  const content = sanitizeBlogHtml(assembleArticleHtml({
     intro: output.intro_html,
     takeaways: output.key_takeaways,
     toc: brief.includeToc ?? true,
@@ -255,7 +326,7 @@ export async function buildAndStoreArticle(opts: {
       : offerCardHtml(pickOffer(`${brief.topic} ${output.h1} ${output.tags.join(" ")}`), "blog"),
     conclusion: output.conclusion_html,
     cta: output.cta,
-  });
+  }));
 
   const quality = await scoreArticle({
     title: output.h1,
@@ -283,7 +354,7 @@ export async function buildAndStoreArticle(opts: {
         title: output.h1,
         excerpt: output.excerpt,
         content,
-        category: brief.category ?? output.category,
+        category: normalizeCategory(brief.category ?? output.category),
         tags: output.tags,
         key_takeaways: output.key_takeaways,
         seo_title: output.seo_title,
@@ -298,6 +369,7 @@ export async function buildAndStoreArticle(opts: {
         faqs: output.faqs,
         recipe: output.recipe,
         internal_link_slugs: output.internal_link_slugs,
+        draft_recipes: draftRecipes,
         schema_jsonld: output.schema_jsonld,
         pinterest_pins: pins,
         quality,
@@ -326,5 +398,6 @@ export async function buildAndStoreArticle(opts: {
     blocked: !quality.passed,
     threshold: QUALITY_THRESHOLD,
     pins,
+    draft_recipes: draftRecipes,
   };
 }

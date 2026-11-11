@@ -391,6 +391,12 @@ export function AiBlogWriterModal({
                 </p>
               </div>
               <p className="mt-1 text-xs text-charcoal/60">{result.quality.verdict}</p>
+              {result.draft_recipes?.length > 0 && (
+                <p className="mt-2 rounded-lg bg-sage/10 p-2 text-xs text-forest-deep">
+                  {result.draft_recipes.length} new recipe{result.draft_recipes.length === 1 ? "" : "s"} saved as drafts for you to review and publish:{" "}
+                  {result.draft_recipes.map((r: any) => r.title).join(", ")}
+                </p>
+              )}
               <div className="mt-3 grid grid-cols-4 gap-2">
                 <ScoreRing label="Clarity" value={result.quality.clarity} />
                 <ScoreRing label="SEO" value={result.quality.seo} />

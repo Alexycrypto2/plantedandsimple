@@ -155,6 +155,17 @@ export const adminSaveEntity = createServerFn({ method: "POST" })
     if (!(data.entity in WRITABLE)) throw new Error("Unknown entity");
     const sb = await admin();
     const values = pick(data.entity, data.values);
+    if (data.entity === "recipes" && ("title" in values || "tags" in values || "description" in values)) {
+      // Holiday recipes must land in their occasion hub even when the editor forgets the tag.
+      const { inferHolidayTaxonomy } = await import("@/lib/content/content-sanitize");
+      const existing = data.id
+        ? ((await sb.from("recipes").select("title, subtitle, description, tags, occasions").eq("id", data.id).maybeSingle()).data as any)
+        : null;
+      const merged = { ...(existing ?? {}), ...values };
+      const inferred = inferHolidayTaxonomy(merged);
+      if (inferred.occasions.length > (merged.occasions ?? []).length) values.occasions = inferred.occasions;
+      if (inferred.tags.length > (merged.tags ?? []).length) values.tags = inferred.tags;
+    }
     if (data.entity === "recipes" && values.status === "published" && !values.published_at) {
       values.published_at = new Date().toISOString();
     }
