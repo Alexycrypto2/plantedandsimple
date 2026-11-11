@@ -93,6 +93,7 @@ function AiRecipeModal({ onClose, onDone, initialIdea = "" }: { onClose: () => v
 
   const go = async () => {
     if (!brief.idea.trim()) return;
+    if (busy) return;
     setBusy(true); setError(null); setStage(0);
     try {
       const res: any = await generateStudioRecipe({ data: brief });
