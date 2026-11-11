@@ -47,6 +47,10 @@ export const ArticleSchema = z.object({
       tips: z.array(z.string()),
       nutrition: z.object({ calories: z.number(), protein_g: z.number(), carbs_g: z.number(), fat_g: z.number(), fiber_g: z.number(), sugar_g: z.number(), sodium_mg: z.number() }).nullable().optional(),
       photo_prompt: z.string().nullable().optional(),
+      seo_title: z.string().nullable().optional(),
+      seo_description: z.string().nullable().optional(),
+      pinterest_description: z.string().nullable().optional(),
+      step_photo_prompts: z.array(z.object({ step: z.number(), prompt: z.string() })).nullable().optional(),
     }),
   ),
   recipe: z
@@ -128,7 +132,7 @@ function catalogRules(catalog?: Array<{ slug: string; title: string }>) {
 ${list || "(none)"}
 RECIPE GROUNDING (strict):
 - Whenever a section features a dish, first use a recipe from SITE RECIPES that is the same dish or a close fit. Describe THAT recipe accurately (its real main ingredients from its title) and set the section's recipe_slug to its slug exactly. Never describe a different version of a site recipe.
-- Only when no site recipe fits, invent a new dish: set recipe_slug to null AND add a complete recipe for it to new_recipes (lowercase hyphen slug, metric + US amounts for every ingredient, 3-8 steps with exact times and temperatures in both °C and °F, realistic prep/cook minutes including any cooling or chilling, 2-3 tips, per-serving nutrition estimated from the ingredient amounts, and a photo_prompt describing the finished dish exactly as plated). Those are saved as drafts for the editor to review.
+- Only when no site recipe fits, invent a new dish: set recipe_slug to null AND add a complete recipe for it to new_recipes (lowercase hyphen slug, metric + US amounts for every ingredient, 3-8 steps with exact times and temperatures in both °C and °F, realistic prep/cook minutes including any cooling or chilling, a 2-3 sentence magazine-style description (60+ words), 3-5 tips covering make-ahead, swaps and storage, seo_title 30-60 chars containing the dish name and the article's main occasion keyword (e.g. Thanksgiving), seo_description 120-155 chars with that keyword, pinterest_description up to 480 chars, step_photo_prompts for 3-4 key steps (1-based step number, describe the pan and food at that moment, no text), per-serving nutrition estimated from the ingredient amounts, and a photo_prompt describing the finished dish exactly as plated). Those are saved as drafts for the editor to review.
 - Sections that are not about one dish (planning, timeline, storage) use recipe_slug null and add nothing to new_recipes.
 - Never use full-domain links. Internal links are root-relative, e.g. /recipes/slug or /free.`;
 }
@@ -232,12 +236,20 @@ async function saveDraftRecipes(list: Article["new_recipes"], userId: string, ta
       const { data: m } = await (supabaseAdmin as any).from("media").insert({ public_url: photo.url, storage_path: photo.path, alt: r.name, alt_text: r.name, title: `${r.name} — hero`, tags: ["ai", "recipe", slug] }).select("id").single();
       heroId = m?.id ?? null;
     }
+    const steps: any[] = r.steps.map((s) => ({ ...s }));
+    for (const sp of (r.step_photo_prompts ?? []).slice(0, 4)) {
+      const i = Math.round(sp.step) - 1;
+      if (!steps[i]) continue;
+      const img = await renderImageSafe(`${r.name}, cooking step: ${sp.prompt}`, `recipes/${slug}`, FRAMING.finished);
+      if (img?.url) steps[i].image_url = img.url;
+    }
     const tax = inferHolidayTaxonomy({ title: r.name, description: r.description, tags: tags.filter((t) => t !== "homepage").slice(0, 6), occasions: [] });
     const { data: row } = await (supabaseAdmin as any).from("recipes").insert({
       slug, title: r.name, subtitle: r.subtitle, description: r.description,
       prep_minutes: Math.round(r.prep_minutes) || null, cook_minutes: Math.round(r.cook_minutes) || null,
       servings: r.servings, difficulty: "Easy", status: "draft",
-      ingredients: [{ group: "Ingredients", items: r.ingredients }], instructions: r.steps, tips: r.tips,
+      ingredients: [{ group: "Ingredients", items: r.ingredients }], instructions: steps,
+      seo_title: r.seo_title ? anchorSeoTitle(r.name, r.seo_title) : r.name, seo_description: r.seo_description ?? null, pinterest_description: r.pinterest_description ?? null, tips: r.tips,
       nutrition: n ? draftNutritionRows(n) : [], calories: n ? Math.round(n.calories) : null,
       protein_grams: n?.protein_g ?? null, carbs_grams: n?.carbs_g ?? null, fat_grams: n?.fat_g ?? null, fiber_grams: n?.fiber_g ?? null,
       hero_image_id: heroId, gallery_ids: [], equipment: [], tags: tax.tags, occasions: tax.occasions, author_id: userId,

@@ -376,7 +376,7 @@ export function RecipesSection() {
               tags: form.tagsText,
               content: recipeToHtml({
                 description: form.description,
-                ingredients: lines(form.ingredientsText),
+                ingredients: lines(form.ingredientsText).filter((l) => !l.startsWith("## ")),
                 instructions: lines(form.instructionsText),
                 nutrition: [
                   ...MACROS.filter(([k]) => String((form as any)[k]).trim()).map(([k, label, unit]) => `${label}: ${String((form as any)[k]).trim()}${unit}`),
