@@ -26,7 +26,7 @@ export function StepPhotosCard({ title, steps, images, onChange }: {
   const generate = async (i: number) => {
     setBusy(i); setErr(null);
     try {
-      const subject = `${title}, cooking step ${i + 1}: ${steps[i]}. Show exactly this moment in a real home kitchen pan or board, 45-degree close-up, hands optional`;
+      const subject = `Real home-kitchen photo of this cooking moment for ${title}: ${steps[i]} 45-degree close-up of the pan or board, hands optional`;
       const g: any = await generateStudioImage({ data: { preset: "instagram_square", subject: subject.slice(0, 400), title: `${title} step ${i + 1}` } });
       const row: any = await adminAddMediaByUrl({ data: { url: g.preview_url, alt: `${title} step ${i + 1}`, title: `${title} step ${i + 1}`, tags: ["recipe", "step"] } });
       setAt(i, row.public_url ?? g.preview_url);

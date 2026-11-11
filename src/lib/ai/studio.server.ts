@@ -1,3 +1,4 @@
+import { cleanPhotoPrompt } from "./photo-prompt";
 import { generateImageBase64 } from "./gateway.server";
 
 /** One consistent photography brief so every image in an article matches. */
@@ -23,7 +24,7 @@ export async function renderImage(
   framing = "3:2 landscape composition, subject centered",
   options?: { feature?: string; requestedModel?: string; requestedBy?: string },
 ): Promise<RenderedImage> {
-  const full = `${prompt}. ${framing}. ${PHOTO_STYLE}`;
+  const full = cleanPhotoPrompt(`${prompt}. ${framing}. ${PHOTO_STYLE}`);
   const { base64, mime, provider, modelId, fallback } = await generateImageBase64(full, options);
   const ext = mime === "image/jpeg" ? "jpg" : mime === "image/webp" ? "webp" : "png";
   const path = `${folder}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;

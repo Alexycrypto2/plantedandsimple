@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { generateImageBase64 } from "./gateway.server";
+import { cleanPhotoPrompt } from "./photo-prompt";
 
 async function requireBoss(supabase: any, userId: string) {
   const { data } = await supabase.from("user_roles").select("role").eq("user_id", userId);
@@ -35,9 +36,8 @@ export const generateStudioImage = createServerFn({ method: "POST" })
     await requireBoss(context.supabase, context.userId);
     const preset = PRESETS[data.preset];
     if (!preset) throw new Error("Unknown preset");
-    const { getMemoryContext } = await import("@/lib/learning/engine.server");
-    const memory = await getMemoryContext("image");
-    const prompt = `${data.subject}. ${preset.framing}. ${BRAND}. No text overlay, no watermark.\n\n${memory}`;
+    // Never append brand/CTA copy here: image models paint any quoted words onto the photo.
+    const prompt = cleanPhotoPrompt(`${data.subject}. ${preset.framing}. ${BRAND}.`);
 
     const { base64, mime, provider, modelId, fallback } = await generateImageBase64(prompt, { feature: "image-studio", requestedBy: context.userId });
     const ext = mime === "image/jpeg" ? "jpg" : mime === "image/webp" ? "webp" : "png";
