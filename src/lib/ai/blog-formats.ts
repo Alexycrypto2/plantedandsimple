@@ -1,5 +1,5 @@
 /** The five vegan-niche article formats. Browser-safe: used by Blog Studio and the writer prompt. */
-export type BlogFormatId = "hero_recipe" | "roundup" | "how_to" | "meal_prep" | "nutrition_guide";
+export type BlogFormatId = "hero_recipe" | "roundup" | "how_to" | "meal_prep" | "nutrition_guide" | "holiday_menu";
 
 export type BlogFormat = {
   id: BlogFormatId;
@@ -60,11 +60,23 @@ No medical claims.`,
   },
 };
 
+BLOG_FORMATS.holiday_menu = {
+  id: "holiday_menu", label: "Holiday menu & timeline", sectionPhotos: 5, includeRecipe: false,
+  structure: `1. The menu at a glance: mains, sides, sauce and dessert, with how many people it serves.
+2. One section per course or dish: heading = dish name; why it belongs on the table, protein per serving as "about Xg", what can be made ahead.
+3. A make-ahead timeline (2 days before, 1 day before, morning of, last hour) as an ordered list.
+4. Oven and stovetop plan: what cooks when, at which temperature, so nothing fights for space.
+5. Leftovers and storage.
+Cover EVERY part the title names (e.g. mains AND sides AND timeline).`,
+  photos: "the full set table, individual dishes from the menu, and one make-ahead prep shot",
+};
+
 export const BLOG_FORMAT_LIST = Object.values(BLOG_FORMATS);
 
 /** Picks the format a title most likely needs. Order matters: specific signals first. */
 export function detectBlogFormat(title: string): BlogFormatId {
   const t = ` ${title.toLowerCase()} `;
+  if (/\b(menu|timeline|make[- ]ahead plan|dinner party|entertaining|game plan)\b/.test(t) && !/^\s*\d+\s/.test(t)) return "holiday_menu";
   if (/\b(meal[- ]?prep|batch[- ]?cook|sunday prep|weekly (plan|menu)|prep for the week|lunch(es)? for the week)\b/.test(t)) return "meal_prep";
   if (/^\s*\d+\s|\b(best|top|roundup|collection|ideas)\b/.test(t)) return "roundup";
   if (/\b(enough protein|protein on a|plant-based diet|vegan diet|supplements|nutrients?|nutrition|b12|iron|calcium|grocery|shopping|on a budget)\b/.test(t)) return "nutrition_guide";
@@ -86,4 +98,33 @@ export const BANNED_PHRASES = [
 export function findBannedPhrases(text: string): string[] {
   const low = text.toLowerCase();
   return BANNED_PHRASES.filter((p) => low.includes(p));
+}
+
+/** The number of items a title promises ("12 Easy Ideas" -> 12), or null. */
+export function titleItemCount(title: string): number | null {
+  const m = title.match(/(?:^|[\s:(—-])(\d{1,2})\s+(?:[a-z-]+\s+){0,8}?(ideas|recipes|dishes|dinners|sides|meals|ways|snacks|lunches|breakfasts|desserts|bowls|soups|salads|tips|swaps|foods)\b/i);
+  if (!m) return null;
+  const n = Number(m[1]);
+  return n >= 3 && n <= 40 ? n : null;
+}
+
+const SWAPS: Record<string, string> = {
+  delve: "dig", elevate: "lift", unlock: "get", "game-changer": "big help", "game changer": "big help",
+  embark: "start", nestled: "tucked", "look no further": "start here", tantalizing: "inviting",
+  tantalising: "inviting", bustling: "busy", robust: "hearty", moreover: "also", furthermore: "also",
+  "in conclusion": "to wrap up", "dive into": "get into", mouthwatering: "craveable", "guilt-free": "light",
+  superfood: "nutrient-dense food", seamlessly: "smoothly", "bursting with flavor": "full of flavor",
+  "burst of flavour": "hit of flavour", "culinary journey": "cooking", "take it to the next level": "make it better",
+};
+
+/** Swaps AI-cliche words for plain ones, keeping capitalisation of the first letter. */
+export function sanitizeBanned(text: string): string {
+  let out = text;
+  for (const [bad, good] of Object.entries(SWAPS)) {
+    out = out.replace(new RegExp(`\\b${bad.replace(/[-]/g, "[- ]")}(s|d|ing)?\\b`, "gi"), (w) => {
+      const r = good;
+      return w[0] === w[0].toUpperCase() ? r[0].toUpperCase() + r.slice(1) : r;
+    });
+  }
+  return out;
 }

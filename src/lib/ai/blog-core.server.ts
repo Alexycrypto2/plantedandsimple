@@ -5,7 +5,7 @@ import { textModel, describeAiError, DEFAULT_CHAT_MODEL, DEFAULT_IMAGE_MODEL } f
 import { assembleArticleHtml, FRAMING, renderImageSafe } from "./studio.server";
 import { scoreArticle, QUALITY_THRESHOLD } from "./quality.server";
 import { offerCardHtml, pickOffer } from "@/lib/content/product-bridge";
-import { BLOG_FORMATS, BANNED_PHRASES, detectBlogFormat, type BlogFormat, type BlogFormatId } from "./blog-formats";
+import { BLOG_FORMATS, BANNED_PHRASES, detectBlogFormat, sanitizeBanned, titleItemCount, type BlogFormat, type BlogFormatId } from "./blog-formats";
 
 export const ArticleSchema = z.object({
   slug: z.string(),
@@ -127,7 +127,7 @@ Photos for this format should show: ${format.photos}.
 STRUCTURE (this is how the page will be laid out, so write to it):
 - intro_html: 2-3 short paragraphs. Open with a concrete scene, a number or a real problem. Never open with "In today's world", "Whether you're" or a definition.
 - key_takeaways: 3-5 one-line promises of what the reader will be able to do after reading.
-- sections: 5-9 items. Each html uses <p>, <h3>, <ul>/<ol>, <strong> only — no <h2> (heading is the H2), no <img>, no inline styles.
+- sections: ${titleItemCount(brief.topic) ? `EXACTLY ${titleItemCount(brief.topic)} dish/idea sections — the title promises ${titleItemCount(brief.topic)}, so one section per item, each a distinct dish named in its heading, plus at most 1 short planning section at the end. Never merge two items into one heading.` : "5-9 items."} Each html uses <p>, <h3>, <ul>/<ol>, <strong> only — no <h2> (heading is the H2), no <img>, no inline styles.
 - Every paragraph is 2-4 sentences, maximum ~70 words. Break dense advice into <ul> lists. Use <h3> sub-steps inside long sections so the page never becomes a wall of text.
 - callout: one short practical tip for roughly a third of the sections, otherwise null.
 - pullquote: at most ONE section in the whole article gets a short punchy pullquote; all others null.
@@ -190,6 +190,10 @@ export async function buildAndStoreArticle(opts: {
 }) {
   const { article: output, brief } = opts;
   if (looksLikeTitle(brief.topic)) output.h1 = brief.topic.trim();
+  {
+    const clean = (o: any): any => typeof o === "string" ? sanitizeBanned(o) : Array.isArray(o) ? o.map(clean) : o && typeof o === "object" ? Object.fromEntries(Object.entries(o).map(([k, v]) => [k, k === "h1" || k === "slug" || k.endsWith("_url") ? v : clean(v)])) : o;
+    Object.assign(output, clean(output));
+  }
   output.seo_title = anchorSeoTitle(output.h1, output.seo_title);
   const folder = `blog/${output.slug}`;
   const words = brief.wordCount ?? 1600;

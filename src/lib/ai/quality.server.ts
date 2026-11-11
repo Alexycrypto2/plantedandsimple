@@ -71,7 +71,7 @@ export async function scoreArticle(input: {
     const res = await generateText({
       model,
       output: Output.object({ schema: QualitySchema }),
-      prompt: `You are a ruthless magazine editor reviewing a draft before publication. Score it honestly — most AI drafts deserve 60-75, not 90.
+      prompt: `You are a ruthless magazine editor reviewing a draft before publication. Score it fairly against a professional food-publisher standard. Ignore site-added layout blocks such as the takeaways box, table of contents, recipe card and FAQ headings.
 
 Title: ${input.title}
 SEO title: ${input.seoTitle}

@@ -186,6 +186,12 @@ export function AdminShell({
   const skin = useAdminTheme();
 
   useEffect(() => { setOpen(false); }, [activeTab]);
+  useEffect(() => {
+    if (!open) return;
+    const k = (e: KeyboardEvent) => { if (e.key === "Escape") setOpen(false); };
+    window.addEventListener("keydown", k);
+    return () => window.removeEventListener("keydown", k);
+  }, [open]);
 
   const visible = tabs.filter((t) =>
     !q.trim() || (NAV_META[t]?.label ?? t).toLowerCase().includes(q.trim().toLowerCase()),
@@ -220,7 +226,7 @@ export function AdminShell({
         <button
           onClick={() => setOpen(false)}
           aria-label="Close menu"
-          className="ml-auto grid size-8 place-items-center rounded-full text-charcoal/50 hover:bg-forest/5 lg:hidden"
+          className="ml-auto grid size-11 place-items-center rounded-full text-charcoal/50 hover:bg-forest/5 lg:hidden"
         >
           <X className="size-4" />
         </button>
@@ -253,7 +259,7 @@ export function AdminShell({
                 return (
                   <button
                     key={t}
-                    onClick={() => onSelect(t)}
+                    onClick={() => { onSelect(t); setOpen(false); }}
                     style={{
                       animationDelay: `${i * 45}ms`,
                       ...(isActive
@@ -389,8 +395,9 @@ export function AdminShell({
           />
           <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 px-4 py-3.5 sm:px-6">
             <button
-              onClick={() => setOpen(true)}
-              aria-label="Open menu"
+              onClick={() => setOpen((o) => !o)}
+              aria-label={open ? "Close menu" : "Open menu"}
+              aria-expanded={open}
               className="grid size-9 place-items-center rounded-2xl border border-white/60 bg-white/70 text-forest backdrop-blur transition active:scale-95 lg:hidden"
             >
               <Menu className="size-4" />

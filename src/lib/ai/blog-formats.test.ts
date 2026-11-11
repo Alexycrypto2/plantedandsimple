@@ -14,3 +14,19 @@ describe("detectBlogFormat", () => {
 describe("findBannedPhrases", () => {
   it("flags AI vocabulary", () => expect(findBannedPhrases("Let's delve into this game-changer")).toEqual(["delve", "game-changer"]));
 });
+
+import { titleItemCount, sanitizeBanned, detectBlogFormat as dbf } from "./blog-formats";
+describe("title promises", () => {
+  it("reads the promised count", () => {
+    expect(titleItemCount("Vegan Thanksgiving Side Dishes: 12 Easy High-Protein Ideas")).toBe(12);
+    expect(titleItemCount("11 Cozy High-Protein Vegan Date Night Dinner Ideas")).toBe(11);
+    expect(titleItemCount("25 satisfying high-protein vegan dinner recipes")).toBe(25);
+    expect(titleItemCount("High-protein vegan meal prep for seven easy days")).toBeNull();
+  });
+  it("menus get the holiday format", () => {
+    expect(dbf("Vegan Thanksgiving Menu: Mains, Sides & Make-Ahead Timeline")).toBe("holiday_menu");
+  });
+  it("swaps cliches", () => {
+    expect(sanitizeBanned("Elevate your sides")).toBe("Lift your sides");
+  });
+});
