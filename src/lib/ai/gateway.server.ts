@@ -115,7 +115,8 @@ export function describeAiError(err: unknown, info?: AiProviderInfo): Error {
   if (status === 404 || /NOT_FOUND|is not found for API version|model/i.test(body)) {
     return new Error(`Model not available for this key — ${where}: ${body || raw}`);
   }
-  if (status === 429) return new Error(`Rate limited by ${where}: ${body || raw}`);
+  if (status === 429 || /too many requests|quota|resource.?exhausted/i.test(raw + body)) return new Error("Google's AI is very busy right now and every backup model was too. Nothing was changed — please try again in a minute.");
+  if (status === 503 || /high demand|overloaded|unavailable/i.test(raw + body)) return new Error("Google's AI is overloaded right now. Nothing was changed — please try again in a minute.");
   return new Error(`${where} failed: ${body || raw}`);
 }
 
@@ -152,7 +153,9 @@ export async function resolveTextModel(opts?: { structuredOutputs?: boolean; fea
   const wanted = mode === "manual"
     ? normalizeGeminiTextModel(await getConfig("GEMINI_TEXT_MODEL"))
     : automaticTextModel(feature, budget);
-  const modelId = pickAvailable(wanted, available);
+  // Automatic mode starts on a stable model; preview/experimental ids have tight quotas.
+  const stableWanted = mode === "manual" ? wanted : (STABLE_TEXT_CHAIN.find((id) => !available.length || available.includes(id)) ?? wanted);
+  const modelId = pickAvailable(stableWanted, available.filter((id) => mode === "manual" || !UNSTABLE.test(id)));
   const info: AiProviderInfo = { provider: "gemini", modelId, keySource: gemini.source };
   logAi("request", { feature, mode, budget, ...info });
   const provider = createOpenAICompatible({
@@ -195,26 +198,36 @@ export function pickAvailable(wanted: string, available: string[]): string {
   return available.find((id) => tierOf(id) === t) ?? available.find((id) => tierOf(id) === "flash") ?? available[0];
 }
 
-/** When Google says a model is busy (503/429/overloaded), quietly try the next Gemini model. */
-const BUSY_FALLBACKS = ["gemini-3.8-flash", "gemini-3.1-flash", "gemini-3-pro"];
+/** Stable models tried in order when the chosen one is busy, rate-limited or gone. */
+export const STABLE_TEXT_CHAIN = ["gemini-3.6-flash", "gemini-3.5-flash", "gemini-3.5-flash-lite", "gemini-3.1-flash-lite", "gemini-3.7-flash", "gemini-3.8-flash"];
+const UNSTABLE = /^gemini-4|preview|exp|transcribe|customtools|omni|nano|banana/i;
 function isBusy(err: unknown) {
   const status = (err as any)?.statusCode ?? (err as any)?.status;
   const text = String((err as any)?.message ?? err);
-  return status === 503 || status === 429 || status === 500 || status === 404 || /no longer available|not found/i.test(text) || /unavailable|overloaded|high demand|resource.?exhausted/i.test(text);
+  return status === 503 || status === 429 || status === 500 || status === 404 || /no longer available|not found|too many requests|quota/i.test(text) || /unavailable|overloaded|high demand|resource.?exhausted|timed? ?out|fetch failed/i.test(text);
 }
+/** Builds the silent fallback order: chosen model, then stable models this key can use. */
+export function fallbackChain(primary: string, available: string[] = []): string[] {
+  const ok = (id: string) => !available.length || available.includes(id);
+  const chain = [primary, ...STABLE_TEXT_CHAIN.filter(ok)];
+  return [...new Set(chain)].slice(0, 6);
+}
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 function withBusyFallback(provider: (id: string) => any, primary: string, available: string[] = []) {
-  const others = available.length ? available.slice(0, 6) : BUSY_FALLBACKS;
-  const chain = [primary, ...others.filter((m) => m !== primary)];
+  const chain = fallbackChain(primary, available);
   const base = provider(primary);
   const attempt = async (method: "doGenerate" | "doStream", options: any) => {
     let last: unknown;
-    for (const id of chain) {
+    for (let i = 0; i < chain.length; i++) {
+      const id = chain[i];
       try {
         return await provider(id)[method](options);
       } catch (err) {
         last = err;
-        if (!isBusy(err)) throw err;
-        logAi("busy-fallback", { from: id });
+        if (!isBusy(err) || options?.abortSignal?.aborted) throw err;
+        logAi("busy-fallback", { from: id, next: chain[i + 1] ?? null, status: (err as any)?.statusCode ?? null });
+        // Short, growing pause with jitter so we never burst Google's per-minute limit.
+        if (i < chain.length - 1) await sleep(Math.min(600 * 2 ** i, 4000) + Math.random() * 300);
       }
     }
     throw last;
