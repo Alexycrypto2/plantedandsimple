@@ -7,7 +7,7 @@ export const DEFAULT_CHAT_MODEL = DEFAULT_GEMINI_TEXT_MODEL;
 export const DEFAULT_IMAGE_MODEL = DEFAULT_GEMINI_IMAGE_MODEL;
 
 export type AiCapability = "text" | "image";
-export type AiProviderKey = "gemini_direct" | "lovable_gateway" | "magic_hour" | "hugging_face";
+export type AiProviderKey = "gemini_direct" | "lovable_gateway" | "magic_hour" | "fal" | "together" | "cloudflare";
 export type AiModelRecord = {
   provider: AiProviderKey;
   modelId: string;
@@ -271,44 +271,65 @@ export async function aiProviderSnapshot() {
   return {
     text_provider: claude ? "claude" : "gemini",
     text_model: claude ? ((await getConfig("CLAUDE_TEXT_MODEL"))?.trim() || "claude-sonnet-4-5") : normalizeGeminiTextModel(await getConfig("GEMINI_TEXT_MODEL")),
-    image_provider: (await getConfig("HUGGING_FACE_API_KEY")) ? "hugging_face" : "magic_hour",
-    image_model: (await getConfig("HUGGING_FACE_API_KEY")) ? HF_MODEL : "ai-photo-generator",
+    image_provider: "magic_hour",
+    image_model: "ai-photo-generator",
     gemini_key_present: Boolean(gemini),
     gemini_key_source: gemini?.source ?? null,
   };
 }
 
-const HF_MODEL = "black-forest-labs/FLUX.1-schnell";
-
-function hfSize(aspect: string): { width: number; height: number } {
-  if (aspect === "9:16") return { width: 832, height: 1248 }; // ~2:3 Pinterest
+function pxSize(aspect: string): { width: number; height: number } {
+  if (aspect === "9:16") return { width: 832, height: 1248 };
   if (aspect === "4:5") return { width: 896, height: 1120 };
   if (aspect === "1:1") return { width: 1024, height: 1024 };
-  return { width: 1344, height: 768 }; // 16:9 recipe/blog
+  return { width: 1344, height: 768 };
 }
 
-async function generateWithHuggingFace(key: string, prompt: string, aspect: string) {
-  const { width, height } = hfSize(aspect);
-  for (let attempt = 0; attempt < 2; attempt++) {
-    const res = await fetch(`https://router.huggingface.co/hf-inference/models/${HF_MODEL}`, {
-      method: "POST",
-      headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json", Accept: "image/png" },
-      body: JSON.stringify({ inputs: prompt.slice(0, 2000), parameters: { width, height, num_inference_steps: 4 } }),
-    });
-    const type = (res.headers.get("Content-Type") ?? "").split(";")[0];
-    if (res.ok && type.startsWith("image/")) {
-      return { base64: Buffer.from(await res.arrayBuffer()).toString("base64"), mime: type };
-    }
-    const body = (await res.json().catch(() => ({}))) as any;
-    // 503 = model warming up: wait once (bounded) then retry.
-    if (res.status === 503 && attempt === 0) {
-      const wait = Math.min(Number(body.estimated_time ?? 20), 30) * 1000;
-      await new Promise((r) => setTimeout(r, wait));
-      continue;
-    }
-    throw Object.assign(new Error(String(body.error ?? `Hugging Face returned ${res.status}`)), { status: res.status });
-  }
-  throw Object.assign(new Error("Hugging Face model is still warming up."), { status: 503 });
+function fail(name: string, status: number, body: any): never {
+  const msg = body?.detail?.[0]?.msg ?? body?.detail ?? body?.error?.message ?? body?.errors?.[0]?.message ?? body?.message ?? body?.error ?? `${name} returned ${status}`;
+  throw Object.assign(new Error(typeof msg === "string" ? msg : JSON.stringify(msg).slice(0, 200)), { status });
+}
+
+async function toBase64(url: string) {
+  const file = await fetch(url);
+  if (!file.ok) throw new Error("Could not download the generated image.");
+  return { base64: Buffer.from(await file.arrayBuffer()).toString("base64"), mime: (file.headers.get("Content-Type") ?? "image/jpeg").split(";")[0] };
+}
+
+async function generateWithFal(key: string, prompt: string, aspect: string) {
+  const res = await fetch("https://fal.run/fal-ai/flux/schnell", {
+    method: "POST",
+    headers: { Authorization: `Key ${key}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ prompt: prompt.slice(0, 2000), image_size: pxSize(aspect), num_inference_steps: 4, num_images: 1, enable_safety_checker: true }),
+  });
+  const body = (await res.json().catch(() => ({}))) as any;
+  if (!res.ok || !body.images?.[0]?.url) fail("Fal.ai", res.status, body);
+  return toBase64(body.images[0].url);
+}
+
+async function generateWithTogether(key: string, prompt: string, aspect: string) {
+  const { width, height } = pxSize(aspect);
+  const res = await fetch("https://api.together.xyz/v1/images/generations", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ model: "black-forest-labs/FLUX.1-schnell", prompt: prompt.slice(0, 2000), width, height, steps: 4, n: 1, response_format: "b64_json" }),
+  });
+  const body = (await res.json().catch(() => ({}))) as any;
+  const b64 = body.data?.[0]?.b64_json;
+  if (res.ok && b64) return { base64: b64 as string, mime: "image/jpeg" };
+  if (res.ok && body.data?.[0]?.url) return toBase64(body.data[0].url);
+  fail("Together AI", res.status, body);
+}
+
+async function generateWithCloudflare(token: string, accountId: string, prompt: string) {
+  const res = await fetch(`https://api.cloudflare.com/client/v4/accounts/${encodeURIComponent(accountId)}/ai/run/@cf/black-forest-labs/flux-1-schnell`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ prompt: prompt.slice(0, 2000), steps: 6 }),
+  });
+  const body = (await res.json().catch(() => ({}))) as any;
+  if (!res.ok || !body.result?.image) fail("Cloudflare", res.status, body);
+  return { base64: body.result.image as string, mime: "image/jpeg" };
 }
 
 async function generateWithMagicHour(key: string, prompt: string, aspect: string) {
@@ -336,41 +357,39 @@ async function generateWithMagicHour(key: string, prompt: string, aspect: string
   return { base64: Buffer.from(await file.arrayBuffer()).toString("base64"), mime };
 }
 
-/** Site photography: Hugging Face FLUX first (free, no watermark), Magic Hour as automatic fallback. */
+/** Site photography: Magic Hour → Fal.ai → Together AI → Cloudflare. Any failure moves to the next connected provider. */
 export async function generateImageBase64(
   prompt: string,
   opts?: { feature?: string; requestedModel?: string; requestedProvider?: AiProviderKey; requestedBy?: string; aspectRatio?: string },
 ): Promise<{ base64: string; mime: string; provider: AiProviderKey; modelId: string; fallback: boolean }> {
   const { getConfig } = await import("../settings.server");
-  const [hfKey, mhKey] = await Promise.all([getConfig("HUGGING_FACE_API_KEY"), getConfig("MAGIC_HOUR_API_KEY")]);
+  const [mh, fal, tg, cfTok, cfAcc] = await Promise.all([
+    getConfig("MAGIC_HOUR_API_KEY"), getConfig("FAL_API_KEY"), getConfig("TOGETHER_API_KEY"),
+    getConfig("CLOUDFLARE_API_TOKEN"), getConfig("CLOUDFLARE_ACCOUNT_ID"),
+  ]);
   const feature = opts?.feature ?? "image";
   const aspect = opts?.aspectRatio ?? (/2:3|vertical|Pinterest/i.test(prompt) ? "9:16" : /4:5/.test(prompt) ? "4:5" : "16:9");
-  if (!hfKey && !mhKey) throw new Error("Add your Hugging Face token (or Magic Hour key) in Connections to generate photos.");
+  const chain: { provider: AiProviderKey; name: string; model: string; run: () => Promise<{ base64: string; mime: string }> }[] = [];
+  if (mh) chain.push({ provider: "magic_hour", name: "Magic Hour", model: "ai-photo-generator", run: () => generateWithMagicHour(mh, prompt, aspect) });
+  if (fal) chain.push({ provider: "fal", name: "Fal.ai", model: "flux-schnell", run: () => generateWithFal(fal, prompt, aspect) });
+  if (tg) chain.push({ provider: "together", name: "Together AI", model: "FLUX.1-schnell", run: () => generateWithTogether(tg, prompt, aspect) });
+  if (cfTok && cfAcc) chain.push({ provider: "cloudflare", name: "Cloudflare", model: "flux-1-schnell", run: () => generateWithCloudflare(cfTok, cfAcc, prompt) });
+  if (!chain.length) throw new Error("Connect an image provider (Magic Hour, Fal.ai, Together AI or Cloudflare) in Connections to generate photos.");
   const errors: string[] = [];
-  if (hfKey) {
+  for (let i = 0; i < chain.length; i++) {
+    const p = chain[i];
     try {
-      const out = await generateWithHuggingFace(hfKey, prompt, aspect);
-      await recordAiUsage({ feature, operation: "generate", provider: "hugging_face", modelId: HF_MODEL, outcome: "success", requestedBy: opts?.requestedBy });
-      return { ...out, provider: "hugging_face", modelId: HF_MODEL, fallback: false };
+      const out = await p.run();
+      await recordAiUsage({ feature, operation: "generate", provider: p.provider, modelId: p.model, outcome: i ? "fallback" : "success", requestedBy: opts?.requestedBy });
+      return { ...out, provider: p.provider, modelId: p.model, fallback: i > 0 };
     } catch (err) {
       const status = (err as any)?.status;
       const msg = String((err as Error)?.message ?? err);
-      await recordAiUsage({ feature, operation: "generate", provider: "hugging_face", modelId: HF_MODEL, outcome: "failed", statusCode: status, errorMessage: msg.slice(0, 300), requestedBy: opts?.requestedBy });
-      errors.push(status === 429 ? "Hugging Face free limit reached — try again in about an hour" : `Hugging Face: ${msg}`);
-      if (!mhKey) throw new Error(errors.join(" · "));
+      await recordAiUsage({ feature, operation: "generate", provider: p.provider, modelId: p.model, outcome: "failed", statusCode: status, errorMessage: msg.slice(0, 300), requestedBy: opts?.requestedBy });
+      errors.push(status === 402 ? `${p.name}: out of credits` : `${p.name}: ${msg}`);
     }
   }
-  try {
-    const out = await generateWithMagicHour(mhKey!, prompt, aspect);
-    await recordAiUsage({ feature, operation: "generate", provider: "magic_hour", modelId: "ai-photo-generator", outcome: hfKey ? "fallback" : "success", requestedBy: opts?.requestedBy });
-    return { ...out, provider: "magic_hour", modelId: "ai-photo-generator", fallback: Boolean(hfKey) };
-  } catch (err) {
-    const status = (err as any)?.status;
-    const msg = String((err as Error)?.message ?? err);
-    await recordAiUsage({ feature, operation: "generate", provider: "magic_hour", modelId: "ai-photo-generator", outcome: "failed", statusCode: status, errorMessage: msg.slice(0, 300), requestedBy: opts?.requestedBy });
-    errors.push(`Magic Hour: ${msg}`);
-    throw new Error(`Image failed. ${errors.join(" · ")}`);
-  }
+  throw new Error(`Image failed. ${errors.join(" · ")}`);
 }
 
 export async function recordAiUsage(input: { feature: string; operation: string; provider: AiProviderKey; modelId: string; outcome: "success" | "failed" | "fallback"; statusCode?: number; errorMessage?: string; requestedBy?: string }) {

@@ -9,16 +9,25 @@ export function cleanBlogHtml(html: string): string {
 }
 
 /** List every <img> in the HTML in order. */
-export function listImages(html: string): { src: string; alt: string }[] {
-  const res: { src: string; alt: string }[] = [];
+export function listImages(html: string): { src: string; alt: string; heading: string }[] {
+  const res: { src: string; alt: string; heading: string }[] = [];
   const re = /<img\b[^>]*>/gi;
   let m: RegExpExecArray | null;
   while ((m = re.exec(html ?? ""))) {
     const src = /\bsrc=(["'])(.*?)\1/i.exec(m[0])?.[2] ?? "";
     const alt = /\balt=(["'])(.*?)\1/i.exec(m[0])?.[2] ?? "";
-    res.push({ src, alt });
+    const before = (html ?? "").slice(0, m.index);
+    const hs = [...before.matchAll(/<h[23]\b[^>]*>([\s\S]*?)<\/h[23]>/gi)];
+    const heading = hs.length ? hs[hs.length - 1][1].replace(/<[^>]+>/g, "").replace(/&amp;/g, "&").replace(/^\s*\d+[.)]\s*/, "").trim() : "";
+    res.push({ src, alt, heading });
   }
   return res;
+}
+
+/** Photo brief for one article photo: the dish in that section, never the whole article title. */
+export function photoBrief(ph: { alt: string; heading: string }, articleTitle: string): string {
+  const subject = (ph.heading && !/what you.ll learn|in this article|faq|timeline|table of contents/i.test(ph.heading) ? ph.heading : "") || ph.alt || articleTitle;
+  return `${subject} — one single plated vegan dish as the hero, close-up, natural window light, editorial food photography, no text, no labels, no menu cards, no logos, no watermark`;
 }
 
 /** Replace the src of the n-th image, or remove its figure/img when src is null. */

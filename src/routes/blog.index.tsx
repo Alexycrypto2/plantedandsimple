@@ -6,7 +6,6 @@ import { SiteLayout } from "@/components/SiteLayout";
 import { listPublishedPosts, type PublicPost } from "@/lib/blog.functions";
 import { EditorialCard } from "@/components/site/primitives";
 import { getHubs, type Hub } from "@/lib/linking/linking.functions";
-import { HubSections } from "@/components/site/RelatedLinks";
 
 export const Route = createFileRoute("/blog/")({
   component: BlogPage,
@@ -21,7 +20,7 @@ export const Route = createFileRoute("/blog/")({
 
 
 function BlogPage() {
-  const { posts, hubs } = Route.useLoaderData() as { posts: PublicPost[]; hubs: Hub[] };
+  const { posts } = Route.useLoaderData() as { posts: PublicPost[]; hubs: Hub[] };
   const [q, setQ] = useState("");
   const [topic, setTopic] = useState<string | null>(null);
   const topics = useMemo(() => BLOG_TOPICS.filter((t) => posts.some((p) => t.re.test(postText(p)))), [posts]);
@@ -91,7 +90,6 @@ function BlogPage() {
             ))}
           </div>
         )}
-        <HubSections hubs={hubs} />
       </section>
     </SiteLayout>
   );
@@ -105,5 +103,6 @@ const BLOG_TOPICS = [
   { id: "nutrition", label: "Nutrition", re: /protein|nutrition|supplement/ },
   { id: "dinner", label: "Dinner Ideas", re: /dinner|date night/ },
   { id: "snacks", label: "Snacks", re: /snack|seeds/ },
+  { id: "thanksgiving", label: "Thanksgiving", re: /thanksgiving/ },
   { id: "seasonal", label: "Seasonal", re: /pumpkin|autumn|fall|thanksgiving|holiday|christmas/ },
 ];

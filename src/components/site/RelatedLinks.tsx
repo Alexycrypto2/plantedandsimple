@@ -73,13 +73,14 @@ export function RoundupList({ roundup }: { roundup: PageLinks["roundup"] }) {
   );
 }
 
-export function HubSections({ hubs }: { hubs: Hub[] }) {
+export function HubSections({ hubs: all, only = "recipe" }: { hubs: Hub[]; only?: "recipe" | "blog" }) {
+  const hubs = all.map((h) => ({ ...h, items: h.items.filter((c) => c.type === only) })).filter((h) => h.items.length);
   if (!hubs.length) return null;
   return (
     <>
       {hubs.map((h) => (
         <section key={h.name} id={hubAnchor(h.name)} className="mt-20 scroll-mt-24">
-          <h2 className="font-display text-3xl italic text-forest-deep">{h.name} Recipes</h2>
+          <h2 className="font-display text-3xl italic text-forest-deep">{h.name} {only === "recipe" ? "Recipes" : "Guides & Menus"}</h2>
           <div className="mt-6 grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-4">
             {h.items.map((c) => <CardLink key={c.href} c={c} />)}
           </div>

@@ -27,7 +27,8 @@ function WritingCheck({ title, html }: { title: string; html: string }) {
   );
 }
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
-import { listImages, setImage } from "@/lib/content/blog-clean";
+import { listImages, setImage, photoBrief } from "@/lib/content/blog-clean";
+import { hasHomepageTag, stripHomepageTag, toggleHomepageTag } from "@/lib/content/homepage-pick";
 import { Sparkles, Plus, ExternalLink, Image as ImageIcon, Eye, Pencil } from "lucide-react";
 import { generateStudioImage } from "@/lib/ai/image-studio.functions";
 import { adminListMedia, adminUploadMedia, adminAddMediaByUrl, adminListEntity } from "@/lib/library/admin.functions";
@@ -143,11 +144,12 @@ export function BlogEditor({
     setPick(null);
   };
 
-  const regenSlot = async (i: number, alt: string) => {
+  const [briefs, setBriefs] = useState<Record<number, string>>({});
+  const regenSlot = async (i: number, alt: string, brief: string) => {
     setImgBusy(`Creating photo ${i + 1}… (about 30–60s)`);
     setImgErr(null);
     try {
-      const g: any = await generateStudioImage({ data: { preset: "blog_hero", subject: `${alt || value.title}, plant-based food, natural light editorial food photography`, title: value.title } });
+      const g: any = await generateStudioImage({ data: { preset: "blog_hero", subject: brief, title: value.title } });
       const row: any = await adminAddMediaByUrl({ data: { url: g.preview_url, alt: alt || value.title, title: value.title, tags: ["blog"] } });
       setMedia((m) => [row, ...m]);
       set({ content: setImage(value.content, i, row.public_url) });
@@ -292,8 +294,16 @@ export function BlogEditor({
           <input className={inp} list="blog-cats" value={value.category} onChange={(e) => set({ category: e.target.value })} />
           <datalist id="blog-cats">{CATEGORIES.map((c) => <option key={c} value={c} />)}</datalist>
         </Label>
+        <label className="flex items-center gap-2 rounded-xl border border-forest/15 px-3 py-2 text-sm font-semibold text-forest-deep sm:col-span-2">
+          <input
+            type="checkbox"
+            checked={hasHomepageTag(value.tags)}
+            onChange={(e) => set({ tags: toggleHomepageTag(value.tags, e.target.checked) })}
+          />
+          Feature on homepage (pinned posts show first in "From the kitchen")
+        </label>
         <Label t="Tags (comma separated)">
-          <input className={inp} value={value.tags} onChange={(e) => set({ tags: e.target.value })} />
+          <input className={inp} value={stripHomepageTag(value.tags)} onChange={(e) => set({ tags: toggleHomepageTag(e.target.value, hasHomepageTag(value.tags)) })} />
         </Label>
         <Label t="Short summary (excerpt)" wide>
           <textarea className={inp} rows={2} value={value.excerpt} onChange={(e) => set({ excerpt: e.target.value })} />
@@ -355,9 +365,10 @@ export function BlogEditor({
               <div key={i} className="flex gap-3 rounded-xl border border-forest/10 p-2">
                 <div className="size-20 shrink-0 overflow-hidden rounded-lg bg-forest/5">{ph.src ? <img src={ph.src} alt="" className="size-full object-cover" /> : null}</div>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-xs font-semibold text-forest-deep">Photo {i + 1}{ph.alt ? ` · ${ph.alt}` : ""}</p>
+                  <p className="truncate text-xs font-semibold text-forest-deep">Photo {i + 1}{ph.heading ? ` · ${ph.heading}` : ph.alt ? ` · ${ph.alt}` : ""}</p>
+                  <textarea aria-label={`What photo ${i + 1} should show`} rows={2} className="mt-1 w-full rounded-lg border border-forest/15 bg-background px-2 py-1 text-xs" value={briefs[i] ?? photoBrief(ph, value.title)} onChange={(e) => setBriefs((b) => ({ ...b, [i]: e.target.value }))} />
                   <div className="mt-2 flex flex-wrap gap-1.5">
-                    <button type="button" disabled={!!imgBusy} onClick={() => regenSlot(i, ph.alt)} className={ghost}><Sparkles className="size-3.5" /> Regenerate</button>
+                    <button type="button" disabled={!!imgBusy} onClick={() => regenSlot(i, ph.alt, briefs[i] ?? photoBrief(ph, value.title))} className={ghost}><Sparkles className="size-3.5" /> Regenerate</button>
                     <label className={`${ghost} cursor-pointer`}><Plus className="size-3.5" /> Upload<input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={(e) => upload(e.target.files?.[0], i)} /></label>
                     <button type="button" onClick={() => { setSlot(i); setPick("inline"); }} className={ghost}><ImageIcon className="size-3.5" /> Library</button>
                     <button type="button" onClick={() => set({ content: setImage(value.content, i, null) })} className={ghost}>Remove</button>

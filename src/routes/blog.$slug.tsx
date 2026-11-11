@@ -120,9 +120,9 @@ function PostPage() {
             </>
           );
         })()}
-        {(post.tags ?? []).length > 0 && (
+        {(post.tags ?? []).filter((t) => t !== "homepage").length > 0 && (
           <div className="mt-12 flex flex-wrap gap-2">
-            {(post.tags ?? []).map((t) => (
+            {(post.tags ?? []).filter((t) => t !== "homepage").map((t) => (
               <span key={t} className="rounded-full border border-forest/20 px-3 py-1 text-xs text-charcoal/70">
                 #{t}
               </span>

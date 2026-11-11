@@ -1,4 +1,5 @@
 import { CookbookPrice } from "@/components/site/CookbookPrice";
+import { homepageOrder } from "@/lib/content/homepage-pick";
 import { pageHead, withImage, jsonLd, SITE_NAME, SITE_URL } from "@/lib/seo";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { subscribeFreeGuide } from "@/lib/free-guide.functions";
@@ -568,7 +569,7 @@ function BlogsSection({ section, posts }: { section: HomepageSection; posts: Pub
           />
         </Reveal>
         <div className="grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-3">
-          {posts.slice(0, limit).map((p, i) => (
+          {homepageOrder(posts).slice(0, limit).map((p, i) => (
             <Reveal key={p.id} delay={i * 80}>
               <EditorialCard
                 to="/blog/$slug"
