@@ -4,6 +4,16 @@
 
 @custom-variant dark (&:is(.dark *));
 
+.fridge-sheet { display: none; }
+@media print {
+  @page { size: A4 landscape; margin: 10mm; }
+  body * { visibility: hidden; }
+  .fridge-sheet, .fridge-sheet * { visibility: visible; }
+  .fridge-sheet { display: block; position: absolute; inset: 0; width: 100%; font-size: 10pt; background: var(--background); }
+  .fridge-sheet table { font-size: 8pt; }
+  .fridge-sheet tr { break-inside: avoid; }
+}
+
 /*
  * Design system definition.
  *

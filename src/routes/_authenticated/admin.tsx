@@ -1,4 +1,6 @@
 import { PopupPanel } from "@/components/admin/PopupPanel";
+import { Button } from "@/components/ui/button";
+import { hasHomepageTag, homepageShelf } from "@/lib/content/homepage-pick";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { adminGetLinks, adminSetLinks } from "@/lib/library/admin.functions";
 import { BlogEditor } from "@/components/admin/BlogEditor";
@@ -69,6 +71,7 @@ import {
   adminListPosts,
   adminUpsertPost,
   adminDeletePost,
+  adminSetPostHomepage,
   type AdminPost,
 } from "@/lib/blog.functions";
 import {
@@ -2615,7 +2618,7 @@ function BlogList({
   onError: (m: string) => void;
 }) {
   const [q, setQ] = useState("");
-  const [filter, setFilter] = useState<"all" | "published" | "draft">("all");
+  const [filter, setFilter] = useState<"all" | "published" | "draft" | "homepage">("all");
   const [sort, setSort] = useState<"new" | "old" | "az">("new");
   const [limit, setLimit] = useState(BLOG_PAGE);
   const [busyId, setBusyId] = useState<string | null>(null);
@@ -2674,7 +2677,8 @@ function BlogList({
   const shown = useMemo(() => {
     const needle = q.trim().toLowerCase();
     const list = posts.filter((p) => {
-      if (filter !== "all" && p.status !== filter) return false;
+      if (filter === "homepage" && !hasHomepageTag((p.tags ?? []).join(","))) return false;
+      if (filter !== "all" && filter !== "homepage" && p.status !== filter) return false;
       if (!needle) return true;
       return `${p.title} ${p.category ?? ""} ${(p.tags ?? []).join(" ")} ${p.slug}`.toLowerCase().includes(needle);
     });
@@ -2721,9 +2725,31 @@ function BlogList({
   };
 
   const visible = shown.slice(0, limit);
+  const shelf = homepageShelf(posts);
+  const shelfIds = new Set(shelf.map((p) => p.id));
+  const pin = async (p: AdminPost) => {
+    if (busyId) return;
+    setBusyId(p.id);
+    try {
+      await adminSetPostHomepage({ data: { id: p.id, pinned: !hasHomepageTag((p.tags ?? []).join(",")) } });
+      await onReload();
+    } catch (e) { onError(e instanceof Error ? e.message : String(e)); }
+    finally { setBusyId(null); }
+  };
 
   return (
     <div className="space-y-3">
+      <section className="border-b border-border pb-4">
+        <h3 className="mb-2 text-sm font-semibold text-primary">Homepage journal · first three articles</h3>
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+          {shelf.map((p, i) => <div key={p.id} className="flex min-w-0 items-center gap-2">
+            {p.featured_image_url && <img src={p.featured_image_url} alt="" className="h-12 w-16 rounded object-cover" />}
+            <div className="min-w-0 flex-1"><p className="line-clamp-2 text-xs font-semibold text-primary">{i + 1}. {p.title}</p>
+              <Button variant="link" size="sm" className="h-6 px-0 text-xs" onClick={() => onEdit(p)}>Edit</Button>
+            </div>
+          </div>)}
+        </div>
+      </section>
       {/* Search + filters stay pinned under the admin header so they are one tap away
           no matter how far down a long list you have scrolled. */}
       <div
@@ -2761,6 +2787,7 @@ function BlogList({
             ["all", `All (${posts.length})`],
             ["published", `Live (${count("published")})`],
             ["draft", `Drafts (${count("draft")})`],
+            ["homepage", `Pinned (${posts.filter((p) => hasHomepageTag((p.tags ?? []).join(","))).length})`],
           ] as const).map(([k, l]) => (
             <button
               key={k}
@@ -2824,6 +2851,10 @@ function BlogList({
                       {p.category ? `${p.category} · ` : ""}
                       {words.toLocaleString()} words
                     </p>
+                    {shelfIds.has(p.id) && <span className="mt-1 text-[10px] font-semibold text-primary">On homepage</span>}
+                    <Button variant={hasHomepageTag((p.tags ?? []).join(",")) ? "secondary" : "outline"} size="sm" className="mt-2 h-7 w-full text-[10px]" disabled={Boolean(busyId) || p.status !== "published"} onClick={() => pin(p)} title={p.status !== "published" ? "Publish this draft first" : "Save homepage selection immediately"}>
+                      {busyId === p.id ? "Saving…" : hasHomepageTag((p.tags ?? []).join(",")) ? "Unpin homepage" : "Pin homepage"}
+                    </Button>
                     <div className="mt-auto flex items-center gap-1 pt-2">
                       <button
                         onClick={() => onEdit(p)}

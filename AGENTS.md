@@ -35,3 +35,5 @@
 - SEO Doctor validates JSON-LD extracted from saved public recipe HTML separately from editorial scores; this prevents editor-field heuristics being mistaken for Google's rendered-data requirements or eligibility verdict.
 
 - Blog writer formats (hero recipe, roundup, how-to, meal prep, nutrition guide) live in `src/lib/ai/blog-formats.ts`; titles auto-select a format and its photo budget so Gemini and Claude share one writing standard.
+- Homepage quick pins update only reserved tag metadata after boss authorization, never article text or publication dates; editor tag input keeps raw local text so separators survive typing.
+- Smart weeks balance the loaded recipe library locally against a daily target, never relax exclusions, and report shortfalls; fridge sheets and storage guidance use the same saved slots and recipe storage fields to avoid invented shelf lives.

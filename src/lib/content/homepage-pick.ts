@@ -12,3 +12,7 @@ export function homepageOrder<T extends { tags?: string[] | null; published_at?:
   const pinned = (p: T) => (p.tags ?? []).some((t) => t.toLowerCase() === HOMEPAGE_TAG);
   return [...posts].sort((a, b) => Number(pinned(b)) - Number(pinned(a)) || String(b.published_at ?? "").localeCompare(String(a.published_at ?? "")));
 }
+
+export function homepageShelf<T extends { status?: string; tags?: string[] | null; published_at?: string | null }>(posts: T[], limit = 3): T[] {
+  return homepageOrder(posts.filter((p) => !p.status || p.status === "published")).slice(0, limit);
+}

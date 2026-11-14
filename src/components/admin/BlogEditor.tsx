@@ -93,6 +93,8 @@ export function BlogEditor({
   busy: boolean;
 }) {
   const set = (p: Partial<BlogDraft>) => onChange({ ...value, ...p });
+  const [tagsText, setTagsText] = useState(() => stripHomepageTag(value.tags));
+  useEffect(() => { setTagsText(stripHomepageTag(value.tags)); }, [value.id]);
   const [media, setMedia] = useState<any[]>([]);
   const [recipes, setRecipes] = useState<any[]>([]);
   const [pick, setPick] = useState<null | "hero" | "inline">(null);
@@ -298,12 +300,12 @@ export function BlogEditor({
           <input
             type="checkbox"
             checked={hasHomepageTag(value.tags)}
-            onChange={(e) => set({ tags: toggleHomepageTag(value.tags, e.target.checked) })}
+            onChange={(e) => set({ tags: toggleHomepageTag(tagsText, e.target.checked) })}
           />
-          Feature on homepage (pinned posts show first in "From the kitchen")
+          Feature in the homepage journal (published posts only)
         </label>
         <Label t="Tags (comma separated)">
-          <input className={inp} value={stripHomepageTag(value.tags)} onChange={(e) => set({ tags: toggleHomepageTag(e.target.value, hasHomepageTag(value.tags)) })} />
+          <input className={inp} value={tagsText} onChange={(e) => { setTagsText(e.target.value); set({ tags: toggleHomepageTag(e.target.value, hasHomepageTag(value.tags)) }); }} />
         </Label>
         <Label t="Short summary (excerpt)" wide>
           <textarea className={inp} rows={2} value={value.excerpt} onChange={(e) => set({ excerpt: e.target.value })} />

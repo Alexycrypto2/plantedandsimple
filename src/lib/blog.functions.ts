@@ -180,3 +180,24 @@ export const adminDeletePost = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
+/** Patch only homepage metadata; never overwrite article text or publication date. */
+export const adminSetPostHomepage = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { id: string; pinned: boolean }) => {
+    if (!/^[0-9a-f-]{36}$/i.test(d.id) || typeof d.pinned !== "boolean") throw new Error("Invalid homepage selection");
+    return d;
+  })
+  .handler(async ({ data, context }) => {
+    await requireBoss(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: result, error: readError } = await supabaseAdmin.from("blog_posts" as any).select("tags, status").eq("id", data.id).single();
+    if (readError) throw new Error(readError.message);
+    const row = result as unknown as { tags: string[] | null; status: string };
+    if (data.pinned && row.status !== "published") throw new Error("Publish this draft before featuring it on the homepage.");
+    const tags = (row.tags ?? []).filter((t: string) => t.toLowerCase() !== "homepage");
+    if (data.pinned) tags.push("homepage");
+    const { error } = await supabaseAdmin.from("blog_posts" as any).update({ tags }).eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { id: data.id, tags };
+  });

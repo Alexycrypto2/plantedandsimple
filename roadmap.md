@@ -1,4 +1,9 @@
 # Roadmap
+## Agreed blog and prep upgrades
+- [x] Fix tag typing; immediate homepage pin, visible homepage badges/filter and three-post shelf.
+- [x] Add target-based smart week generation, printable fridge sheet and weekly storage guide.
+- [x] Run focused tests (7 passed), verify public homepage on desktop/mobile and paid-access redirect.
+- [ ] Verify signed-in pin/save and planner/print flows end-to-end (blocked: external unmanaged authentication; no available session).
 - [x] Validate saved recipe pages' rendered JSON-LD in SEO Doctor; separate Google requirements, recommendations and editorial scores (17 tests passed; saved-page control verified with real recipe data on desktop/mobile, not in authenticated admin).
 - [x] Rebuild Pinterest Studio with curated food-publisher styles, editable canvas, exports, and approval handoff; authenticated export and approval save verified.
 - [x] Add content-aware automatic style selection and free-cookbook source; source-title mode works without AI.

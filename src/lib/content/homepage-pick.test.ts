@@ -1,16 +1,19 @@
-import { describe, expect, it } from "vitest";
-import { homepageOrder, toggleHomepageTag, stripHomepageTag } from "./homepage-pick";
+import { describe, it, expect } from "vitest";
+import { homepageShelf, toggleHomepageTag } from "./homepage-pick";
 
-describe("homepage blog pick", () => {
-  it("puts pinned posts before newer unpinned posts", () => {
-    const out = homepageOrder([
-      { id: "new", tags: [], published_at: "2026-11-10" },
-      { id: "pinned", tags: ["homepage"], published_at: "2026-01-01" },
-    ]);
-    expect(out.map((p) => p.id)).toEqual(["pinned", "new"]);
+describe("Homepage journal", () => {
+  it("shows three published posts, with pinned posts first and no drafts", () => {
+    const posts = [
+      { id: "draft", status: "draft", tags: ["homepage"], published_at: "2026-11-14" },
+      { id: "new", status: "published", tags: [], published_at: "2026-11-14" },
+      { id: "pin", status: "published", tags: ["homepage"], published_at: "2026-11-01" },
+      { id: "older", status: "published", tags: [], published_at: "2026-11-13" },
+      { id: "last", status: "published", tags: [], published_at: "2026-11-12" },
+    ];
+    expect(homepageShelf(posts).map((p) => p.id)).toEqual(["pin", "new", "older"]);
   });
-  it("adds and removes the pin without touching other tags", () => {
-    expect(toggleHomepageTag("vegan, fall", true)).toBe("vegan, fall, homepage");
-    expect(stripHomepageTag("vegan, homepage")).toBe("vegan");
+  it("keeps multi-word tags and the homepage choice when saving", () => {
+    expect(toggleHomepageTag("vegan, high protein, ", true)).toBe("vegan, high protein, homepage");
+    expect(toggleHomepageTag("vegan, high protein, homepage", false)).toBe("vegan, high protein");
   });
 });

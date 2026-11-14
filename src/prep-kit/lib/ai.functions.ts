@@ -3,6 +3,7 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { RECIPES as BUILTIN } from "@/prep-kit/data/recipes";
 import type { Recipe } from "@/prep-kit/data/types";
+import { buildSmartWeek } from "./smart-week";
 
 const Input = z.object({
   goal: z.string().max(60).optional(),
@@ -21,45 +22,8 @@ type Slots = Record<string, Record<string, string | null>>;
 
 /** Deterministic cookbook balancer: always fills all 28 slots when AI is unavailable. */
 export function buildFallbackWeek(RECIPES: Recipe[], data: z.infer<typeof Input>): { slots: Slots; reason: string } {
-  const avoid = [...data.dislikes, ...data.allergies].map((x) => x.toLowerCase().trim()).filter(Boolean);
-  const pantry = data.pantry.map((x) => x.toLowerCase().trim()).filter(Boolean);
-  const note = (data.note ?? "").toLowerCase();
-  const text = (r: Recipe) => `${r.title} ${r.ingredients.join(" ")} ${r.proteins.join(" ")}`.toLowerCase();
-  const safe = RECIPES.filter((r) => !avoid.some((a) => text(r).includes(a)));
-  const pool = safe.length ? safe : RECIPES;
-  const quick = /quick|fast|25|20|busy/.test(note);
-  const protein = /protein|muscle|100g/.test(note) || (data.goal ?? "").includes("protein");
-  const light = /light|fresh/.test(note);
-  const score = (r: Recipe) => {
-    let s = pantry.filter((p) => text(r).includes(p)).length * 3;
-    if (quick) s += r.totalMinutes <= 25 ? 4 : -2;
-    if (protein) s += r.nutrition.protein / 10;
-    if (light) s += r.nutrition.protein < 30 && r.totalMinutes <= 30 ? 2 : 0;
-    return s;
-  };
-  const forSlot = (slot: string) => {
-    let list = pool.filter((r) => r.category === slot || (slot !== "snack" && slot !== "breakfast" && r.category === "meal-prep"));
-    if (!list.length) list = pool.filter((r) => r.category === slot);
-    if (!list.length) list = pool;
-    return [...list].sort((a, b) => score(b) - score(a));
-  };
-  const slots: Slots = {};
-  const SL = ["breakfast", "lunch", "dinner", "snack"];
-  const ranked = Object.fromEntries(SL.map((s) => [s, forSlot(s)]));
-  DAYS.forEach((d, i) => {
-    slots[d] = {};
-    const used = new Set<string>();
-    for (const s of SL) {
-      const list = ranked[s];
-      const top = list.slice(0, Math.max(4, Math.min(list.length, 7)));
-      let pick = top[(i + SL.indexOf(s)) % top.length];
-      if (pick && used.has(pick.id)) pick = top.find((r) => !used.has(r.id)) ?? pick;
-      slots[d][s] = pick?.id ?? null;
-      if (pick) used.add(pick.id);
-    }
-  });
-  const bits = [pantry.length ? "uses what's in your pantry" : null, avoid.length ? "skips the foods you avoid" : null, quick ? "keeps cooking quick" : null, protein ? "leans high-protein" : null].filter(Boolean);
-  return { slots, reason: `A balanced cookbook week${bits.length ? " that " + bits.join(", ") : ""}. Tap any meal to swap it.` };
+  const balanced = buildSmartWeek(RECIPES, data);
+  return { slots: balanced.slots as Slots, reason: balanced.reason };
 }
 
 export const generateAiPlan = createServerFn({ method: "POST" })
@@ -71,6 +35,7 @@ export const generateAiPlan = createServerFn({ method: "POST" })
     const lib = await loadPrepLibrary().catch(() => null);
     const RECIPES: Recipe[] = lib ? [...(lib.builtinActive ? BUILTIN : []), ...lib.recipes] : BUILTIN;
     const fallback = () => ({ ...buildFallbackWeek(RECIPES, data), source: "cookbook" as const });
+    const safeWeek = fallback();
     const resolved = await resolveGeminiKey().catch(() => null);
     if (!resolved) return fallback();
     const key = resolved.key;
@@ -131,7 +96,8 @@ export const generateAiPlan = createServerFn({ method: "POST" })
     const args = json.choices?.[0]?.message?.tool_calls?.[0]?.function?.arguments;
     if (!args) return fallback();
     const parsed = JSON.parse(args);
-    const valid = new Set(RECIPES.map((r) => r.id));
+    const avoid = [...data.allergies, ...data.dislikes].map((s) => s.toLowerCase().trim()).filter(Boolean);
+    const valid = new Set(RECIPES.filter((r) => !avoid.some((a) => `${r.title} ${r.ingredients.join(" ")} ${r.proteins.join(" ")}`.toLowerCase().includes(a))).map((r) => r.id));
     const slots: Record<string, Record<string, string | null>> = {};
     for (const d of DAYS) {
       const day = parsed[d] ?? {};
@@ -139,7 +105,7 @@ export const generateAiPlan = createServerFn({ method: "POST" })
       for (const s of ["breakfast", "lunch", "dinner", "snack"]) slots[d][s] = valid.has(day[s]) ? day[s] : null;
     }
     // Fill any gaps the AI left so all 28 slots are always set.
-    const fb = buildFallbackWeek(RECIPES, data).slots;
+    const fb = safeWeek.slots;
     for (const d of DAYS) for (const s of ["breakfast", "lunch", "dinner", "snack"]) if (!slots[d][s]) slots[d][s] = fb[d][s];
     return { slots, reason: String(parsed.reason ?? "").slice(0, 400), source: "ai" as const };
     } catch (e) {
