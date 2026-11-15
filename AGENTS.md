@@ -37,3 +37,4 @@
 - Blog writer formats (hero recipe, roundup, how-to, meal prep, nutrition guide) live in `src/lib/ai/blog-formats.ts`; titles auto-select a format and its photo budget so Gemini and Claude share one writing standard.
 - Homepage quick pins update only reserved tag metadata after boss authorization, never article text or publication dates; editor tag input keeps raw local text so separators survive typing.
 - Smart weeks balance the loaded recipe library locally against a daily target, never relax exclusions, and report shortfalls; fridge sheets and storage guidance use the same saved slots and recipe storage fields to avoid invented shelf lives.
+- The remote MCP endpoint is a hand-rolled stateless JSON-RPC route at `/api/public/mcp` (logic in `src/lib/mcp-server/`), gated by the `MCP_SECRET_KEY` bearer token; every post edit snapshots into `post_versions` first so changes can be rolled back.
