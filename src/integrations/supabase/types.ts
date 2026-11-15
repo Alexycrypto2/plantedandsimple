@@ -1466,6 +1466,41 @@ export type Database = {
           },
         ]
       }
+      post_versions: {
+        Row: {
+          changed_fields: string[]
+          created_at: string
+          id: string
+          post_id: string
+          snapshot: Json
+          source: string
+        }
+        Insert: {
+          changed_fields?: string[]
+          created_at?: string
+          id?: string
+          post_id: string
+          snapshot: Json
+          source?: string
+        }
+        Update: {
+          changed_fields?: string[]
+          created_at?: string
+          id?: string
+          post_id?: string
+          snapshot?: Json
+          source?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_versions_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "blog_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       prep_cookbooks: {
         Row: {
           active: boolean

@@ -51,6 +51,7 @@ import { Route as AuthenticatedPrepAppPantryRouteImport } from './routes/_authen
 import { Route as AuthenticatedPrepAppPlannerRouteImport } from './routes/_authenticated/prep-app.planner'
 import { Route as AuthenticatedPrepAppPlansRouteImport } from './routes/_authenticated/prep-app.plans'
 import { Route as AuthenticatedPrepAppProfileRouteImport } from './routes/_authenticated/prep-app.profile'
+import { Route as ApiPublicMcpRouteImport } from './routes/api/public/mcp'
 import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/email/suppression'
 import { Route as AuthenticatedPrepAppRecipesIndexRouteImport } from './routes/_authenticated/prep-app.recipes.index'
 import { Route as AuthenticatedPrepAppRecipesIdRouteImport } from './routes/_authenticated/prep-app.recipes.$id'
@@ -285,6 +286,11 @@ const AuthenticatedPrepAppProfileRoute =
     path: '/profile',
     getParentRoute: () => AuthenticatedPrepAppRoute,
   } as any)
+const ApiPublicMcpRoute = ApiPublicMcpRouteImport.update({
+  id: '/api/public/mcp',
+  path: '/api/public/mcp',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LovableEmailSuppressionRoute = LovableEmailSuppressionRouteImport.update({
   id: '/lovable/email/suppression',
   path: '/lovable/email/suppression',
@@ -413,6 +419,7 @@ export interface FileRoutesByFullPath {
   '/prep-app/planner': typeof AuthenticatedPrepAppPlannerRoute
   '/prep-app/plans': typeof AuthenticatedPrepAppPlansRoute
   '/prep-app/profile': typeof AuthenticatedPrepAppProfileRoute
+  '/api/public/mcp': typeof ApiPublicMcpRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/prep-app/': typeof AuthenticatedPrepAppIndexRoute
   '/prep-app/recipes/$id': typeof AuthenticatedPrepAppRecipesIdRoute
@@ -467,6 +474,7 @@ export interface FileRoutesByTo {
   '/prep-app/planner': typeof AuthenticatedPrepAppPlannerRoute
   '/prep-app/plans': typeof AuthenticatedPrepAppPlansRoute
   '/prep-app/profile': typeof AuthenticatedPrepAppProfileRoute
+  '/api/public/mcp': typeof ApiPublicMcpRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/prep-app': typeof AuthenticatedPrepAppIndexRoute
   '/prep-app/recipes/$id': typeof AuthenticatedPrepAppRecipesIdRoute
@@ -527,6 +535,7 @@ export interface FileRoutesById {
   '/_authenticated/prep-app/planner': typeof AuthenticatedPrepAppPlannerRoute
   '/_authenticated/prep-app/plans': typeof AuthenticatedPrepAppPlansRoute
   '/_authenticated/prep-app/profile': typeof AuthenticatedPrepAppProfileRoute
+  '/api/public/mcp': typeof ApiPublicMcpRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/_authenticated/prep-app/': typeof AuthenticatedPrepAppIndexRoute
   '/_authenticated/prep-app/recipes/$id': typeof AuthenticatedPrepAppRecipesIdRoute
@@ -587,6 +596,7 @@ export interface FileRouteTypes {
     | '/prep-app/planner'
     | '/prep-app/plans'
     | '/prep-app/profile'
+    | '/api/public/mcp'
     | '/lovable/email/suppression'
     | '/prep-app/'
     | '/prep-app/recipes/$id'
@@ -641,6 +651,7 @@ export interface FileRouteTypes {
     | '/prep-app/planner'
     | '/prep-app/plans'
     | '/prep-app/profile'
+    | '/api/public/mcp'
     | '/lovable/email/suppression'
     | '/prep-app'
     | '/prep-app/recipes/$id'
@@ -700,6 +711,7 @@ export interface FileRouteTypes {
     | '/_authenticated/prep-app/planner'
     | '/_authenticated/prep-app/plans'
     | '/_authenticated/prep-app/profile'
+    | '/api/public/mcp'
     | '/lovable/email/suppression'
     | '/_authenticated/prep-app/'
     | '/_authenticated/prep-app/recipes/$id'
@@ -743,6 +755,7 @@ export interface RootRouteChildren {
   EmailUnsubscribeRoute: typeof EmailUnsubscribeRoute
   PSlugRoute: typeof PSlugRoute
   ProductsSplatRoute: typeof ProductsSplatRoute
+  ApiPublicMcpRoute: typeof ApiPublicMcpRoute
   LovableEmailSuppressionRoute: typeof LovableEmailSuppressionRoute
   ApiPublicDownloadCookbookRoute: typeof ApiPublicDownloadCookbookRoute
   ApiPublicDownloadFreeCookbookRoute: typeof ApiPublicDownloadFreeCookbookRoute
@@ -1054,6 +1067,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPrepAppProfileRouteImport
       parentRoute: typeof AuthenticatedPrepAppRoute
     }
+    '/api/public/mcp': {
+      id: '/api/public/mcp'
+      path: '/api/public/mcp'
+      fullPath: '/api/public/mcp'
+      preLoaderRoute: typeof ApiPublicMcpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/lovable/email/suppression': {
       id: '/lovable/email/suppression'
       path: '/lovable/email/suppression'
@@ -1270,6 +1290,7 @@ const rootRouteChildren: RootRouteChildren = {
   EmailUnsubscribeRoute: EmailUnsubscribeRoute,
   PSlugRoute: PSlugRoute,
   ProductsSplatRoute: ProductsSplatRoute,
+  ApiPublicMcpRoute: ApiPublicMcpRoute,
   LovableEmailSuppressionRoute: LovableEmailSuppressionRoute,
   ApiPublicDownloadCookbookRoute: ApiPublicDownloadCookbookRoute,
   ApiPublicDownloadFreeCookbookRoute: ApiPublicDownloadFreeCookbookRoute,
