@@ -29,6 +29,9 @@ import { Route as ShopRouteImport } from './routes/shop'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as ThankYouRouteImport } from './routes/thank-you'
+import { Route as Char91DotwellKnownChar93OauthAuthorizationServerRouteImport } from './routes/[.well-known]/oauth-authorization-server'
+import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
+import { Route as Char91DotwellKnownChar93OpenidConfigurationRouteImport } from './routes/[.well-known]/openid-configuration'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedAffiliateRouteImport } from './routes/_authenticated/affiliate'
 import { Route as AuthenticatedPrepAppRouteImport } from './routes/_authenticated/prep-app'
@@ -36,6 +39,7 @@ import { Route as BlogIndexRouteImport } from './routes/blog.index'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as CollectionsSlugRouteImport } from './routes/collections.$slug'
 import { Route as EmailUnsubscribeRouteImport } from './routes/email/unsubscribe'
+import { Route as OauthAuthorizeRouteImport } from './routes/oauth.authorize'
 import { Route as PSlugRouteImport } from './routes/p.$slug'
 import { Route as ProductsSplatRouteImport } from './routes/products.$'
 import { Route as RecipesIndexRouteImport } from './routes/recipes.index'
@@ -59,6 +63,8 @@ import { Route as ApiPublicDownloadCookbookRouteImport } from './routes/api/publ
 import { Route as ApiPublicDownloadFreeCookbookRouteImport } from './routes/api/public/download/free-cookbook'
 import { Route as ApiPublicDownloadPlanningKitRouteImport } from './routes/api/public/download/planning-kit'
 import { Route as ApiPublicImgSplatRouteImport } from './routes/api/public/img/$'
+import { Route as ApiPublicOauthRegisterRouteImport } from './routes/api/public/oauth/register'
+import { Route as ApiPublicOauthTokenRouteImport } from './routes/api/public/oauth/token'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
 import { Route as ApiPublicPinterestPublishDueRouteImport } from './routes/api/public/pinterest/publish-due'
 import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
@@ -66,6 +72,7 @@ import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/em
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
 import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/lovable/email/transactional/preview'
 import { Route as LovableEmailTransactionalSendRouteImport } from './routes/lovable/email/transactional/send'
+import { Route as Char91DotwellKnownChar93OauthProtectedResourceApiPublicMcpRouteImport } from './routes/[.well-known]/oauth-protected-resource.api.public.mcp'
 import { Route as ApiPublicPinterestOauthCallbackRouteImport } from './routes/api/public/pinterest/oauth/callback'
 
 const IndexRoute = IndexRouteImport.update({
@@ -167,6 +174,24 @@ const ThankYouRoute = ThankYouRouteImport.update({
   path: '/thank-you',
   getParentRoute: () => rootRouteImport,
 } as any)
+const Char91DotwellKnownChar93OauthAuthorizationServerRoute =
+  Char91DotwellKnownChar93OauthAuthorizationServerRouteImport.update({
+    id: '/.well-known/oauth-authorization-server',
+    path: '/.well-known/oauth-authorization-server',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const Char91DotwellKnownChar93OauthProtectedResourceRoute =
+  Char91DotwellKnownChar93OauthProtectedResourceRouteImport.update({
+    id: '/.well-known/oauth-protected-resource',
+    path: '/.well-known/oauth-protected-resource',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const Char91DotwellKnownChar93OpenidConfigurationRoute =
+  Char91DotwellKnownChar93OpenidConfigurationRouteImport.update({
+    id: '/.well-known/openid-configuration',
+    path: '/.well-known/openid-configuration',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   id: '/admin',
   path: '/admin',
@@ -200,6 +225,11 @@ const CollectionsSlugRoute = CollectionsSlugRouteImport.update({
 const EmailUnsubscribeRoute = EmailUnsubscribeRouteImport.update({
   id: '/email/unsubscribe',
   path: '/email/unsubscribe',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OauthAuthorizeRoute = OauthAuthorizeRouteImport.update({
+  id: '/oauth/authorize',
+  path: '/oauth/authorize',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PSlugRoute = PSlugRouteImport.update({
@@ -331,6 +361,16 @@ const ApiPublicImgSplatRoute = ApiPublicImgSplatRouteImport.update({
   path: '/api/public/img/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicOauthRegisterRoute = ApiPublicOauthRegisterRouteImport.update({
+  id: '/api/public/oauth/register',
+  path: '/api/public/oauth/register',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicOauthTokenRoute = ApiPublicOauthTokenRouteImport.update({
+  id: '/api/public/oauth/token',
+  path: '/api/public/oauth/token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicPaymentsWebhookRoute =
   ApiPublicPaymentsWebhookRouteImport.update({
     id: '/api/public/payments/webhook',
@@ -371,6 +411,12 @@ const LovableEmailTransactionalSendRoute =
     path: '/lovable/email/transactional/send',
     getParentRoute: () => rootRouteImport,
   } as any)
+const Char91DotwellKnownChar93OauthProtectedResourceApiPublicMcpRoute =
+  Char91DotwellKnownChar93OauthProtectedResourceApiPublicMcpRouteImport.update({
+    id: '/api/public/mcp',
+    path: '/api/public/mcp',
+    getParentRoute: () => Char91DotwellKnownChar93OauthProtectedResourceRoute,
+  } as any)
 const ApiPublicPinterestOauthCallbackRoute =
   ApiPublicPinterestOauthCallbackRouteImport.update({
     id: '/api/public/pinterest/oauth/callback',
@@ -398,12 +444,16 @@ export interface FileRoutesByFullPath {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/thank-you': typeof ThankYouRoute
+  '/.well-known/oauth-authorization-server': typeof Char91DotwellKnownChar93OauthAuthorizationServerRoute
+  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRouteWithChildren
+  '/.well-known/openid-configuration': typeof Char91DotwellKnownChar93OpenidConfigurationRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/affiliate': typeof AuthenticatedAffiliateRoute
   '/prep-app': typeof AuthenticatedPrepAppRouteWithChildren
   '/blog/$slug': typeof BlogSlugRoute
   '/collections/$slug': typeof CollectionsSlugRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
+  '/oauth/authorize': typeof OauthAuthorizeRoute
   '/p/$slug': typeof PSlugRoute
   '/products/$': typeof ProductsSplatRoute
   '/recipes/$slug': typeof RecipesSlugRoute
@@ -427,6 +477,8 @@ export interface FileRoutesByFullPath {
   '/api/public/download/free-cookbook': typeof ApiPublicDownloadFreeCookbookRoute
   '/api/public/download/planning-kit': typeof ApiPublicDownloadPlanningKitRoute
   '/api/public/img/$': typeof ApiPublicImgSplatRoute
+  '/api/public/oauth/register': typeof ApiPublicOauthRegisterRoute
+  '/api/public/oauth/token': typeof ApiPublicOauthTokenRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/public/pinterest/publish-due': typeof ApiPublicPinterestPublishDueRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
@@ -435,6 +487,7 @@ export interface FileRoutesByFullPath {
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
   '/lovable/email/transactional/send': typeof LovableEmailTransactionalSendRoute
   '/prep-app/recipes/': typeof AuthenticatedPrepAppRecipesIndexRoute
+  '/.well-known/oauth-protected-resource/api/public/mcp': typeof Char91DotwellKnownChar93OauthProtectedResourceApiPublicMcpRoute
   '/api/public/pinterest/oauth/callback': typeof ApiPublicPinterestOauthCallbackRoute
 }
 export interface FileRoutesByTo {
@@ -454,11 +507,15 @@ export interface FileRoutesByTo {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/thank-you': typeof ThankYouRoute
+  '/.well-known/oauth-authorization-server': typeof Char91DotwellKnownChar93OauthAuthorizationServerRoute
+  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRouteWithChildren
+  '/.well-known/openid-configuration': typeof Char91DotwellKnownChar93OpenidConfigurationRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/affiliate': typeof AuthenticatedAffiliateRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/collections/$slug': typeof CollectionsSlugRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
+  '/oauth/authorize': typeof OauthAuthorizeRoute
   '/p/$slug': typeof PSlugRoute
   '/products/$': typeof ProductsSplatRoute
   '/recipes/$slug': typeof RecipesSlugRoute
@@ -482,6 +539,8 @@ export interface FileRoutesByTo {
   '/api/public/download/free-cookbook': typeof ApiPublicDownloadFreeCookbookRoute
   '/api/public/download/planning-kit': typeof ApiPublicDownloadPlanningKitRoute
   '/api/public/img/$': typeof ApiPublicImgSplatRoute
+  '/api/public/oauth/register': typeof ApiPublicOauthRegisterRoute
+  '/api/public/oauth/token': typeof ApiPublicOauthTokenRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/public/pinterest/publish-due': typeof ApiPublicPinterestPublishDueRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
@@ -490,6 +549,7 @@ export interface FileRoutesByTo {
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
   '/lovable/email/transactional/send': typeof LovableEmailTransactionalSendRoute
   '/prep-app/recipes': typeof AuthenticatedPrepAppRecipesIndexRoute
+  '/.well-known/oauth-protected-resource/api/public/mcp': typeof Char91DotwellKnownChar93OauthProtectedResourceApiPublicMcpRoute
   '/api/public/pinterest/oauth/callback': typeof ApiPublicPinterestOauthCallbackRoute
 }
 export interface FileRoutesById {
@@ -514,12 +574,16 @@ export interface FileRoutesById {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/thank-you': typeof ThankYouRoute
+  '/.well-known/oauth-authorization-server': typeof Char91DotwellKnownChar93OauthAuthorizationServerRoute
+  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRouteWithChildren
+  '/.well-known/openid-configuration': typeof Char91DotwellKnownChar93OpenidConfigurationRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/affiliate': typeof AuthenticatedAffiliateRoute
   '/_authenticated/prep-app': typeof AuthenticatedPrepAppRouteWithChildren
   '/blog/$slug': typeof BlogSlugRoute
   '/collections/$slug': typeof CollectionsSlugRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
+  '/oauth/authorize': typeof OauthAuthorizeRoute
   '/p/$slug': typeof PSlugRoute
   '/products/$': typeof ProductsSplatRoute
   '/recipes/$slug': typeof RecipesSlugRoute
@@ -543,6 +607,8 @@ export interface FileRoutesById {
   '/api/public/download/free-cookbook': typeof ApiPublicDownloadFreeCookbookRoute
   '/api/public/download/planning-kit': typeof ApiPublicDownloadPlanningKitRoute
   '/api/public/img/$': typeof ApiPublicImgSplatRoute
+  '/api/public/oauth/register': typeof ApiPublicOauthRegisterRoute
+  '/api/public/oauth/token': typeof ApiPublicOauthTokenRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/public/pinterest/publish-due': typeof ApiPublicPinterestPublishDueRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
@@ -551,6 +617,7 @@ export interface FileRoutesById {
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
   '/lovable/email/transactional/send': typeof LovableEmailTransactionalSendRoute
   '/_authenticated/prep-app/recipes/': typeof AuthenticatedPrepAppRecipesIndexRoute
+  '/.well-known/oauth-protected-resource/api/public/mcp': typeof Char91DotwellKnownChar93OauthProtectedResourceApiPublicMcpRoute
   '/api/public/pinterest/oauth/callback': typeof ApiPublicPinterestOauthCallbackRoute
 }
 export interface FileRouteTypes {
@@ -575,12 +642,16 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/terms'
     | '/thank-you'
+    | '/.well-known/oauth-authorization-server'
+    | '/.well-known/oauth-protected-resource'
+    | '/.well-known/openid-configuration'
     | '/admin'
     | '/affiliate'
     | '/prep-app'
     | '/blog/$slug'
     | '/collections/$slug'
     | '/email/unsubscribe'
+    | '/oauth/authorize'
     | '/p/$slug'
     | '/products/$'
     | '/recipes/$slug'
@@ -604,6 +675,8 @@ export interface FileRouteTypes {
     | '/api/public/download/free-cookbook'
     | '/api/public/download/planning-kit'
     | '/api/public/img/$'
+    | '/api/public/oauth/register'
+    | '/api/public/oauth/token'
     | '/api/public/payments/webhook'
     | '/api/public/pinterest/publish-due'
     | '/lovable/email/auth/preview'
@@ -612,6 +685,7 @@ export interface FileRouteTypes {
     | '/lovable/email/transactional/preview'
     | '/lovable/email/transactional/send'
     | '/prep-app/recipes/'
+    | '/.well-known/oauth-protected-resource/api/public/mcp'
     | '/api/public/pinterest/oauth/callback'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -631,11 +705,15 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/terms'
     | '/thank-you'
+    | '/.well-known/oauth-authorization-server'
+    | '/.well-known/oauth-protected-resource'
+    | '/.well-known/openid-configuration'
     | '/admin'
     | '/affiliate'
     | '/blog/$slug'
     | '/collections/$slug'
     | '/email/unsubscribe'
+    | '/oauth/authorize'
     | '/p/$slug'
     | '/products/$'
     | '/recipes/$slug'
@@ -659,6 +737,8 @@ export interface FileRouteTypes {
     | '/api/public/download/free-cookbook'
     | '/api/public/download/planning-kit'
     | '/api/public/img/$'
+    | '/api/public/oauth/register'
+    | '/api/public/oauth/token'
     | '/api/public/payments/webhook'
     | '/api/public/pinterest/publish-due'
     | '/lovable/email/auth/preview'
@@ -667,6 +747,7 @@ export interface FileRouteTypes {
     | '/lovable/email/transactional/preview'
     | '/lovable/email/transactional/send'
     | '/prep-app/recipes'
+    | '/.well-known/oauth-protected-resource/api/public/mcp'
     | '/api/public/pinterest/oauth/callback'
   id:
     | '__root__'
@@ -690,12 +771,16 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/terms'
     | '/thank-you'
+    | '/.well-known/oauth-authorization-server'
+    | '/.well-known/oauth-protected-resource'
+    | '/.well-known/openid-configuration'
     | '/_authenticated/admin'
     | '/_authenticated/affiliate'
     | '/_authenticated/prep-app'
     | '/blog/$slug'
     | '/collections/$slug'
     | '/email/unsubscribe'
+    | '/oauth/authorize'
     | '/p/$slug'
     | '/products/$'
     | '/recipes/$slug'
@@ -719,6 +804,8 @@ export interface FileRouteTypes {
     | '/api/public/download/free-cookbook'
     | '/api/public/download/planning-kit'
     | '/api/public/img/$'
+    | '/api/public/oauth/register'
+    | '/api/public/oauth/token'
     | '/api/public/payments/webhook'
     | '/api/public/pinterest/publish-due'
     | '/lovable/email/auth/preview'
@@ -727,6 +814,7 @@ export interface FileRouteTypes {
     | '/lovable/email/transactional/preview'
     | '/lovable/email/transactional/send'
     | '/_authenticated/prep-app/recipes/'
+    | '/.well-known/oauth-protected-resource/api/public/mcp'
     | '/api/public/pinterest/oauth/callback'
   fileRoutesById: FileRoutesById
 }
@@ -751,8 +839,12 @@ export interface RootRouteChildren {
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TermsRoute: typeof TermsRoute
   ThankYouRoute: typeof ThankYouRoute
+  Char91DotwellKnownChar93OauthAuthorizationServerRoute: typeof Char91DotwellKnownChar93OauthAuthorizationServerRoute
+  Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRouteWithChildren
+  Char91DotwellKnownChar93OpenidConfigurationRoute: typeof Char91DotwellKnownChar93OpenidConfigurationRoute
   CollectionsSlugRoute: typeof CollectionsSlugRoute
   EmailUnsubscribeRoute: typeof EmailUnsubscribeRoute
+  OauthAuthorizeRoute: typeof OauthAuthorizeRoute
   PSlugRoute: typeof PSlugRoute
   ProductsSplatRoute: typeof ProductsSplatRoute
   ApiPublicMcpRoute: typeof ApiPublicMcpRoute
@@ -761,6 +853,8 @@ export interface RootRouteChildren {
   ApiPublicDownloadFreeCookbookRoute: typeof ApiPublicDownloadFreeCookbookRoute
   ApiPublicDownloadPlanningKitRoute: typeof ApiPublicDownloadPlanningKitRoute
   ApiPublicImgSplatRoute: typeof ApiPublicImgSplatRoute
+  ApiPublicOauthRegisterRoute: typeof ApiPublicOauthRegisterRoute
+  ApiPublicOauthTokenRoute: typeof ApiPublicOauthTokenRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
   ApiPublicPinterestPublishDueRoute: typeof ApiPublicPinterestPublishDueRoute
   LovableEmailAuthPreviewRoute: typeof LovableEmailAuthPreviewRoute
@@ -913,6 +1007,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ThankYouRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/.well-known/oauth-authorization-server': {
+      id: '/.well-known/oauth-authorization-server'
+      path: '/.well-known/oauth-authorization-server'
+      fullPath: '/.well-known/oauth-authorization-server'
+      preLoaderRoute: typeof Char91DotwellKnownChar93OauthAuthorizationServerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/.well-known/oauth-protected-resource': {
+      id: '/.well-known/oauth-protected-resource'
+      path: '/.well-known/oauth-protected-resource'
+      fullPath: '/.well-known/oauth-protected-resource'
+      preLoaderRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/.well-known/openid-configuration': {
+      id: '/.well-known/openid-configuration'
+      path: '/.well-known/openid-configuration'
+      fullPath: '/.well-known/openid-configuration'
+      preLoaderRoute: typeof Char91DotwellKnownChar93OpenidConfigurationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/admin': {
       id: '/_authenticated/admin'
       path: '/admin'
@@ -960,6 +1075,13 @@ declare module '@tanstack/react-router' {
       path: '/email/unsubscribe'
       fullPath: '/email/unsubscribe'
       preLoaderRoute: typeof EmailUnsubscribeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/oauth/authorize': {
+      id: '/oauth/authorize'
+      path: '/oauth/authorize'
+      fullPath: '/oauth/authorize'
+      preLoaderRoute: typeof OauthAuthorizeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/p/$slug': {
@@ -1123,6 +1245,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicImgSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/oauth/register': {
+      id: '/api/public/oauth/register'
+      path: '/api/public/oauth/register'
+      fullPath: '/api/public/oauth/register'
+      preLoaderRoute: typeof ApiPublicOauthRegisterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/oauth/token': {
+      id: '/api/public/oauth/token'
+      path: '/api/public/oauth/token'
+      fullPath: '/api/public/oauth/token'
+      preLoaderRoute: typeof ApiPublicOauthTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/payments/webhook': {
       id: '/api/public/payments/webhook'
       path: '/api/public/payments/webhook'
@@ -1171,6 +1307,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/lovable/email/transactional/send'
       preLoaderRoute: typeof LovableEmailTransactionalSendRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/.well-known/oauth-protected-resource/api/public/mcp': {
+      id: '/.well-known/oauth-protected-resource/api/public/mcp'
+      path: '/api/public/mcp'
+      fullPath: '/.well-known/oauth-protected-resource/api/public/mcp'
+      preLoaderRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceApiPublicMcpRouteImport
+      parentRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
     }
     '/api/public/pinterest/oauth/callback': {
       id: '/api/public/pinterest/oauth/callback'
@@ -1265,6 +1408,21 @@ const ShopRouteChildren: ShopRouteChildren = {
 
 const ShopRouteWithChildren = ShopRoute._addFileChildren(ShopRouteChildren)
 
+interface Char91DotwellKnownChar93OauthProtectedResourceRouteChildren {
+  Char91DotwellKnownChar93OauthProtectedResourceApiPublicMcpRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceApiPublicMcpRoute
+}
+
+const Char91DotwellKnownChar93OauthProtectedResourceRouteChildren: Char91DotwellKnownChar93OauthProtectedResourceRouteChildren =
+  {
+    Char91DotwellKnownChar93OauthProtectedResourceApiPublicMcpRoute:
+      Char91DotwellKnownChar93OauthProtectedResourceApiPublicMcpRoute,
+  }
+
+const Char91DotwellKnownChar93OauthProtectedResourceRouteWithChildren =
+  Char91DotwellKnownChar93OauthProtectedResourceRoute._addFileChildren(
+    Char91DotwellKnownChar93OauthProtectedResourceRouteChildren,
+  )
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
@@ -1286,8 +1444,15 @@ const rootRouteChildren: RootRouteChildren = {
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   TermsRoute: TermsRoute,
   ThankYouRoute: ThankYouRoute,
+  Char91DotwellKnownChar93OauthAuthorizationServerRoute:
+    Char91DotwellKnownChar93OauthAuthorizationServerRoute,
+  Char91DotwellKnownChar93OauthProtectedResourceRoute:
+    Char91DotwellKnownChar93OauthProtectedResourceRouteWithChildren,
+  Char91DotwellKnownChar93OpenidConfigurationRoute:
+    Char91DotwellKnownChar93OpenidConfigurationRoute,
   CollectionsSlugRoute: CollectionsSlugRoute,
   EmailUnsubscribeRoute: EmailUnsubscribeRoute,
+  OauthAuthorizeRoute: OauthAuthorizeRoute,
   PSlugRoute: PSlugRoute,
   ProductsSplatRoute: ProductsSplatRoute,
   ApiPublicMcpRoute: ApiPublicMcpRoute,
@@ -1296,6 +1461,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicDownloadFreeCookbookRoute: ApiPublicDownloadFreeCookbookRoute,
   ApiPublicDownloadPlanningKitRoute: ApiPublicDownloadPlanningKitRoute,
   ApiPublicImgSplatRoute: ApiPublicImgSplatRoute,
+  ApiPublicOauthRegisterRoute: ApiPublicOauthRegisterRoute,
+  ApiPublicOauthTokenRoute: ApiPublicOauthTokenRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
   ApiPublicPinterestPublishDueRoute: ApiPublicPinterestPublishDueRoute,
   LovableEmailAuthPreviewRoute: LovableEmailAuthPreviewRoute,

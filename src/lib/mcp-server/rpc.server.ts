@@ -1,6 +1,9 @@
 /** Minimal stateless MCP (Streamable HTTP, JSON responses) over JSON-RPC 2.0. */
 import { zodToJsonSchema } from "./schema";
-import { TOOLS } from "./tools.server";
+import { TOOLS as POST_TOOLS } from "./tools.server";
+import { RECIPE_TOOLS } from "./recipe-tools.server";
+
+const TOOLS = [...POST_TOOLS, ...RECIPE_TOOLS] as const;
 
 const PROTOCOL = "2025-06-18";
 
@@ -13,7 +16,7 @@ export async function handleRpc(msg: any): Promise<any | null> {
   switch (msg.method) {
     case "initialize":
       return ok({ protocolVersion: msg.params?.protocolVersion ?? PROTOCOL, capabilities: { tools: {} }, serverInfo: { name: "planted-protein-pages", title: "Planted Protein Pages", version: "1.0.0" },
-        instructions: "Content tools for PlantedAndSimple. Every update_post saves a rollback version first; generated posts always go to AI Studio for human review." });
+        instructions: "Content tools for PlantedAndSimple. To fix SEO checklists: call get_seo_score (posts) or get_recipe_seo_score (recipes), then edit with update_post / update_recipe and re-check. Every update saves a rollback version first; generated posts always go to AI Studio for human review." });
     case "ping":
       return ok({});
     case "tools/list":

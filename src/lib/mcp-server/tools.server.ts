@@ -119,6 +119,7 @@ export const TOOLS = [
       id: z.string().uuid(),
       title: z.string().min(3).max(200).optional(), content: z.string().max(200000).optional(),
       meta_title: z.string().max(120).optional(), meta_description: z.string().max(320).optional(),
+      excerpt: z.string().max(600).optional(),
       slug: z.string().regex(slugRe).max(120).optional(),
       headings: z.array(z.object({ from: z.string().min(1).max(200), to: z.string().min(1).max(200) })).max(50).optional(),
       alt_text: z.array(z.object({ src: z.string().min(1).max(2000), alt: z.string().max(300) })).max(50).optional(),
@@ -135,6 +136,7 @@ export const TOOLS = [
       if (i.meta_title !== undefined) patch.seo_title = i.meta_title;
       if (i.meta_description !== undefined) patch.seo_description = i.meta_description;
       if (i.slug !== undefined) patch.slug = i.slug;
+      if (i.excerpt !== undefined) patch.excerpt = i.excerpt;
       let content: string = i.content ?? cur.content ?? "";
       if (i.headings || i.alt_text || i.internal_links) content = applyContentEdits(content, i);
       if (content !== cur.content) patch.content = content;

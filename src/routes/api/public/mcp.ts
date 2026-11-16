@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { CORS, json, preflight, publicOrigin, verify } from "@/lib/mcp-server/oauth";
 
-/** Constant-time compare so the token can't be guessed by timing. */
 function safeEqual(a: string, b: string) {
   if (a.length !== b.length) return false;
   let r = 0;
@@ -8,32 +8,43 @@ function safeEqual(a: string, b: string) {
   return r === 0;
 }
 
-function authorized(request: Request) {
+/** Accepts the static MCP_SECRET_KEY (desktop bridges) or an OAuth token whose user is still a boss. */
+async function authorized(request: Request) {
   const secret = process.env["MCP_SECRET_KEY"];
   if (!secret || secret.length < 24) return false;
   const h = request.headers.get("authorization") ?? "";
   const token = h.startsWith("Bearer ") ? h.slice(7).trim() : "";
-  return !!token && safeEqual(token, secret);
+  if (!token) return false;
+  if (safeEqual(token, secret)) return true;
+  const claims = await verify("access", token);
+  if (!claims?.sub) return false;
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data } = await supabaseAdmin.from("user_roles").select("role").eq("user_id", claims.sub).eq("role", "boss").maybeSingle();
+  return !!data;
 }
 
-const unauthorized = () => Response.json({ error: "Unauthorized" }, { status: 401, headers: { "WWW-Authenticate": "Bearer" } });
+const unauthorized = (request: Request) =>
+  json({ error: "unauthorized" }, 401, {
+    "WWW-Authenticate": `Bearer resource_metadata="${publicOrigin(request)}/.well-known/oauth-protected-resource"`,
+  });
 
 export const Route = createFileRoute("/api/public/mcp")({
   server: {
     handlers: {
-      GET: async ({ request }) => (authorized(request) ? new Response("Method Not Allowed", { status: 405, headers: { Allow: "POST" } }) : unauthorized()),
-      DELETE: async () => new Response(null, { status: 405 }),
+      OPTIONS: async () => preflight(),
+      GET: async ({ request }) => ((await authorized(request)) ? new Response("Method Not Allowed", { status: 405, headers: { ...CORS, Allow: "POST" } }) : unauthorized(request)),
+      DELETE: async () => new Response(null, { status: 405, headers: CORS }),
       POST: async ({ request }) => {
-        if (!authorized(request)) return unauthorized();
+        if (!(await authorized(request))) return unauthorized(request);
         let body: any;
-        try { body = await request.json(); } catch { return Response.json({ jsonrpc: "2.0", id: null, error: { code: -32700, message: "Parse error" } }, { status: 400 }); }
+        try { body = await request.json(); } catch { return json({ jsonrpc: "2.0", id: null, error: { code: -32700, message: "Parse error" } }, 400); }
         const { handleRpc } = await import("@/lib/mcp-server/rpc.server");
         if (Array.isArray(body)) {
           const out = (await Promise.all(body.slice(0, 20).map(handleRpc))).filter(Boolean);
-          return out.length ? Response.json(out) : new Response(null, { status: 202 });
+          return out.length ? json(out) : new Response(null, { status: 202, headers: CORS });
         }
         const out = await handleRpc(body);
-        return out ? Response.json(out) : new Response(null, { status: 202 });
+        return out ? json(out) : new Response(null, { status: 202, headers: CORS });
       },
     },
   },
