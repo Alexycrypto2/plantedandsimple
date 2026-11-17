@@ -87,12 +87,12 @@ function RecipeDetail() {
 
   return (
     <SiteLayout>
-      <article className="mx-auto max-w-4xl px-6 py-16">
+      <article className="mx-auto max-w-4xl px-5 pt-6 pb-12 sm:px-6 sm:pt-10 md:py-16">
         <header className="text-center">
           <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.28em] text-sage">Recipe</p>
-          <h1 className="mt-4 font-display text-5xl italic leading-tight text-forest-deep md:text-6xl">{r.title}</h1>
-          {r.subtitle ? <p className="mt-4 text-lg text-charcoal/65">{r.subtitle}</p> : null}
-          <div className="mt-6 flex flex-wrap justify-center gap-2">
+          <h1 className="mt-2 font-display text-3xl italic leading-[1.1] text-forest-deep sm:mt-4 sm:text-4xl md:text-5xl lg:text-6xl">{r.title}</h1>
+          {r.subtitle ? <p className="mt-2 text-base text-charcoal/65 sm:mt-4 sm:text-lg">{r.subtitle}</p> : null}
+          <div className="mt-4 flex flex-wrap justify-center gap-1.5 sm:mt-6 sm:gap-2">
             {r.prep_minutes ? <Pill>{r.prep_minutes} min prep</Pill> : null}
             {r.cook_minutes ? <Pill>{r.cook_minutes} min cook</Pill> : null}
             {total ? <Pill>{total} min total</Pill> : null}
@@ -103,7 +103,7 @@ function RecipeDetail() {
           <RecipeToolbar title={r.title} image={r.hero_image_url} path={`/recipes/${r.slug}`} pinText={r.pinterest_description || r.seo_description || r.description} steps={r.instructions ?? []} groups={r.ingredients ?? []} />
         </header>
 
-        <MediaImage src={r.hero_image_url} alt={r.title} ratio="aspect-[3/2]" className="mt-10 rounded-[2rem]" priority />
+        <MediaImage src={r.hero_image_url} alt={r.title} ratio="aspect-[3/2]" className="mt-5 rounded-2xl sm:mt-10 sm:rounded-[2rem]" priority />
 
         {r.description ? <p className="mt-10 text-lg leading-relaxed text-charcoal/75">{r.description}</p> : null}
 

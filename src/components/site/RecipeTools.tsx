@@ -33,13 +33,13 @@ export function RecipeToolbar({ title, image, path, pinText, steps, groups }: {
   const [cook, setCook] = useState(false);
   return (
     <>
-      <div className="no-print mt-6 flex flex-wrap justify-center gap-2">
-        <a href="#recipe-card" className={btn}>↓ Jump to recipe</a>
-        <button type="button" onClick={() => window.print()} className={btn}>Print recipe</button>
-        <button type="button" onClick={() => openPinterest(path, image, pinText || title)} className={btn}>Save to Pinterest</button>
-        <button type="button" onClick={() => setCook(true)} className={btn}>
+      <div className="no-print mt-4 grid grid-cols-[1fr_1fr_auto_auto] gap-1.5 sm:mt-6 sm:flex sm:flex-wrap sm:justify-center sm:gap-2">
+        <a href="#recipe-card" className={`${btn} justify-center bg-forest text-cream sm:bg-card sm:text-forest`}>↓ <span>Jump<span className="hidden sm:inline"> to recipe</span></span></a>
+        <button type="button" onClick={() => setCook(true)} className={`${btn} justify-center`}>
           <span className="h-2 w-2 rounded-full bg-sage" /> Cook mode
         </button>
+        <button type="button" onClick={() => window.print()} aria-label="Print recipe" className={`${btn} justify-center px-3`}>🖨<span className="hidden sm:inline">Print recipe</span></button>
+        <button type="button" onClick={() => openPinterest(path, image, pinText || title)} aria-label="Save to Pinterest" className={`${btn} justify-center px-3`}>📌<span className="hidden sm:inline">Save to Pinterest</span></button>
       </div>
       {cook ? <CookMode title={title} steps={steps} groups={groups} onClose={() => setCook(false)} /> : null}
     </>

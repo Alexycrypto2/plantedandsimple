@@ -86,28 +86,28 @@ function PostPage() {
   const minutes = readingMinutes(post.content ?? "");
   return (
     <SiteLayout>
-      <article className="mx-auto max-w-3xl px-6 py-16">
+      <article className="mx-auto max-w-3xl px-5 pt-6 pb-12 sm:px-6 sm:pt-10 md:py-16">
         <Link to="/blog" className="text-xs font-bold uppercase tracking-[0.25em] text-forest/70 hover:text-forest">
           ← The Blog
         </Link>
         {post.category && (
-          <p className="mt-8 font-mono text-[11px] font-bold uppercase tracking-[0.25em] text-sage">{post.category}</p>
+          <p className="mt-4 font-mono sm:mt-8 text-[11px] font-bold uppercase tracking-[0.25em] text-sage">{post.category}</p>
         )}
         <HubPills links={links} />
-        <h1 className="mt-3 font-display text-4xl italic text-forest-deep md:text-5xl">{post.title}</h1>
-        <p className="mt-3 text-xs text-charcoal/55">
+        <h1 className="mt-2 font-display text-[1.75rem] italic leading-[1.15] text-forest-deep sm:mt-3 sm:text-4xl md:text-5xl">{post.title}</h1>
+        <p className="mt-2 text-xs text-charcoal/55 sm:mt-3">
           By the PlantedAndSimple Kitchen
           {post.published_at ? <> · {new Date(post.published_at).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}</> : null}
           {" · "}{minutes} min read
         </p>
         <ShareBar title={post.title} image={post.featured_image_url} />
         {post.featured_image_url && (
-          <div className="mt-10 overflow-hidden rounded-[2rem] bg-cream-warm">
+          <div className="mt-5 overflow-hidden rounded-2xl bg-cream-warm sm:mt-10 sm:rounded-[2rem]">
             <img src={post.featured_image_url} alt={post.title} className="h-full w-full object-cover" />
           </div>
         )}
         {post.excerpt && (
-          <p className="mt-10 font-display text-xl italic text-forest-deep md:text-2xl">{post.excerpt}</p>
+          <p className="mt-6 font-display text-lg italic sm:mt-10 sm:text-xl text-forest-deep md:text-2xl">{post.excerpt}</p>
         )}
         <TableOfContents toc={toc} />
         {(() => {
