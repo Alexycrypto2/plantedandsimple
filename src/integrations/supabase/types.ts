@@ -1940,6 +1940,41 @@ export type Database = {
           },
         ]
       }
+      recipe_versions: {
+        Row: {
+          changed_fields: string[]
+          created_at: string
+          id: string
+          recipe_id: string
+          snapshot: Json
+          source: string
+        }
+        Insert: {
+          changed_fields?: string[]
+          created_at?: string
+          id?: string
+          recipe_id: string
+          snapshot: Json
+          source?: string
+        }
+        Update: {
+          changed_fields?: string[]
+          created_at?: string
+          id?: string
+          recipe_id?: string
+          snapshot?: Json
+          source?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recipe_versions_recipe_id_fkey"
+            columns: ["recipe_id"]
+            isOneToOne: false
+            referencedRelation: "recipes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       recipes: {
         Row: {
           author_id: string | null

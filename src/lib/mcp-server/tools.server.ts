@@ -168,6 +168,28 @@ export const TOOLS = [
     },
   },
   {
+    name: "set_post_status",
+    description: "Publish a draft blog post or move it back to draft. Publishing keeps an existing publish date. The previous version is saved first.",
+    inputSchema: z.object({ id: z.string().uuid(), status: z.enum(["published", "draft"]) }).strict(),
+    readOnly: false,
+    async run({ id, status }: any) {
+      const db = await admin();
+      const { data: cur, error } = await db.from("blog_posts").select(POST_FIELDS).eq("id", id).maybeSingle();
+      if (error) throw new Error(error.message);
+      if (!cur) throw new Error("Post not found");
+      const url = `https://plantedandsimple.com/blog/${cur.slug}`;
+      if (cur.status === status) return { updated: false, status, url };
+      const { error: vErr } = await db.from("post_versions").insert({ post_id: cur.id, snapshot: cur, changed_fields: ["status"], source: "mcp-status" });
+      if (vErr) throw new Error(`Could not save rollback version, nothing was changed: ${vErr.message}`);
+      const now = new Date().toISOString();
+      const patch: Record<string, unknown> = { status, updated_at: now };
+      if (status === "published" && !cur.published_at) patch.published_at = now;
+      const { error: uErr } = await db.from("blog_posts").update(patch).eq("id", cur.id);
+      if (uErr) throw new Error(uErr.message);
+      return { updated: true, status, url };
+    },
+  },
+  {
     name: "list_post_versions",
     description: "List saved rollback versions for a blog post.",
     inputSchema: z.object({ id: z.string().uuid() }).strict(),

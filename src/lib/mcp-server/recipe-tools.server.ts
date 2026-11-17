@@ -112,4 +112,23 @@ export const RECIPE_TOOLS = [
       return { restored: true, recipe_id: cur.id };
     },
   },
+  {
+    name: "set_recipe_status",
+    description: "Publish a draft recipe or move it back to draft. Publishing keeps an existing publish date. Returns the live URL and SEO score.",
+    inputSchema: z.object({ id: z.string().uuid(), status: z.enum(["published", "draft"]) }).strict(),
+    readOnly: false,
+    async run({ id, status }: any) {
+      const db = await admin();
+      const cur = await load(id);
+      if (cur.status === status) return { updated: false, status, url: `https://plantedandsimple.com/recipes/${cur.slug}` };
+      const { error: sErr } = await db.from("recipe_versions").insert({ recipe_id: cur.id, snapshot: cur, changed_fields: ["status"], source: "mcp-status" });
+      if (sErr) throw new Error(`Could not save rollback version, nothing was changed: ${sErr.message}`);
+      const now = new Date().toISOString();
+      const patch: Record<string, unknown> = { status, updated_at: now };
+      if (status === "published" && !cur.published_at) patch.published_at = now;
+      const { error } = await db.from("recipes").update(patch).eq("id", cur.id);
+      if (error) throw new Error(error.message);
+      return { updated: true, status, url: `https://plantedandsimple.com/recipes/${cur.slug}`, seo: recipeSeo(cur) };
+    },
+  },
 ] as const;
