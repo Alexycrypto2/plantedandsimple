@@ -4,6 +4,7 @@ import { auditSeo, recipeToHtml } from "@/lib/content/seo-doctor";
 
 const admin = async (): Promise<any> => (await import("@/integrations/supabase/client.server")).supabaseAdmin;
 const FIELDS = "id,slug,title,subtitle,description,ingredients,instructions,nutrition,tips,prep_minutes,cook_minutes,servings,difficulty,tags,pinterest_description,seo_title,seo_description,status,hero_image_id,published_at,updated_at";
+const EDITABLE = ["title", "subtitle", "description", "seo_title", "seo_description", "pinterest_description", "slug", "tips", "tags", "ingredients", "instructions", "nutrition", "servings", "prep_minutes", "cook_minutes", "difficulty"] as const;
 const slugRe = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const text = (x: any): string => (typeof x === "string" ? x : x && typeof x === "object" ? Object.values(x).filter((v) => typeof v === "string" || typeof v === "number").join(" ") : "");
 const arr = (x: any): string[] => (Array.isArray(x) ? x.map(text).filter(Boolean) : []);
@@ -27,7 +28,7 @@ export function recipeSeo(r: any, keyword?: string) {
     score: report.score, keyword: report.keyword, words: report.words,
     failing_checks: report.checks.filter((c) => !c.pass).map((c: any) => ({ id: c.id, label: c.label, category: c.category, weight: c.weight, fix: c.fix, manual: !!c.manual })),
     passing_checks: report.checks.filter((c) => c.pass).map((c) => c.label),
-    editable_fields_hint: "Fix failures with update_recipe: title, seo_title, seo_description, description (intro prose — counts toward word count and first-120-words keyword), tips, pinterest_description, slug.",
+    editable_fields_hint: "Fix failures with update_recipe: title, seo_title, seo_description, description (intro prose — counts toward word count and first-120-words keyword), tips, pinterest_description, slug. Ingredients, instructions, nutrition and servings are editable too.",
   };
 }
 
@@ -54,7 +55,7 @@ export const RECIPE_TOOLS = [
   },
   {
     name: "update_recipe",
-    description: "Edit a recipe's text fields to fix SEO checks. Ingredients, steps and nutrition are never changed here. Saves a rollback version first and returns the new SEO score.",
+    description: "Edit a recipe: text/SEO fields, ingredients, steps, nutrition, servings and times. Send the FULL list for any array field you change (it replaces the old list). Saves a rollback version first and returns the new SEO score.",
     inputSchema: z.object({
       id: z.string().uuid(),
       title: z.string().min(3).max(200).optional(), subtitle: z.string().max(300).optional(),
@@ -64,6 +65,13 @@ export const RECIPE_TOOLS = [
       slug: z.string().regex(slugRe).max(120).optional(),
       tips: z.array(z.string().min(3).max(600)).max(10).optional(),
       tags: z.array(z.string().min(1).max(60)).max(30).optional(),
+      ingredients: z.array(z.union([z.string().min(1).max(300), z.object({ group: z.string().max(120).nullable().optional(), items: z.array(z.string().min(1).max(300)).min(1).max(60) })])).min(1).max(40).optional().describe("Plain lines like '200 g extra-firm tofu' or groups {group, items}"),
+      instructions: z.array(z.union([z.string().min(3).max(2000), z.object({ title: z.string().max(200).nullable().optional(), body: z.string().min(3).max(2000), image_url: z.string().max(1000).optional() })])).min(1).max(40).optional().describe("Steps; keep existing image_url values to preserve step photos"),
+      nutrition: z.array(z.object({ label: z.string().min(1).max(60), value: z.string().min(1).max(60) })).max(20).optional().describe("Per-serving rows like {label:'Protein', value:'24 g'}"),
+      servings: z.string().max(60).optional(),
+      prep_minutes: z.number().int().min(0).max(1440).optional(),
+      cook_minutes: z.number().int().min(0).max(1440).optional(),
+      difficulty: z.string().max(40).optional(),
       keyword: z.string().max(120).optional().describe("Focus keyword used for the returned SEO score"),
     }).strict(),
     readOnly: false,
@@ -71,7 +79,12 @@ export const RECIPE_TOOLS = [
       const db = await admin();
       const cur = await load(i.id);
       const patch: Record<string, unknown> = {};
-      for (const k of ["title", "subtitle", "description", "seo_title", "seo_description", "pinterest_description", "slug", "tips", "tags"]) {
+      if (i.ingredients) {
+        const all = i.ingredients as any[];
+        i.ingredients = all.every((x) => typeof x === "string") ? [{ group: null, items: all }] : all.map((x) => (typeof x === "string" ? { group: null, items: [x] } : { group: x.group ?? null, items: x.items }));
+      }
+      if (i.instructions) i.instructions = (i.instructions as any[]).map((x) => (typeof x === "string" ? { title: null, body: x } : x));
+      for (const k of EDITABLE) {
         if (i[k] !== undefined && JSON.stringify(i[k]) !== JSON.stringify(cur[k])) patch[k] = i[k];
       }
       const changed = Object.keys(patch);
@@ -96,7 +109,7 @@ export const RECIPE_TOOLS = [
   },
   {
     name: "rollback_recipe",
-    description: "Restore a recipe's text fields to a saved version (the current state is saved first).",
+    description: "Restore a recipe's text, ingredients, steps and nutrition to a saved version (the current state is saved first).",
     inputSchema: z.object({ version_id: z.string().uuid() }).strict(),
     readOnly: false,
     async run({ version_id }: any) {
@@ -107,7 +120,9 @@ export const RECIPE_TOOLS = [
       const { error: sErr } = await db.from("recipe_versions").insert({ recipe_id: cur.id, snapshot: cur, changed_fields: ["rollback"], source: "mcp-rollback" });
       if (sErr) throw new Error(`Could not save current version, nothing was changed: ${sErr.message}`);
       const s = v.snapshot;
-      const { error } = await db.from("recipes").update({ title: s.title, subtitle: s.subtitle, description: s.description, seo_title: s.seo_title, seo_description: s.seo_description, pinterest_description: s.pinterest_description, slug: s.slug, tips: s.tips, tags: s.tags, updated_at: new Date().toISOString() }).eq("id", cur.id);
+      const restore: Record<string, unknown> = { updated_at: new Date().toISOString() };
+      for (const k of EDITABLE) if (s[k] !== undefined) restore[k] = s[k];
+      const { error } = await db.from("recipes").update(restore).eq("id", cur.id);
       if (error) throw new Error(error.message);
       return { restored: true, recipe_id: cur.id };
     },
