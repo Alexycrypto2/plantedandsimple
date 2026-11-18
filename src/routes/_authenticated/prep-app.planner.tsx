@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Plus, Sparkles, RefreshCw, BookOpen, Save, Printer } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
@@ -35,6 +35,8 @@ function Planner() {
   const [aiReason, setAiReason] = useState<string | null>(null);
   const planning = useRef(false);
   const [proteinTarget, setProteinTarget] = useState(100);
+  const savedTarget = profile.data?.protein_target;
+  useEffect(() => { if (savedTarget) setProteinTarget(savedTarget); }, [savedTarget]);
 
   const slots: PlanSlots = plan.data?.slots ?? {};
   const avoid = [...(profile.data?.dislikes ?? []), ...(profile.data?.allergies ?? [])];

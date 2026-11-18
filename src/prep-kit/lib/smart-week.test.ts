@@ -20,3 +20,12 @@ describe("Smart week", () => {
     for (const d of DAYS) expect(SLOTS.reduce((n, s) => n + (library.find((r) => r.id === slots[d]?.[s])?.nutrition.protein ?? 0), 0)).toBeGreaterThanOrEqual(100);
   });
 });
+describe("Smart week variety", () => {
+  it("never uses one recipe more than twice a week when the library is big enough", () => {
+    const { slots } = buildSmartWeek(RECIPES, prefs);
+    const counts = new Map<string, number>();
+    for (const d of DAYS) for (const s of SLOTS) { const id = slots[d]?.[s]; if (id) counts.set(id, (counts.get(id) ?? 0) + 1); }
+    const perSlot = Math.min(...SLOTS.map((s) => RECIPES.filter((r) => r.category === s).length));
+    if (perSlot >= 4) expect(Math.max(...counts.values())).toBeLessThanOrEqual(2);
+  });
+});

@@ -1,10 +1,15 @@
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { DAYS, DAY_LABEL, SLOTS, type PlanSlots } from "../data/types";
 import { RECIPE_BY_ID } from "../data/content";
 import { buildPrepPlan } from "../lib/prep";
 
 export function FridgeSheet({ slots, servings }: { slots: PlanSlots; servings: number }) {
+  const [ready, setReady] = useState(false);
+  useEffect(() => setReady(true), []);
   const prep = buildPrepPlan(slots, servings);
-  return <div className="fridge-sheet text-foreground">
+  if (!ready) return null;
+  return createPortal(<div className="print-sheet fridge-sheet" aria-hidden="true">
     <h1 className="font-display text-2xl text-primary">Planted & Simple · This week</h1>
     <p className="mb-4 text-sm">{servings} serving(s) per meal · Nutrition estimates per person</p>
     <table className="w-full table-fixed border-collapse text-xs"><thead><tr><th className="w-16 border p-2 text-left">Day</th>{SLOTS.map((s) => <th key={s} className="border p-2 text-left capitalize">{s}</th>)}</tr></thead>
@@ -13,5 +18,5 @@ export function FridgeSheet({ slots, servings }: { slots: PlanSlots; servings: n
     <ul className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 text-xs">{prep.tasks.map((t) => <li key={t.id}>□ {t.title}</li>)}</ul>
     <h2 className="mt-4 font-semibold text-primary">Store safely</h2>
     <p className="mt-1 text-xs">Refrigerate promptly within 2 hours at 4°C / 40°F or below. Follow each recipe’s storage instructions. Freeze suitable later-week portions; otherwise prep a fresh batch midweek.</p>
-  </div>;
+  </div>, document.body);
 }

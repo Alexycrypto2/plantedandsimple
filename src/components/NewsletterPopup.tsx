@@ -133,7 +133,7 @@ export function PopupView({ cfg, onClose, preview }: { cfg: PopupConfig; onClose
   const content = (
     <>
       <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.22em] text-sage">{cfg.eyebrow}</p>
-      <h2 className={`mt-1.5 font-display italic leading-tight text-forest-deep ${compact ? "text-xl" : "text-2xl sm:text-[1.7rem]"}`}>{cfg.headline}</h2>
+      <h2 className={`mt-1.5 font-display italic leading-tight text-forest-deep ${compact ? "text-xl" : "text-xl sm:text-[1.7rem]"}`}>{cfg.headline}</h2>
       {cfg.body && !compact ? <p className="mt-2 text-sm leading-relaxed text-charcoal/70">{cfg.body}</p> : null}
       {cfg.perks.length && !compact ? (
         <ul className="mt-3 space-y-1">
@@ -160,7 +160,7 @@ export function PopupView({ cfg, onClose, preview }: { cfg: PopupConfig; onClose
     return (
       <div role="dialog" aria-label="Free cookbook" className={`${pos} bottom-3 right-3 z-[80] w-[calc(100%-1.5rem)] max-w-[340px] overflow-hidden rounded-xl border border-forest/10 bg-cream shadow-2xl animate-in slide-in-from-bottom-4`}>
         {close}
-        <img src={bundle} alt="Free cookbook on tablet, phone and printed pages" className="h-28 w-full object-cover" />
+        <img src={bundle} alt="Free cookbook on tablet, phone and printed pages" className="h-24 w-full bg-cream-warm object-contain p-1" />
         <div className="p-4">{content}</div>
       </div>
     );
@@ -170,11 +170,11 @@ export function PopupView({ cfg, onClose, preview }: { cfg: PopupConfig; onClose
   const stacked = drawer || mobile;
   return (
     <div className={`${pos} inset-0 z-[80] flex ${drawer ? "items-end" : "items-end sm:items-center"} justify-center bg-charcoal/45 ${drawer ? "" : "p-3"} backdrop-blur-[2px]`} role="dialog" aria-modal="true" aria-label="Free cookbook">
-      <div className={`relative w-full overflow-hidden bg-cream shadow-2xl animate-in slide-in-from-bottom-6 ${drawer ? "max-w-xl rounded-t-2xl" : "max-w-[540px] rounded-xl"} max-h-[90%] overflow-y-auto ${stacked ? "" : "sm:grid sm:grid-cols-[0.9fr_1fr]"}`}>
+      <div className={`relative w-full overflow-hidden bg-cream shadow-2xl animate-in slide-in-from-bottom-6 ${drawer ? "max-w-xl rounded-t-2xl" : "max-w-[540px] rounded-xl"} max-h-[85vh] overflow-y-auto ${stacked ? "" : "sm:grid sm:grid-cols-[0.9fr_1fr]"}`}>
         {close}
         {drawer ? <div className="mx-auto mt-2 h-1 w-10 rounded-full bg-forest/20" /> : null}
-        <img src={bundle} alt="Free cookbook on tablet, phone and printed pages" className={stacked ? "h-32 w-full object-cover" : "h-32 w-full object-cover sm:h-full sm:min-h-[300px]"} />
-        <div className="p-5 sm:p-6">{content}</div>
+        <img src={bundle} alt="Free cookbook on tablet, phone and printed pages" className={stacked ? "h-28 w-full bg-cream-warm object-contain p-1" : "h-28 w-full bg-cream-warm object-contain p-1 sm:h-full sm:min-h-[280px] sm:object-cover sm:p-0"} />
+        <div className="p-4 sm:p-6">{content}</div>
       </div>
     </div>
   );
