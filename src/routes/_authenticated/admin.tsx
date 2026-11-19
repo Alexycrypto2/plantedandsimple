@@ -1,3 +1,4 @@
+import { toast } from "sonner";
 import { PopupPanel } from "@/components/admin/PopupPanel";
 import { Button } from "@/components/ui/button";
 import { hasHomepageTag, homepageShelf } from "@/lib/content/homepage-pick";
@@ -2552,8 +2553,9 @@ function BlogPanel() {
   };
 
   const remove = async (id: string) => {
-    if (!confirm("Delete this post?")) return;
-    await adminDeletePost({ data: { id } });
+    if (!confirm("Delete this post for good? This cannot be undone.")) return;
+    try { await adminDeletePost({ data: { id } }); toast.success("Post deleted"); }
+    catch (e) { toast.error(e instanceof Error ? e.message : "Could not delete"); }
     load();
   };
 
@@ -2594,7 +2596,7 @@ function BlogPanel() {
       />
 
       {editing && (
-        <BlogEditor links={postLinks} onLinksChange={setPostLinks} value={editing as any} onChange={(v) => setEditing(v as any)} onSave={save} onCancel={() => setEditing(null)} busy={busy} />
+        <BlogEditor links={postLinks} onLinksChange={setPostLinks} value={editing as any} onChange={(v) => setEditing(v as any)} onSave={save} onCancel={() => setEditing(null)} onDelete={async () => { await adminDeletePost({ data: { id: (editing as any).id } }); setEditing(null); await load(); }} busy={busy} />
       )}
 
       <BlogList posts={posts} onEdit={startEdit} onDelete={remove} onReload={load} onError={setErr} />

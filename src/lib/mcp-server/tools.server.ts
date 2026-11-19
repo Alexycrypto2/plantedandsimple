@@ -233,4 +233,22 @@ export const TOOLS = [
       return { score: r.score, keyword: r.keyword, words: r.words, failing_checks: r.checks.filter((c) => !c.pass).map(fmt), passing_checks: r.checks.filter((c) => c.pass).map((c) => c.label) };
     },
   },
+  {
+    name: "delete_post",
+    description: "Permanently delete a blog post (e.g. a duplicate or unwanted draft) by id or slug. A final snapshot is saved to post_versions first. Set confirm to true.",
+    inputSchema: z.object({ id: z.string().uuid().optional(), slug: z.string().max(200).optional(), confirm: z.literal(true) }).strict().refine((v) => v.id || v.slug, "Provide id or slug"),
+    readOnly: false,
+    async run({ id, slug }: any) {
+      const db = await admin();
+      const q = db.from("blog_posts").select(POST_FIELDS);
+      const { data: cur } = await (id ? q.eq("id", id) : q.eq("slug", slug)).maybeSingle();
+      if (!cur) throw new Error("Post not found");
+      await db.from("post_versions").insert({ post_id: cur.id, snapshot: cur, changed_fields: ["delete"], source: "mcp-delete" });
+      await db.from("content_relations").delete().eq("from_type", "blog").eq("from_id", cur.id);
+      await db.from("content_relations").delete().eq("to_type", "blog").eq("to_id", cur.id);
+      const { error } = await db.from("blog_posts").delete().eq("id", cur.id);
+      if (error) throw new Error(error.message);
+      return { deleted: true, id: cur.id, title: cur.title, was_status: cur.status };
+    },
+  },
 ] as const;

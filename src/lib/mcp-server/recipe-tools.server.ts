@@ -146,4 +146,24 @@ export const RECIPE_TOOLS = [
       return { updated: true, status, url: `https://plantedandsimple.com/recipes/${cur.slug}`, seo: recipeSeo(cur) };
     },
   },
+  {
+    name: "delete_recipe",
+    description: "Permanently delete a recipe (e.g. a duplicate or unwanted draft) by id or slug. A final snapshot is saved to recipe_versions first. Set confirm to true.",
+    inputSchema: z.object({ id: z.string().uuid().optional(), slug: z.string().max(200).optional(), confirm: z.literal(true) }).strict().refine((v) => v.id || v.slug, "Provide id or slug"),
+    readOnly: false,
+    async run({ id, slug }: any) {
+      const db = await admin();
+      const q = db.from("recipes").select(FIELDS);
+      const { data: cur } = await (id ? q.eq("id", id) : q.eq("slug", slug)).maybeSingle();
+      if (!cur) throw new Error("Recipe not found");
+      await db.from("recipe_versions").insert({ recipe_id: cur.id, snapshot: cur, changed_fields: ["delete"], source: "mcp-delete" });
+      await db.from("content_relations").delete().eq("from_type", "recipe").eq("from_id", cur.id);
+      await db.from("content_relations").delete().eq("to_type", "recipe").eq("to_id", cur.id);
+      await db.from("content_categories").delete().eq("content_type", "recipe").eq("content_id", cur.id);
+      await db.from("content_collections").delete().eq("content_type", "recipe").eq("content_id", cur.id);
+      const { error } = await db.from("recipes").delete().eq("id", cur.id);
+      if (error) throw new Error(error.message);
+      return { deleted: true, id: cur.id, title: cur.title, was_status: cur.status };
+    },
+  },
 ] as const;

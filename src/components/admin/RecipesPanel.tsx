@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { ConfirmDelete } from "./ConfirmDelete";
 import { ChefHat, Plus, Trash2, Save, X, Link2, Sparkles, Wand2 } from "lucide-react";
 import {
   adminListEntity, adminSaveEntity, adminDeleteEntity,
@@ -274,7 +275,10 @@ export function RecipesSection() {
           <h2 className="font-display text-xl italic text-forest-deep">
             {editing === "new" ? "New recipe" : "Edit recipe"}
           </h2>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap justify-end gap-2">
+            {editing !== "new" && (
+              <ConfirmDelete label="Delete" itemTitle={form.title} onConfirm={async () => { await adminDeleteEntity({ data: { entity: "recipes", id: editing } }); setEditing(null); await load(); }} />
+            )}
             <button onClick={() => setEditing(null)} className="inline-flex items-center gap-1.5 rounded-xl border border-forest/15 px-4 py-2.5 text-xs font-semibold text-charcoal/70 hover:bg-forest/5">
               <X className="size-3.5" /> Cancel
             </button>
@@ -424,13 +428,7 @@ export function RecipesSection() {
                 </p>
               </div>
               <button onClick={() => openEdit(r)} className="rounded-full border border-forest/15 px-3 py-1.5 text-[11px] font-semibold text-forest hover:bg-forest/5">Edit</button>
-              <button
-                onClick={async () => { await adminDeleteEntity({ data: { entity: "recipes", id: r.id } }); load(); }}
-                className="grid size-8 place-items-center rounded-full text-charcoal/40 hover:bg-rose-50 hover:text-rose-600"
-                aria-label="Delete recipe"
-              >
-                <Trash2 className="size-3.5" />
-              </button>
+              <ConfirmDelete label="" itemTitle={r.title} onConfirm={async () => { await adminDeleteEntity({ data: { entity: "recipes", id: r.id } }); await load(); }} />
             </li>
           ))}
         </ul>

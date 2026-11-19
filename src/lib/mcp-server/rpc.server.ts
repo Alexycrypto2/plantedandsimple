@@ -20,7 +20,7 @@ export async function handleRpc(msg: any): Promise<any | null> {
     case "ping":
       return ok({});
     case "tools/list":
-      return ok({ tools: TOOLS.map((t) => ({ name: t.name, description: t.description, inputSchema: zodToJsonSchema(t.inputSchema), annotations: { readOnlyHint: t.readOnly, destructiveHint: false } })) });
+      return ok({ tools: TOOLS.map((t) => ({ name: t.name, description: t.description, inputSchema: zodToJsonSchema(t.inputSchema), annotations: { readOnlyHint: t.readOnly, destructiveHint: t.name.startsWith("delete_") } })) });
     case "tools/call": {
       const tool = TOOLS.find((t) => t.name === msg.params?.name);
       if (!tool) return fail(-32602, `Unknown tool: ${msg.params?.name}`);

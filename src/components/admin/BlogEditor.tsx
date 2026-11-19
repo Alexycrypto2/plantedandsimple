@@ -33,6 +33,7 @@ import { Sparkles, Plus, ExternalLink, Image as ImageIcon, Eye, Pencil } from "l
 import { generateStudioImage } from "@/lib/ai/image-studio.functions";
 import { adminListMedia, adminUploadMedia, adminAddMediaByUrl, adminListEntity } from "@/lib/library/admin.functions";
 import { SeoDoctor } from "./SeoDoctor";
+import { ConfirmDelete } from "./ConfirmDelete";
 
 export type BlogDraft = {
   id?: string;
@@ -80,6 +81,7 @@ export function BlogEditor({
   onChange,
   onSave,
   onCancel,
+  onDelete,
   busy,
   links,
   onLinksChange,
@@ -90,6 +92,7 @@ export function BlogEditor({
   onChange: (v: BlogDraft) => void;
   onSave: () => void;
   onCancel: () => void;
+  onDelete?: () => Promise<unknown>;
   busy: boolean;
 }) {
   const set = (p: Partial<BlogDraft>) => onChange({ ...value, ...p });
@@ -402,6 +405,7 @@ export function BlogEditor({
       {links && onLinksChange && <ConnectionsCard links={links} onChange={onLinksChange} contextText={`${value.title} ${value.tags} ${value.category}`} />}
 
       <div className="sticky bottom-0 -mx-4 flex justify-end gap-3 border-t border-forest/10 bg-white/95 px-4 py-3 sm:-mx-6 sm:px-6">
+        {value.id && onDelete && <div className="mr-auto"><ConfirmDelete label="Delete" itemTitle={value.title} onConfirm={onDelete} /></div>}
         <button onClick={onCancel} className="rounded-full border border-forest/20 px-5 py-2 text-xs font-bold uppercase tracking-[0.2em] text-charcoal/70">Cancel</button>
         <button onClick={onSave} disabled={busy} className="rounded-full bg-forest px-6 py-2 text-xs font-bold uppercase tracking-[0.2em] text-cream hover:bg-forest-deep disabled:opacity-60">
           {busy ? "Saving…" : "Save post"}
