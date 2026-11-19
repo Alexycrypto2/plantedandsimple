@@ -1,9 +1,12 @@
 import { createFileRoute, Link, Navigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { CalendarDays, ShoppingBasket, ChefHat, Heart, Check } from "lucide-react";
-import { useCurrentPlan, useFavorites, useProfile } from "@/prep-kit/lib/data";
+import { CalendarDays, ShoppingBasket, ChefHat, Heart, Check, Shuffle } from "lucide-react";
+import { toast } from "sonner";
+import { useCurrentPlan, useFavorites, useProfile, useSavePlan } from "@/prep-kit/lib/data";
+import { MacroRing } from "@/prep-kit/components/MacroRing";
+import { RecipePicker } from "@/prep-kit/components/RecipePicker";
 import { RECIPE_BY_ID } from "@/prep-kit/data/content";
-import { DAYS, SLOTS, type Day } from "@/prep-kit/data/types";
+import { DAYS, DAY_LABEL, SLOTS, type Day, type PlanSlots, type Slot } from "@/prep-kit/data/types";
 import { planRecipeCounts, buildGrocery } from "@/prep-kit/lib/grocery";
 import { RecipeCard } from "@/prep-kit/components/RecipeCard";
 import { Empty } from "@/prep-kit/components/AppShell";
@@ -15,39 +18,65 @@ export const Route = createFileRoute("/_authenticated/prep-app/")({
 
 const todayKey = (): Day => DAYS[(new Date().getDay() + 6) % 7]!;
 
-const eatenKey = () => `prep-eaten-${new Date().toISOString().slice(0, 10)}`;
+/** ISO date (YYYY-MM-DD, local) of the given weekday in the current Mon–Sun week. */
+function dateForDay(d: Day): string {
+  const now = new Date();
+  const diff = DAYS.indexOf(d) - (now.getDay() + 6) % 7;
+  const t = new Date(now.getFullYear(), now.getMonth(), now.getDate() + diff);
+  return `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, "0")}-${String(t.getDate()).padStart(2, "0")}`;
+}
+const eatenKey = (d: Day) => `prep-eaten-${dateForDay(d)}`;
 
-function useEatenToday() {
-  const [eaten, setEaten] = useState<string[]>([]);
+function useEatenWeek() {
+  const [eaten, setEaten] = useState<Partial<Record<Day, string[]>>>({});
   useEffect(() => {
-    try { setEaten(JSON.parse(localStorage.getItem(eatenKey()) ?? "[]")); } catch { setEaten([]); }
+    const all: Partial<Record<Day, string[]>> = {};
+    for (const d of DAYS) { try { all[d] = JSON.parse(localStorage.getItem(eatenKey(d)) ?? "[]"); } catch { all[d] = []; } }
+    setEaten(all);
   }, []);
-  const toggle = (slot: string) => setEaten((cur) => {
-    const next = cur.includes(slot) ? cur.filter((s) => s !== slot) : [...cur, slot];
-    try { localStorage.setItem(eatenKey(), JSON.stringify(next)); } catch { /* storage unavailable */ }
-    return next;
+  const toggle = (d: Day, slot: string) => setEaten((cur) => {
+    const list = cur[d] ?? [];
+    const next = list.includes(slot) ? list.filter((s) => s !== slot) : [...list, slot];
+    try { localStorage.setItem(eatenKey(d), JSON.stringify(next)); } catch { /* storage unavailable */ }
+    return { ...cur, [d]: next };
   });
   return { eaten, toggle };
 }
 
 function Dashboard() {
-  const { eaten, toggle } = useEatenToday();
+  const { eaten, toggle } = useEatenWeek();
   const profile = useProfile();
   const plan = useCurrentPlan();
   const favs = useFavorites();
+  const savePlan = useSavePlan();
+  const [day, setDay] = useState<Day>(todayKey());
+  const [swap, setSwap] = useState<Slot | null>(null);
   if (profile.data && !profile.data.onboarded) return <Navigate to="/prep-app/onboarding" />;
 
   const slots = plan.data?.slots ?? {};
-  const today = slots[todayKey()] ?? {};
+  const isToday = day === todayKey();
+  const dayMeals = slots[day] ?? {};
+  const dayEaten = eaten[day] ?? [];
   const counts = planRecipeCounts(slots);
   const meals = [...counts.values()].reduce((a, b) => a + b, 0);
   const grocery = plan.data ? buildGrocery(slots) : [];
   const checked = plan.data?.grocery_checked.length ?? 0;
-  const todayProtein = SLOTS.reduce((s, k) => s + (today[k] ? RECIPE_BY_ID[today[k]!]?.nutrition.protein ?? 0 : 0), 0);
+  const protein = (k: Slot) => (dayMeals[k] ? RECIPE_BY_ID[dayMeals[k]!]?.nutrition.protein ?? 0 : 0);
+  const plannedProtein = SLOTS.reduce((s, k) => s + protein(k), 0);
+  const plannedKcal = SLOTS.reduce((s, k) => s + (dayMeals[k] ? RECIPE_BY_ID[dayMeals[k]!]?.nutrition.calories ?? 0 : 0), 0);
   const target = profile.data?.protein_target || 100;
-  const eatenProtein = SLOTS.reduce((s, k) => s + (today[k] && eaten.includes(k) ? RECIPE_BY_ID[today[k]!]?.nutrition.protein ?? 0 : 0), 0);
-  const pct = Math.min(100, Math.round((eatenProtein / target) * 100));
+  const eatenProtein = SLOTS.reduce((s, k) => s + (dayEaten.includes(k) ? protein(k) : 0), 0);
+  const avoid = [...(profile.data?.allergies ?? []), ...(profile.data?.dislikes ?? [])];
   const favList = [...(favs.data ?? [])].map((id) => RECIPE_BY_ID[id]).filter((r): r is NonNullable<typeof r> => !!r).slice(0, 3);
+
+  const doSwap = (slot: Slot, id: string | null) => {
+    if (!plan.data) return;
+    const next: PlanSlots = { ...slots, [day]: { ...(slots[day] ?? {}), [slot]: id } };
+    savePlan.mutate({ id: plan.data.id, slots: next as never }, {
+      onSuccess: () => toast.success(id ? "Meal swapped" : "Meal removed"),
+      onError: () => toast.error("Couldn't save that change. Please try again."),
+    });
+  };
 
   return (
     <div className="space-y-8">
@@ -64,37 +93,49 @@ function Dashboard() {
         </Empty>
       ) : (
         <>
+          <nav aria-label="Choose a day" className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1">
+            {DAYS.map((d) => {
+              const planned = SLOTS.filter((k) => slots[d]?.[k]).length;
+              const done = planned > 0 && SLOTS.every((k) => !slots[d]?.[k] || (eaten[d] ?? []).includes(k));
+              const active = d === day;
+              return (
+                <button key={d} type="button" onClick={() => setDay(d)} aria-pressed={active}
+                  className={`flex min-w-[3.25rem] flex-1 flex-col items-center rounded-xl border px-2 py-2 transition-colors ${active ? "border-primary bg-primary text-primary-foreground shadow-sm" : "bg-card text-primary hover:bg-muted"}`}>
+                  <span className="text-[11px] font-bold uppercase tracking-wider opacity-80">{d}</span>
+                  <span className="font-display text-base font-extrabold">{Number(dateForDay(d).slice(8))}</span>
+                  <span className={`mt-1 h-1.5 w-1.5 rounded-full ${done ? (active ? "bg-gold" : "bg-primary") : d === todayKey() && !active ? "bg-gold" : "bg-transparent"}`} />
+                </button>
+              );
+            })}
+          </nav>
+
           <section className="rounded-2xl border bg-card p-5">
             <div className="flex items-baseline justify-between">
-              <h2 className="text-lg font-bold text-primary">Today's meals</h2>
-              <span className="text-sm font-semibold text-gold">{todayProtein}g planned</span>
+              <h2 className="text-lg font-bold text-primary">{isToday ? "Today's meals" : `${DAY_LABEL[day]}'s meals`}</h2>
+              <span className="text-xs font-semibold text-muted-foreground">{plannedProtein}g protein · {plannedKcal} kcal planned</span>
             </div>
-            <div className="mt-3">
-              <div className="flex items-baseline justify-between text-sm">
-                <span className="font-semibold text-primary">{eatenProtein}g / {target}g protein eaten</span>
-                <span className="text-xs text-muted-foreground">{pct}%</span>
-              </div>
-              <div className="mt-1.5 h-2.5 overflow-hidden rounded-full bg-muted" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}>
-                <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${pct}%` }} />
-              </div>
-              {pct >= 100 ? <p className="mt-2 text-sm font-semibold text-primary">Goal reached today 🎉</p> : null}
+            <div className="mt-4">
+              <MacroRing value={eatenProtein} target={target} label="protein eaten" sub={plannedProtein < target ? `Plan is ${target - plannedProtein}g short — try a swap` : undefined} />
             </div>
-            <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="mt-5 grid gap-3 sm:grid-cols-2">
               {SLOTS.map((s) => {
-                const r = today[s] ? RECIPE_BY_ID[today[s]!] : null;
-                const done = eaten.includes(s);
+                const r = dayMeals[s] ? RECIPE_BY_ID[dayMeals[s]!] : null;
+                const done = dayEaten.includes(s);
                 return r ? (
                   <div key={s} className={`flex items-center gap-2 rounded-xl p-2 ${done ? "bg-secondary" : "bg-muted/60"}`}>
                     <Link to="/prep-app/recipes/$id" params={{ id: r.id }} className="flex min-w-0 flex-1 items-center gap-3">
                       <img src={r.image} alt="" className="h-14 w-14 rounded-lg object-cover" />
-                      <div className="min-w-0"><p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">{s}</p><p className={`line-clamp-2 text-sm font-semibold text-primary ${done ? "line-through opacity-70" : ""}`}>{r.title}</p></div>
+                      <div className="min-w-0"><p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">{s} · {r.nutrition.protein}g</p><p className={`line-clamp-2 text-sm font-semibold text-primary ${done ? "line-through opacity-70" : ""}`}>{r.title}</p></div>
                     </Link>
-                    <button type="button" onClick={() => toggle(s)} aria-pressed={done} aria-label={done ? `Unmark ${s} as eaten` : `Mark ${s} as eaten`} className={`grid h-9 w-9 shrink-0 place-items-center rounded-full border ${done ? "border-primary bg-primary text-primary-foreground" : "bg-card text-muted-foreground"}`}>
+                    <button type="button" onClick={() => setSwap(s)} aria-label={`Swap ${s}`} className="grid h-9 w-9 shrink-0 place-items-center rounded-full border bg-card text-muted-foreground hover:text-primary">
+                      <Shuffle className="h-4 w-4" />
+                    </button>
+                    <button type="button" onClick={() => toggle(day, s)} aria-pressed={done} aria-label={done ? `Unmark ${s} as eaten` : `Mark ${s} as eaten`} className={`grid h-9 w-9 shrink-0 place-items-center rounded-full border ${done ? "border-primary bg-primary text-primary-foreground" : "bg-card text-muted-foreground"}`}>
                       <Check className="h-4 w-4" />
                     </button>
                   </div>
                 ) : (
-                  <Link key={s} to="/prep-app/planner" className="rounded-xl border border-dashed p-3 text-sm text-muted-foreground"><span className="block text-[11px] font-bold uppercase tracking-wider">{s}</span>Add a meal</Link>
+                  <button key={s} type="button" onClick={() => setSwap(s)} className="rounded-xl border border-dashed p-3 text-left text-sm text-muted-foreground hover:bg-muted"><span className="block text-[11px] font-bold uppercase tracking-wider">{s}</span>Add a meal</button>
                 );
               })}
             </div>
@@ -106,6 +147,10 @@ function Dashboard() {
             <Stat to="/prep-app/kitchen" icon={ChefHat} label="Prep day" value={profile.data?.prep_day ?? "Sunday"} />
           </section>
         </>
+      )}
+
+      {swap && (
+        <RecipePicker open onOpenChange={(o) => !o && setSwap(null)} slot={swap} currentId={dayMeals[swap]} avoid={avoid} onPick={(id) => doSwap(swap, id)} />
       )}
 
       <section>
