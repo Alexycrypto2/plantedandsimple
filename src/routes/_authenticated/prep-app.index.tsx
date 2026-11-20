@@ -43,8 +43,29 @@ function useEatenWeek() {
   return { eaten, toggle };
 }
 
+function isoDaysAgo(n: number): string {
+  const now = new Date();
+  const t = new Date(now.getFullYear(), now.getMonth(), now.getDate() - n);
+  return `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, "0")}-${String(t.getDate()).padStart(2, "0")}`;
+}
+function loggedOn(iso: string): boolean {
+  try { return (JSON.parse(localStorage.getItem(`prep-eaten-${iso}`) ?? "[]") as string[]).length > 0; } catch { return false; }
+}
+/** Consecutive days with at least one meal ticked, counting back from today (or yesterday if today not logged yet). */
+function useStreak(dep: unknown) {
+  const [state, setState] = useState({ count: 0, today: false });
+  useEffect(() => {
+    const today = loggedOn(isoDaysAgo(0));
+    let n = 0;
+    for (let i = today ? 0 : 1; i < 366 && loggedOn(isoDaysAgo(i)); i++) n++;
+    setState({ count: n, today });
+  }, [dep]);
+  return state;
+}
+
 function Dashboard() {
   const { eaten, toggle } = useEatenWeek();
+  const streak = useStreak(eaten);
   const profile = useProfile();
   const plan = useCurrentPlan();
   const favs = useFavorites();
@@ -84,6 +105,11 @@ function Dashboard() {
         <p className="eyebrow">{new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" })}</p>
         <h1 className="mt-1 text-3xl font-extrabold text-primary">Hi{profile.data?.display_name ? `, ${profile.data.display_name}` : ""}.</h1>
         <p className="text-muted-foreground">A little planning. A much easier week.</p>
+        <div className={`mt-3 inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm ${streak.today ? "border-primary bg-primary text-primary-foreground" : "bg-card text-primary"}`}>
+          <span aria-hidden>🔥</span>
+          <span className="font-bold">{streak.count > 0 ? `${streak.count}-day streak` : "Start your streak"}</span>
+          <span className="opacity-80">· {streak.count === 0 ? "Tick off today's meals to begin" : streak.today ? "Logged today, keep it going!" : "Log today to keep it alive"}</span>
+        </div>
       </div>
 
       {!plan.isLoading && !plan.data ? (
