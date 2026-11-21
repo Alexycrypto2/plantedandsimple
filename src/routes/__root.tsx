@@ -107,6 +107,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
     ],
     scripts: [
+      { src: "https://www.googletagmanager.com/gtag/js?id=G-NYK76K7Z2Q", async: true },
+      {
+        children:
+          "window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-NYK76K7Z2Q',{send_page_view:false});",
+      },
       {
         type: "application/ld+json",
         children: JSON.stringify({
@@ -162,8 +167,24 @@ function NavigationProgress() {
   );
 }
 
+function useGooglePageViews() {
+  const href = useRouterState({ select: (s) => s.location.href });
+  useEffect(() => {
+    const w = window as unknown as { gtag?: (...a: unknown[]) => void };
+    const t = window.setTimeout(() => {
+      w.gtag?.("event", "page_view", {
+        page_path: window.location.pathname + window.location.search,
+        page_location: window.location.href,
+        page_title: document.title,
+      });
+    }, 50);
+    return () => window.clearTimeout(t);
+  }, [href]);
+}
+
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  useGooglePageViews();
 
   return (
     <QueryClientProvider client={queryClient}>
