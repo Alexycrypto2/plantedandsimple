@@ -110,6 +110,26 @@ function Dashboard() {
           <span className="font-bold">{streak.count > 0 ? `${streak.count}-day streak` : "Start your streak"}</span>
           <span className="opacity-80">· {streak.count === 0 ? "Tick off today's meals to begin" : streak.today ? "Logged today, keep it going!" : "Log today to keep it alive"}</span>
         </div>
+        {plan.data ? (() => {
+          const today = DAYS[(new Date().getDay() + 6) % 7]!;
+          const tMeals = slots[today] ?? {};
+          const tEaten = eaten[today] ?? [];
+          const tProtein = SLOTS.reduce((a, k) => a + (tMeals[k] && tEaten.includes(k) ? RECIPE_BY_ID[tMeals[k]!]?.nutrition.protein ?? 0 : 0), 0);
+          const isPrepDay = (profile.data?.prep_day ?? "Sunday").toLowerCase() === new Date().toLocaleDateString("en-US", { weekday: "long" }).toLowerCase();
+          const left = grocery.length - checked;
+          const banner = tProtein >= target
+            ? { to: "/prep-app/planner" as const, icon: "🎉", text: "Daily protein goal reached! Great work today." }
+            : isPrepDay
+              ? { to: "/prep-app/kitchen" as const, icon: "👨‍🍳", text: "It's prep day. Batch cook your staples for the week." }
+              : left > 0
+                ? { to: "/prep-app/grocery" as const, icon: "🛒", text: `${left} grocery item${left === 1 ? "" : "s"} left before your ${profile.data?.prep_day ?? "Sunday"} prep.` }
+                : null;
+          return banner ? (
+            <Link to={banner.to} className="mt-3 flex items-center gap-3 rounded-2xl border border-gold/40 bg-secondary px-4 py-3 text-sm font-semibold text-primary hover:shadow-sm">
+              <span aria-hidden className="text-lg">{banner.icon}</span><span className="flex-1">{banner.text}</span><span aria-hidden>→</span>
+            </Link>
+          ) : null;
+        })() : null}
       </div>
 
       {!plan.isLoading && !plan.data ? (
@@ -143,15 +163,15 @@ function Dashboard() {
             <div className="mt-4">
               <MacroRing value={eatenProtein} target={target} label="protein eaten" sub={plannedProtein < target ? `Plan is ${target - plannedProtein}g short — try a swap` : undefined} />
             </div>
-            <div className="mt-5 grid gap-3 sm:grid-cols-2">
+            <div className="mt-5 grid gap-3">
               {SLOTS.map((s) => {
                 const r = dayMeals[s] ? RECIPE_BY_ID[dayMeals[s]!] : null;
                 const done = dayEaten.includes(s);
                 return r ? (
-                  <div key={s} className={`flex items-center gap-2 rounded-xl p-2 ${done ? "bg-secondary" : "bg-muted/60"}`}>
+                  <div key={s} className={`flex items-center gap-3 rounded-2xl border p-3 transition-colors ${done ? "border-primary/30 bg-secondary" : "bg-card"}`}>
                     <Link to="/prep-app/recipes/$id" params={{ id: r.id }} className="flex min-w-0 flex-1 items-center gap-3">
-                      <img src={r.image} alt="" className="h-14 w-14 rounded-lg object-cover" />
-                      <div className="min-w-0"><p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">{s} · {r.nutrition.protein}g</p><p className={`line-clamp-2 text-sm font-semibold text-primary ${done ? "line-through opacity-70" : ""}`}>{r.title}</p></div>
+                      <img src={r.image} alt="" className={`h-20 w-20 shrink-0 rounded-xl object-cover ${done ? "opacity-70" : ""}`} />
+                      <div className="min-w-0"><p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">{s}</p><p className={`line-clamp-2 text-sm font-semibold text-primary ${done ? "line-through opacity-70" : ""}`}>{r.title}</p><p className="mt-1 flex flex-wrap gap-1.5 text-[11px] font-semibold"><span className="rounded-full bg-primary/10 px-2 py-0.5 text-primary">{r.nutrition.protein}g protein</span><span className="rounded-full bg-muted px-2 py-0.5 text-muted-foreground">{r.nutrition.calories} kcal</span></p></div>
                     </Link>
                     <button type="button" onClick={() => setSwap(s)} aria-label={`Swap ${s}`} className="grid h-9 w-9 shrink-0 place-items-center rounded-full border bg-card text-muted-foreground hover:text-primary">
                       <Shuffle className="h-4 w-4" />
