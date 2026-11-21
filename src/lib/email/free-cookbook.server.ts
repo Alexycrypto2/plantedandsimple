@@ -42,21 +42,24 @@ export async function enqueueFreeCookbookEmail(email: string) {
     .maybeSingle();
   if (existingToken?.used_at) return { queued: false, reason: "suppressed" as const };
 
+  // Token prep is best-effort: a database hiccup must never stop the email.
   let unsubscribeToken = existingToken?.token ?? randomToken();
   if (!existingToken) {
-    const { error: tokenError } = await supabaseAdmin
-      .from("email_unsubscribe_tokens")
-      .upsert(
-        { token: unsubscribeToken, email: normalizedEmail },
-        { onConflict: "email", ignoreDuplicates: true },
-      );
-    if (tokenError) throw new Error("We couldn't prepare your confirmation email. Please try again.");
-    const { data: storedToken } = await supabaseAdmin
-      .from("email_unsubscribe_tokens")
-      .select("token")
-      .eq("email", normalizedEmail)
-      .maybeSingle();
-    unsubscribeToken = storedToken?.token ?? unsubscribeToken;
+    try {
+      const { error: tokenError } = await supabaseAdmin
+        .from("email_unsubscribe_tokens")
+        .insert({ token: unsubscribeToken, email: normalizedEmail });
+      if (tokenError) {
+        const { data: storedToken } = await supabaseAdmin
+          .from("email_unsubscribe_tokens")
+          .select("token")
+          .eq("email", normalizedEmail)
+          .maybeSingle();
+        unsubscribeToken = storedToken?.token ?? unsubscribeToken;
+      }
+    } catch {
+      // keep the in-memory token
+    }
   }
 
   const cookbookPageUrl = "https://plantedandsimple.com/free-cookbook";

@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Body, Button, Container, Head, Heading, Hr, Html, Preview, Text } from "@react-email/components";
+import { Body, Button, Container, Head, Heading, Hr, Html, Img, Preview, Text } from "@react-email/components";
 import type { TemplateEntry } from "./registry";
 
 interface Props {
@@ -17,6 +17,12 @@ const FreeCookbookEmail = ({ downloadUrl = "https://plantedandsimple.com/free-co
         <Text style={text}>
           Your copy of <strong>20-Minute Plant Protein Kitchen</strong> is waiting for you:
         </Text>
+        <Img src="https://plantedandsimple.com/email/free-cookbook.jpg" alt="20-Minute Plant Protein Kitchen cookbook" width="504" style={cover} />
+        <Text style={text}>
+          ✓ 12 plant-based dinners, ready in about 20 minutes<br />
+          ✓ High-protein meals from everyday ingredients<br />
+          ✓ No specialty foods, no chalky powders
+        </Text>
         <Button style={button} href={downloadUrl}>Open my free cookbook</Button>
         <Text style={text}>Before you dive in, a quick confession.</Text>
         <Text style={text}>
@@ -32,6 +38,9 @@ const FreeCookbookEmail = ({ downloadUrl = "https://plantedandsimple.com/free-co
         <Text style={text}>
           <strong>Your challenge for tonight:</strong> pick just one recipe from your free guide and
           cook it. Keep this email so your cookbook is always one click away.
+        </Text>
+        <Text style={ps}>
+          P.S. In two days I’ll send you my 3 simple rules for getting dinner on the table fast, without spending your whole Sunday meal prepping. Keep an eye on your inbox.
         </Text>
         <Hr style={rule} />
         <Text style={footer}>Simple plant-based meals. Powerful nutrition.</Text>
@@ -54,6 +63,8 @@ const eyebrow = { color: "#7FA77A", fontSize: "11px", fontWeight: "bold", letter
 const heading = { color: "#2E5E3B", fontFamily: "Georgia, serif", fontSize: "30px", lineHeight: "1.15", margin: "0 0 20px" };
 const text = { color: "#2b2b2b", fontSize: "15px", lineHeight: "1.65", margin: "0 0 22px" };
 const button = { backgroundColor: "#2E5E3B", borderRadius: "8px", color: "#FAF8F3", display: "inline-block", fontSize: "15px", fontWeight: "bold", padding: "15px 22px", textDecoration: "none", margin: "2px 0 26px" };
+const cover = { width: "100%", maxWidth: "504px", height: "auto", borderRadius: "10px", margin: "0 0 22px" };
+const ps = { color: "#2b2b2b", fontSize: "14px", fontStyle: "italic", lineHeight: "1.6", margin: "0 0 10px" };
 const rule = { borderColor: "#e8e6df", margin: "26px 0" };
 const footer = { color: "#7d7d7d", fontSize: "12px", lineHeight: "1.5", margin: "6px 0" };
 
