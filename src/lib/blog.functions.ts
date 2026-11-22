@@ -167,6 +167,7 @@ export const adminUpsertPost = createServerFn({ method: "POST" })
       if (error) throw new Error(error.message);
       row = r;
     }
+    if (row.status === "published" && (row.tags ?? []).some((t: string) => t.toLowerCase() === "homepage")) await enforceHomepagePins(supabaseAdmin, row.id);
     return { ...mapPublic(row), status: row.status, created_at: row.created_at };
   });
 
@@ -182,6 +183,15 @@ export const adminDeletePost = createServerFn({ method: "POST" })
   });
 
 /** Patch only homepage metadata; never overwrite article text or publication date. */
+/** Keep at most 3 homepage pins: the post just pinned always stays; the oldest other pins are released. */
+async function enforceHomepagePins(db: any, keepId: string, max = 3) {
+  const { data } = await db.from("blog_posts").select("id, tags, published_at").contains("tags", ["homepage"]).order("published_at", { ascending: false });
+  const others = ((data ?? []) as any[]).filter((r) => r.id !== keepId);
+  for (const r of others.slice(max - 1)) {
+    await db.from("blog_posts").update({ tags: (r.tags ?? []).filter((t: string) => t.toLowerCase() !== "homepage") }).eq("id", r.id);
+  }
+}
+
 export const adminSetPostHomepage = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { id: string; pinned: boolean }) => {
@@ -199,5 +209,6 @@ export const adminSetPostHomepage = createServerFn({ method: "POST" })
     if (data.pinned) tags.push("homepage");
     const { error } = await supabaseAdmin.from("blog_posts" as any).update({ tags }).eq("id", data.id);
     if (error) throw new Error(error.message);
+    if (data.pinned) await enforceHomepagePins(supabaseAdmin, data.id);
     return { id: data.id, tags };
   });

@@ -305,7 +305,8 @@ export function BlogEditor({
             checked={hasHomepageTag(value.tags)}
             onChange={(e) => set({ tags: toggleHomepageTag(tagsText, e.target.checked) })}
           />
-          Feature in the homepage journal (published posts only)
+          Feature in the homepage journal
+          {hasHomepageTag(value.tags) && value.status !== "published" && <span className="ml-auto text-xs font-normal text-destructive">Set Status to Published so it shows on the homepage</span>}
         </label>
         <Label t="Tags (comma separated)">
           <input className={inp} value={tagsText} onChange={(e) => { setTagsText(e.target.value); set({ tags: toggleHomepageTag(e.target.value, hasHomepageTag(value.tags)) }); }} />
