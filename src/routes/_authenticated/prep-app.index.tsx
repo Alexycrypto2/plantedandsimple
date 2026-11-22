@@ -10,6 +10,8 @@ import { DAYS, DAY_LABEL, SLOTS, type Day, type PlanSlots, type Slot } from "@/p
 import { planRecipeCounts, buildGrocery } from "@/prep-kit/lib/grocery";
 import { RecipeCard } from "@/prep-kit/components/RecipeCard";
 import { Empty } from "@/prep-kit/components/AppShell";
+import { BadgeShelf } from "@/prep-kit/components/BadgeShelf";
+import { buildPrepPlan } from "@/prep-kit/lib/prep";
 
 export const Route = createFileRoute("/_authenticated/prep-app/")({
   head: () => ({ meta: [{ title: "Home — Planted & Simple" }, { name: "description", content: "Your week at a glance." }, { property: "og:title", content: "Home — Planted & Simple" }, { property: "og:description", content: "Your week at a glance." }] }),
@@ -72,7 +74,6 @@ function Dashboard() {
   const savePlan = useSavePlan();
   const [day, setDay] = useState<Day>(todayKey());
   const [swap, setSwap] = useState<Slot | null>(null);
-  if (profile.data && !profile.data.onboarded) return <Navigate to="/prep-app/onboarding" />;
 
   const slots = plan.data?.slots ?? {};
   const isToday = day === todayKey();
@@ -88,7 +89,16 @@ function Dashboard() {
   const target = profile.data?.protein_target || 100;
   const eatenProtein = SLOTS.reduce((s, k) => s + (dayEaten.includes(k) ? protein(k) : 0), 0);
   const avoid = [...(profile.data?.allergies ?? []), ...(profile.data?.dislikes ?? [])];
+  const storageByTitle = new Map((plan.data ? buildPrepPlan(slots, Number(profile.data?.servings ?? 1) || 1).storage : []).map((x) => [x.recipe, x]));
+  const prepTotal = plan.data ? buildPrepPlan(slots, 1).tasks.length : 0;
   const favList = [...(favs.data ?? [])].map((id) => RECIPE_BY_ID[id]).filter((r): r is NonNullable<typeof r> => !!r).slice(0, 3);
+
+  const goalHit = isToday && plan.data && eatenProtein >= target && target > 0;
+  useEffect(() => {
+    if (!goalHit) return;
+    const k = `prep-goal-${dateForDay(todayKey())}`;
+    try { if (!localStorage.getItem(k)) { localStorage.setItem(k, "1"); toast.success("🎉 Daily protein goal reached!", { description: `${eatenProtein}g of ${target}g — brilliant work today.` }); } } catch { /* storage unavailable */ }
+  }, [goalHit]);
 
   const doSwap = (slot: Slot, id: string | null) => {
     if (!plan.data) return;
@@ -98,6 +108,8 @@ function Dashboard() {
       onError: () => toast.error("Couldn't save that change. Please try again."),
     });
   };
+
+  if (profile.data && !profile.data.onboarded) return <Navigate to="/prep-app/onboarding" />;
 
   return (
     <div className="space-y-8">
@@ -155,7 +167,7 @@ function Dashboard() {
             })}
           </nav>
 
-          <section className="rounded-2xl border bg-card p-5">
+          <section className={`rounded-2xl border bg-card p-5 transition-shadow ${goalHit ? "border-gold shadow-[0_0_0_3px_var(--gold)]" : ""}`}>
             <div className="flex items-baseline justify-between">
               <h2 className="text-lg font-bold text-primary">{isToday ? "Today's meals" : `${DAY_LABEL[day]}'s meals`}</h2>
               <span className="text-xs font-semibold text-muted-foreground">{plannedProtein}g protein · {plannedKcal} kcal planned</span>
@@ -171,7 +183,7 @@ function Dashboard() {
                   <div key={s} className={`flex items-center gap-3 rounded-2xl border p-3 transition-colors ${done ? "border-primary/30 bg-secondary" : "bg-card"}`}>
                     <Link to="/prep-app/recipes/$id" params={{ id: r.id }} className="flex min-w-0 flex-1 items-center gap-3">
                       <img src={r.image} alt="" className={`h-20 w-20 shrink-0 rounded-xl object-cover ${done ? "opacity-70" : ""}`} />
-                      <div className="min-w-0"><p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">{s}</p><p className={`line-clamp-2 text-sm font-semibold text-primary ${done ? "line-through opacity-70" : ""}`}>{r.title}</p><p className="mt-1 flex flex-wrap gap-1.5 text-[11px] font-semibold"><span className="rounded-full bg-primary/10 px-2 py-0.5 text-primary">{r.nutrition.protein}g protein</span><span className="rounded-full bg-muted px-2 py-0.5 text-muted-foreground">{r.nutrition.calories} kcal</span></p></div>
+                      <div className="min-w-0"><p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">{s}</p><p className={`line-clamp-2 text-sm font-semibold text-primary ${done ? "line-through opacity-70" : ""}`}>{r.title}</p><p className="mt-1 flex flex-wrap gap-1.5 text-[11px] font-semibold"><span className="rounded-full bg-primary/10 px-2 py-0.5 text-primary">{r.nutrition.protein}g protein</span><span className="rounded-full bg-muted px-2 py-0.5 text-muted-foreground">{r.nutrition.calories} kcal</span>{(() => { const st = storageByTitle.get(r.title); return st ? <span title={st.note ?? undefined} className="rounded-full bg-gold/15 px-2 py-0.5 text-primary">{st.where === "freezer" ? "❄️ Freeze · thaw night before" : `🌿 Eat ${st.eatBy.toLowerCase()}`}</span> : null; })()}</p></div>
                     </Link>
                     <button type="button" onClick={() => setSwap(s)} aria-label={`Swap ${s}`} className="grid h-9 w-9 shrink-0 place-items-center rounded-full border bg-card text-muted-foreground hover:text-primary">
                       <Shuffle className="h-4 w-4" />
@@ -194,6 +206,8 @@ function Dashboard() {
           </section>
         </>
       )}
+
+      {plan.data && <BadgeShelf refresh={eaten} input={{ plannedMeals: meals, prepComplete: prepTotal > 0 && plan.data.prep_done.length >= prepTotal, groceryComplete: grocery.length > 0 && checked >= grocery.length, favourites: favs.data?.size ?? 0 }} />}
 
       {swap && (
         <RecipePicker open onOpenChange={(o) => !o && setSwap(null)} slot={swap} currentId={dayMeals[swap]} avoid={avoid} onPick={(id) => doSwap(swap, id)} />

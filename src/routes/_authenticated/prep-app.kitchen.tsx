@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { Check, Clock, Hand, Package, Play, Printer, Refrigerator, Snowflake, Layers } from "lucide-react";
 import { KitchenLiveMode } from "@/prep-kit/components/KitchenLiveMode";
 import { PageHeader, Empty } from "@/prep-kit/components/AppShell";
@@ -40,6 +41,7 @@ function Prep() {
 
   return (
     <div className="space-y-8">
+      <KitchenPrintSheet tasks={p.tasks} storage={p.storage} title={`Prep day · ${profile.data?.prep_day ?? "Sunday"} · serving ${servings}`} />
       {live && <KitchenLiveMode tasks={p.tasks} done={done} onToggle={toggle} onClose={() => setLive(false)} />}
       <PageHeader eyebrow={`${profile.data?.prep_day ?? "Sunday"} · serving ${servings}`} title="Prep day workflow">
         <div className="flex gap-2 print:hidden">
@@ -175,4 +177,20 @@ function TaskRow({ t, on, onToggle }: { t: PrepTask; on: boolean; onToggle: () =
       </button>
     </li>
   );
+}
+
+function KitchenPrintSheet({ tasks, storage, title }: { tasks: PrepTask[]; storage: { recipe: string; where: string; eatBy: string }[]; title: string }) {
+  const [mount, setMount] = useState<HTMLElement | null>(null);
+  useEffect(() => setMount(document.body), []);
+  if (!mount) return null;
+  return createPortal(
+    <div className="print-sheet fridge-sheet" aria-hidden="true">
+      <h1>Planted &amp; Simple</h1>
+      <p className="ps-desc">{title}</p>
+      {STATIONS.map((s) => { const ts = tasks.filter((t) => t.station === s.id); return ts.length ? (
+        <section key={s.id} style={{ marginTop: "10pt" }}><h2>{s.label}</h2><ul className="ps-ing">{ts.map((t) => <li key={t.id}><span className="ps-box" /><div><strong>{t.title}</strong>{t.amounts.length ? ` — ${t.amounts.join(", ")}` : ""}</div></li>)}</ul></section>
+      ) : null; })}
+      <section style={{ marginTop: "10pt" }}><h2>Storage</h2><ul className="ps-ing">{storage.map((x) => <li key={x.recipe}><span className="ps-box" />{x.recipe} — {x.where === "freezer" ? "Freezer" : "Fridge"} · {x.eatBy}</li>)}</ul></section>
+      <footer className="ps-foot">PlantedAndSimple · Meal Prep System</footer>
+    </div>, mount);
 }

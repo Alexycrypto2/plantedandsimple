@@ -1,6 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Star } from "lucide-react";
-import { useProfile, useUser } from "@/prep-kit/lib/data";
+import { useCurrentPlan, useFavorites, useProfile, useUser } from "@/prep-kit/lib/data";
+import { BadgeShelf } from "@/prep-kit/components/BadgeShelf";
+import { planRecipeCounts, buildGrocery } from "@/prep-kit/lib/grocery";
+import { buildPrepPlan } from "@/prep-kit/lib/prep";
 import { ProfileForm, GOALS } from "./prep-app.onboarding";
 
 export const Route = createFileRoute("/_authenticated/prep-app/profile")({
@@ -15,6 +18,12 @@ function ProfilePage() {
   const name = p?.display_name || user.data?.email?.split("@")[0] || "Member";
   const initials = name.split(/\s+/).map((w) => w[0]).join("").slice(0, 2).toUpperCase();
   const since = p?.created_at ? new Date(p.created_at).toLocaleDateString(undefined, { month: "long", year: "numeric" }) : null;
+  const plan = useCurrentPlan();
+  const favs = useFavorites();
+  const slots = plan.data?.slots ?? {};
+  const planned = [...planRecipeCounts(slots).values()].reduce((a, b) => a + b, 0);
+  const groceryN = plan.data ? buildGrocery(slots).length : 0;
+  const prepN = plan.data ? buildPrepPlan(slots, 1).tasks.length : 0;
   const goal = GOALS.find((g) => g.v === p?.goal);
   return (
     <div className="mx-auto max-w-2xl">
@@ -35,6 +44,7 @@ function ProfilePage() {
           </div>
         )}
       </div>
+      <div className="mb-6"><BadgeShelf input={{ plannedMeals: planned, prepComplete: prepN > 0 && (plan.data?.prep_done.length ?? 0) >= prepN, groceryComplete: groceryN > 0 && (plan.data?.grocery_checked.length ?? 0) >= groceryN, favourites: favs.data?.size ?? 0 }} /></div>
       <p className="eyebrow mb-3">Your preferences</p>
       <ProfileForm submitLabel="Save changes" />
     </div>
