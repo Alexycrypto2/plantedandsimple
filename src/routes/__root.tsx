@@ -113,6 +113,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           "window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-NYK76K7Z2Q',{send_page_view:false});",
       },
       {
+        children:
+          "!function(e){if(!window.pintrk){window.pintrk=function(){window.pintrk.queue.push(Array.prototype.slice.call(arguments))};var n=window.pintrk;n.queue=[],n.version='3.0';var t=document.createElement('script');t.async=!0,t.src=e;var r=document.getElementsByTagName('script')[0];r.parentNode.insertBefore(t,r)}}('https://s.pinimg.com/ct/core.js');pintrk('load','2614315058918');",
+      },
+      {
         type: "application/ld+json",
         children: JSON.stringify({
           "@context": "https://schema.org",
@@ -177,6 +181,7 @@ function useGooglePageViews() {
         page_location: window.location.href,
         page_title: document.title,
       });
+      (window as unknown as { pintrk?: (...a: unknown[]) => void }).pintrk?.("page");
     }, 50);
     return () => window.clearTimeout(t);
   }, [href]);
