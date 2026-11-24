@@ -381,6 +381,16 @@ export function BlogStudioPanel() {
                   ))}
                 </div>
               </div>
+              {(result.draft_recipes ?? []).length > 0 && (
+                <div className="rounded-2xl bg-forest/5 p-4">
+                  <p className={label}>New draft recipes (unpublished — review before publishing)</p>
+                  <ul className="mt-2 space-y-1 text-sm">
+                    {result.draft_recipes.map((r: any) => (
+                      <li key={r.id}><a className="font-semibold text-forest underline" href="/admin?tab=recipes">{r.title}</a> <span className="text-xs text-charcoal/50">/{r.slug}</span></li>
+                    ))}
+                  </ul>
+                </div>
+              )}
               <button className={btnGhost} onClick={() => { setResult(null); setStep(1); }}>Start a new article</button>
             </div>
           )}

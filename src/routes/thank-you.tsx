@@ -1,3 +1,4 @@
+import { trackPurchaseConversion } from "@/lib/ad-events";
 import { CookbookPrice } from "@/components/site/CookbookPrice";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
@@ -77,6 +78,7 @@ function ThankYou() {
         });
         if (cancelled) return;
         if (res.paid) {
+          trackPurchaseConversion(transactionId, res.product);
           setState({
             status: "paid",
             email: res.email,

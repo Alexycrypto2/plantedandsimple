@@ -1,3 +1,4 @@
+import { trackLeadConversion } from "@/lib/ad-events";
 import { pageHead } from "@/lib/seo";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
@@ -43,6 +44,7 @@ function SignupForm({ id }: { id: string }) {
     try {
       await subscribeFreeGuide({ data: { email, source: "free_page" } });
       void trackEvent("free_cookbook_signup", { metadata: { source: "free_page" } });
+      trackLeadConversion("free_page");
       await navigate({ to: "/free-cookbook" });
     } catch (ex) {
       setErr(ex instanceof Error ? ex.message : "Something went wrong. Try again.");

@@ -1,3 +1,4 @@
+import { trackLeadConversion } from "@/lib/ad-events";
 import { useEffect, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { Check, X } from "lucide-react";
@@ -118,6 +119,7 @@ export function PopupView({ cfg, onClose, preview }: { cfg: PopupConfig; onClose
     try {
       await subscribeFreeGuide({ data: { email, source: `newsletter_popup_${cfg.template}` } });
       markSubscribed();
+      trackLeadConversion(`popup_${cfg.template}`);
       await navigate({ to: "/free-cookbook" });
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "We couldn't send the guide. Please try again.");

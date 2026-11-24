@@ -126,6 +126,39 @@ export function imagePlanFor(words: number, format?: BlogFormat) {
   return { sections, total: sections + 3 };
 }
 
+const STOP = new Set(["vegan","plant","based","recipe","recipes","easy","best","high","the","and","for","with","your","ideas","simple","healthy","quick","make","how","to","of","a","in","on"]);
+const words = (t: string) => t.toLowerCase().replace(/[^a-z0-9 ]+/g, " ").split(/\s+/).filter((w) => w.length > 2 && !STOP.has(w) && !/^\d+$/.test(w)).map((w) => w.replace(/(es|s)$/, ""));
+
+/** How many dishes the article needs: the title's number, else the format's typical count. */
+export function dishesNeeded(topic: string, format: BlogFormat): number {
+  const n = titleItemCount(topic);
+  if (n) return Math.min(n, 30);
+  return format.includeRecipe ? 1 : format.id === "roundup" ? 7 : 3;
+}
+
+/** Ranks live recipes against the topic; only recipes sharing a meaningful word count as matches. */
+export function matchRecipes(topic: string, catalog: Array<{ slug: string; title: string }>, limit: number) {
+  const want = new Set(words(topic));
+  return catalog
+    .map((r) => ({ r, score: words(r.title).filter((w) => want.has(w)).length }))
+    .filter((x) => x.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, limit)
+    .map((x) => x.r);
+}
+
+function matcherRules(brief: ArticleBrief) {
+  const format = formatFor(brief);
+  const need = dishesNeeded(brief.topic, format);
+  const matched = matchRecipes(brief.topic, brief.catalog ?? [], need);
+  const gap = Math.max(0, need - matched.length);
+  return `SMART RECIPE MATCHER (strict):
+- This article needs ${need} featured dish${need === 1 ? "" : "es"}.
+- Best-matching site recipes (feature these FIRST, one section each, recipe_slug set exactly; skip any that truly do not fit the topic):
+${matched.map((r) => `  - ${r.slug} | ${r.title}`).join("\n") || "  (no matches on the site)"}
+- ${gap > 0 ? `Gap: ${gap} dish${gap === 1 ? "" : "es"} have no site recipe. Write exactly ${gap} new dish section${gap === 1 ? "" : "s"} for them AND add ${gap} complete entr${gap === 1 ? "y" : "ies"} to new_recipes (plus one more for any matched recipe you skipped). Never leave a gap unfilled.` : "No gap: do not invent new dishes unless a matched recipe does not fit; if you skip one, add a complete replacement to new_recipes."}`;
+}
+
 function catalogRules(catalog?: Array<{ slug: string; title: string }>) {
   const list = (catalog ?? []).slice(0, 150).map((r) => `- ${r.slug} | ${r.title}`).join("\n");
   return `SITE RECIPES (these are the only recipes that exist on PlantedAndSimple):
@@ -156,6 +189,8 @@ ${brief.research ? `Research to build on:\n${JSON.stringify(brief.research).slic
 ${brief.rewriteBrief ? `\nTHIS IS A REWRITE. The previous draft failed the editor's quality check. Fix all of this:\n${brief.rewriteBrief}\n` : ""}
 
 ${catalogRules(brief.catalog)}
+
+${matcherRules(brief)}
 
 ARTICLE FORMAT: ${format.label}. Follow this standard section order (map each numbered part to one or more sections):
 ${format.structure}
