@@ -29,7 +29,7 @@ function WritingCheck({ title, html }: { title: string; html: string }) {
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 import { listImages, setImage, photoBrief } from "@/lib/content/blog-clean";
 import { hasHomepageTag, stripHomepageTag, toggleHomepageTag } from "@/lib/content/homepage-pick";
-import { Sparkles, Plus, ExternalLink, Image as ImageIcon, Eye, Pencil } from "lucide-react";
+import { Sparkles, Plus, ExternalLink, Image as ImageIcon, Eye, Pencil, ArrowLeft, Save } from "lucide-react";
 import { generateStudioImage } from "@/lib/ai/image-studio.functions";
 import { adminListMedia, adminUploadMedia, adminAddMediaByUrl, adminListEntity } from "@/lib/library/admin.functions";
 import { SeoDoctor } from "./SeoDoctor";
@@ -216,108 +216,71 @@ export function BlogEditor({
   ];
 
   return (
-    <div className="space-y-5 rounded-2xl border border-forest/15 bg-white p-4 shadow-card sm:p-6">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <h3 className="font-display text-xl italic text-forest-deep">{value.id ? "Edit post" : "New post"}</h3>
-        {value.id && value.slug && (
-          <a href={`/blog/${value.slug}`} target="_blank" rel="noreferrer" className={ghost}>
-            <ExternalLink className="size-3.5" /> Open live post
-          </a>
-        )}
-      </div>
-
-      {/* Main photo */}
-      <section className="rounded-xl border border-forest/10 p-4">
-        <p className="mb-3 text-sm font-semibold text-forest-deep">Main photo</p>
-        <div className="grid gap-4 sm:grid-cols-[240px_1fr]">
-          <div className="aspect-[4/3] overflow-hidden rounded-xl bg-forest/5">
-            {value.featured_image_url ? (
-              <img src={value.featured_image_url} alt="" className="size-full object-cover" />
-            ) : (
-              <div className="grid size-full place-items-center text-xs text-charcoal/40">No photo yet</div>
-            )}
-          </div>
-          <div className="space-y-2">
-            <Label t="Describe the photo for AI">
-              <textarea className={inp} rows={3} value={prompt} onChange={(e) => setPrompt(e.target.value)} />
-            </Label>
-            <div className="flex flex-wrap gap-2">
-              <button type="button" onClick={regenerate} disabled={!!imgBusy} className="inline-flex items-center gap-1.5 rounded-xl bg-forest px-3 py-2 text-xs font-semibold text-cream hover:bg-forest-deep disabled:opacity-50">
-                <Sparkles className="size-3.5" /> Regenerate with AI
-              </button>
-              <label className={`${ghost} cursor-pointer`}>
-                <Plus className="size-3.5" /> Upload photo
-                <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={(e) => upload(e.target.files?.[0], "hero")} />
-              </label>
-              <button type="button" onClick={() => setPick(pick === "hero" ? null : "hero")} className={ghost}>
-                <ImageIcon className="size-3.5" /> Choose from library
-              </button>
-              {value.featured_image_url && (
-                <button type="button" onClick={() => set({ featured_image_url: "" })} className={ghost}>Remove</button>
-              )}
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-cream duration-200 animate-in fade-in">
+      <header className="sticky top-0 z-20 border-b border-forest/10 bg-white/95 backdrop-blur">
+        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6">
+          <div className="flex min-w-0 items-center gap-3">
+            <button type="button" onClick={onCancel} className={ghost}>
+              <ArrowLeft className="size-3.5" /> Blog
+            </button>
+            <div className="flex min-w-0 items-center gap-2">
+              <h3 className="truncate font-display text-lg italic text-forest-deep sm:text-xl">
+                {value.title.trim() || (value.id ? "Edit post" : "New post")}
+              </h3>
+              <span className={`shrink-0 rounded-full px-2.5 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider ${value.status === "published" ? "bg-forest/15 text-forest" : "bg-charcoal/10 text-charcoal/60"}`}>
+                {value.status === "published" ? "Live" : "Draft"}
+              </span>
             </div>
-            {imgBusy && <p className="text-xs text-forest">{imgBusy}</p>}
-            {imgErr && <p className="text-xs text-destructive">{imgErr}</p>}
-            <p className="text-[11px] text-charcoal/50">Changes go live after you press Save post.</p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            {value.id && value.slug && (
+              <a href={`/blog/${value.slug}`} target="_blank" rel="noreferrer" className={ghost}>
+                <ExternalLink className="size-3.5" /> Live
+              </a>
+            )}
+            {value.id && onDelete && <ConfirmDelete label="Delete" itemTitle={value.title} onConfirm={onDelete} />}
+            <button
+              type="button"
+              onClick={onSave}
+              disabled={busy}
+              className="inline-flex items-center gap-1.5 rounded-xl bg-forest px-4 py-2 text-xs font-bold uppercase tracking-[0.16em] text-cream hover:bg-forest-deep disabled:opacity-60"
+            >
+              <Save className="size-3.5" /> {busy ? "Saving…" : "Save post"}
+            </button>
           </div>
         </div>
-      </section>
+      </header>
 
-      {pick && (
-        <div className="rounded-xl border border-forest/10 p-3">
-          <p className="mb-2 text-xs font-semibold text-charcoal/60">
-            {pick === "hero" ? "Pick the main photo" : "Pick a photo to insert in the article"}
-          </p>
-          <div className="grid max-h-72 grid-cols-4 gap-2 overflow-y-auto sm:grid-cols-6">
-            {media
-              .filter((m) => (m.mime_type ?? "image").startsWith("image") && m.public_url)
-              .slice(0, 150)
-              .map((m) => (
-                <button type="button" key={m.id} onClick={() => useImage(m.public_url, m.alt ?? value.title)} className="aspect-square overflow-hidden rounded-lg border-2 border-transparent hover:border-forest">
-                  <img src={m.public_url} alt={m.alt ?? ""} loading="lazy" className="size-full object-cover" />
-                </button>
-              ))}
-          </div>
-        </div>
-      )}
+      <div className="mx-auto grid max-w-7xl gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[1fr_380px] xl:grid-cols-[1fr_420px]">
+        <div className="min-w-0 space-y-6">
+          {/* Title & Excerpt */}
+          <section className="space-y-4 rounded-2xl border border-forest/10 bg-white p-5 shadow-sm">
+            <Label t="Title">
+              <input className={inp} value={value.title} onChange={(e) => set({ title: e.target.value })} />
+            </Label>
+            <Label t="Short summary (excerpt)">
+              <textarea className={inp} rows={2} value={value.excerpt} onChange={(e) => set({ excerpt: e.target.value })} />
+            </Label>
+          </section>
 
-      {/* Essentials */}
-      <section className="grid gap-4 sm:grid-cols-2">
-        <Label t="Title" wide>
-          <input className={inp} value={value.title} onChange={(e) => set({ title: e.target.value })} />
-        </Label>
-        <Label t="Web address (slug)">
-          <input className={inp} value={value.slug} onChange={(e) => set({ slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "-") })} />
-        </Label>
-        <Label t="Status">
-          <select className={inp} value={value.status} onChange={(e) => set({ status: e.target.value as any })}>
-            <option value="draft">Draft (hidden)</option>
-            <option value="published">Published (live)</option>
-          </select>
-        </Label>
-        <Label t="Category">
-          <input className={inp} list="blog-cats" value={value.category} onChange={(e) => set({ category: e.target.value })} />
-          <datalist id="blog-cats">{CATEGORIES.map((c) => <option key={c} value={c} />)}</datalist>
-        </Label>
-        <label className="flex items-center gap-2 rounded-xl border border-forest/15 px-3 py-2 text-sm font-semibold text-forest-deep sm:col-span-2">
-          <input
-            type="checkbox"
-            checked={hasHomepageTag(value.tags)}
-            onChange={(e) => set({ tags: toggleHomepageTag(tagsText, e.target.checked) })}
-          />
-          Feature in the homepage journal
-          {hasHomepageTag(value.tags) && value.status !== "published" && <span className="ml-auto text-xs font-normal text-destructive">Set Status to Published so it shows on the homepage</span>}
-        </label>
-        <Label t="Tags (comma separated)">
-          <input className={inp} value={tagsText} onChange={(e) => { setTagsText(e.target.value); set({ tags: toggleHomepageTag(e.target.value, hasHomepageTag(value.tags)) }); }} />
-        </Label>
-        <Label t="Short summary (excerpt)" wide>
-          <textarea className={inp} rows={2} value={value.excerpt} onChange={(e) => set({ excerpt: e.target.value })} />
-        </Label>
-      </section>
+          {pick === "inline" && (
+            <div className="rounded-2xl border border-forest/10 bg-white p-4 shadow-sm">
+              <p className="mb-2 text-xs font-semibold text-charcoal/60">Pick a photo to insert in the article</p>
+              <div className="grid max-h-72 grid-cols-4 gap-2 overflow-y-auto sm:grid-cols-6">
+                {media
+                  .filter((m) => (m.mime_type ?? "image").startsWith("image") && m.public_url)
+                  .slice(0, 150)
+                  .map((m) => (
+                    <button type="button" key={m.id} onClick={() => useImage(m.public_url, m.alt ?? value.title)} className="aspect-square overflow-hidden rounded-lg border-2 border-transparent hover:border-forest">
+                      <img src={m.public_url} alt={m.alt ?? ""} loading="lazy" className="size-full object-cover" />
+                    </button>
+                  ))}
+              </div>
+            </div>
+          )}
 
-      {/* Article body */}
-      <section className="rounded-xl border border-forest/10">
+          {/* Article body */}
+          <section className="rounded-2xl border border-forest/10 bg-white shadow-sm">
         <div className="flex flex-wrap items-center gap-2 border-b border-forest/10 p-2">
           <button type="button" onClick={() => setMode("visual")} className={`${ghost} ${mode === "visual" ? "bg-forest/10" : ""}`}><Pencil className="size-3.5" /> Write</button>
           <button type="button" onClick={() => setMode("preview")} className={`${ghost} ${mode === "preview" ? "bg-forest/10" : ""}`}><Eye className="size-3.5" /> Preview</button>
@@ -360,9 +323,8 @@ export function BlogEditor({
           </div>
         )}
       </section>
-
-      {/* Article photos */}
-      <section className="rounded-xl border border-forest/10 p-4">
+          {/* Article photos */}
+          <section className="rounded-2xl border border-forest/10 bg-white p-5 shadow-sm">
         <p className="mb-1 text-sm font-semibold text-forest-deep">Article photos ({photos.length})</p>
         <p className="mb-3 text-[11px] text-charcoal/50">Every photo inside the article. Swap one without touching the text.</p>
         {photos.length === 0 ? <p className="text-xs text-charcoal/50">No photos in the article yet — use “Photo” in the toolbar to add one.</p> : (
@@ -386,31 +348,111 @@ export function BlogEditor({
         )}
       </section>
 
-      {/* SEO */}
-      <section className="grid gap-4 sm:grid-cols-2">
-        <Label t={`Google title (${value.seo_title.length}/60)`}>
-          <input className={inp} value={value.seo_title} onChange={(e) => set({ seo_title: e.target.value })} />
-        </Label>
-        <Label t={`Google description (${value.seo_description.length}/160)`}>
-          <input className={inp} value={value.seo_description} onChange={(e) => set({ seo_description: e.target.value })} />
-        </Label>
-        <div className="rounded-xl bg-cream/50 p-3 sm:col-span-2">
-          <p className="text-[11px] text-charcoal/50">Google preview</p>
-          <p className="truncate text-[15px] text-forest-deep">{value.seo_title || value.title || "Title"}</p>
-          <p className="text-[11px] text-forest">plantedandsimple.com/blog/{value.slug}</p>
-          <p className="line-clamp-2 text-xs text-charcoal/70">{value.seo_description || value.excerpt}</p>
+          <WritingCheck title={value.title} html={value.content} />
         </div>
-      </section>
-      <WritingCheck title={value.title} html={value.content} />
-      <SeoDoctor value={{ ...value, image: value.featured_image_url }} onApply={(patch) => set(patch as any)} />
-      {links && onLinksChange && <ConnectionsCard links={links} onChange={onLinksChange} contextText={`${value.title} ${value.tags} ${value.category}`} />}
 
-      <div className="sticky bottom-0 -mx-4 flex justify-end gap-3 border-t border-forest/10 bg-white/95 px-4 py-3 sm:-mx-6 sm:px-6">
-        {value.id && onDelete && <div className="mr-auto"><ConfirmDelete label="Delete" itemTitle={value.title} onConfirm={onDelete} /></div>}
-        <button onClick={onCancel} className="rounded-full border border-forest/20 px-5 py-2 text-xs font-bold uppercase tracking-[0.2em] text-charcoal/70">Cancel</button>
-        <button onClick={onSave} disabled={busy} className="rounded-full bg-forest px-6 py-2 text-xs font-bold uppercase tracking-[0.2em] text-cream hover:bg-forest-deep disabled:opacity-60">
-          {busy ? "Saving…" : "Save post"}
-        </button>
+        <aside className="min-w-0 space-y-6">
+          {/* Main photo */}
+          <section className="rounded-2xl border border-forest/10 bg-white p-4 shadow-sm">
+            <p className="mb-3 text-sm font-semibold text-forest-deep">Main photo</p>
+            <div className="aspect-[4/3] overflow-hidden rounded-xl bg-forest/5">
+              {value.featured_image_url ? (
+                <img src={value.featured_image_url} alt="" className="size-full object-cover" />
+              ) : (
+                <div className="grid size-full place-items-center text-xs text-charcoal/40">No photo yet</div>
+              )}
+            </div>
+            <div className="mt-3 space-y-2">
+              <Label t="Describe the photo for AI">
+                <textarea className={inp} rows={2} value={prompt} onChange={(e) => setPrompt(e.target.value)} />
+              </Label>
+              <div className="flex flex-wrap gap-2">
+                <button type="button" onClick={regenerate} disabled={!!imgBusy} className="inline-flex items-center gap-1.5 rounded-xl bg-forest px-3 py-2 text-xs font-semibold text-cream hover:bg-forest-deep disabled:opacity-50">
+                  <Sparkles className="size-3.5" /> Regenerate
+                </button>
+                <label className={`${ghost} cursor-pointer`}>
+                  <Plus className="size-3.5" /> Upload
+                  <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={(e) => upload(e.target.files?.[0], "hero")} />
+                </label>
+                <button type="button" onClick={() => setPick(pick === "hero" ? null : "hero")} className={ghost}>
+                  <ImageIcon className="size-3.5" /> Library
+                </button>
+                {value.featured_image_url && (
+                  <button type="button" onClick={() => set({ featured_image_url: "" })} className={ghost}>Remove</button>
+                )}
+              </div>
+              {imgBusy && <p className="text-xs text-forest">{imgBusy}</p>}
+              {imgErr && <p className="text-xs text-destructive">{imgErr}</p>}
+            </div>
+            {pick === "hero" && (
+              <div className="mt-3 rounded-xl border border-forest/10 p-2">
+                <p className="mb-2 text-xs font-semibold text-charcoal/60">Pick the main photo</p>
+                <div className="grid max-h-56 grid-cols-3 gap-2 overflow-y-auto">
+                  {media
+                    .filter((m) => (m.mime_type ?? "image").startsWith("image") && m.public_url)
+                    .slice(0, 150)
+                    .map((m) => (
+                      <button type="button" key={m.id} onClick={() => useImage(m.public_url, m.alt ?? value.title)} className="aspect-square overflow-hidden rounded-lg border-2 border-transparent hover:border-forest">
+                        <img src={m.public_url} alt={m.alt ?? ""} loading="lazy" className="size-full object-cover" />
+                      </button>
+                    ))}
+                </div>
+              </div>
+            )}
+          </section>
+
+          {/* Publishing & metadata */}
+          <section className="space-y-3 rounded-2xl border border-forest/10 bg-white p-4 shadow-sm">
+            <p className="text-sm font-semibold text-forest-deep">Publishing</p>
+            <Label t="Status">
+              <select className={inp} value={value.status} onChange={(e) => set({ status: e.target.value as any })}>
+                <option value="draft">Draft (hidden)</option>
+                <option value="published">Published (live)</option>
+              </select>
+            </Label>
+            <Label t="Web address (slug)">
+              <input className={inp} value={value.slug} onChange={(e) => set({ slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "-") })} />
+            </Label>
+            <Label t="Category">
+              <input className={inp} list="blog-cats" value={value.category} onChange={(e) => set({ category: e.target.value })} />
+              <datalist id="blog-cats">{CATEGORIES.map((c) => <option key={c} value={c} />)}</datalist>
+            </Label>
+            <label className="flex items-center gap-2 rounded-xl border border-forest/15 bg-cream/30 px-3 py-2 text-sm font-semibold text-forest-deep">
+              <input
+                type="checkbox"
+                checked={hasHomepageTag(value.tags)}
+                onChange={(e) => set({ tags: toggleHomepageTag(tagsText, e.target.checked) })}
+              />
+              Feature in homepage journal
+            </label>
+            {hasHomepageTag(value.tags) && value.status !== "published" && (
+              <p className="text-xs text-destructive">Set Status to Published so it shows on the homepage.</p>
+            )}
+            <Label t="Tags (comma separated)">
+              <input className={inp} value={tagsText} onChange={(e) => { setTagsText(e.target.value); set({ tags: toggleHomepageTag(e.target.value, hasHomepageTag(value.tags)) }); }} />
+            </Label>
+          </section>
+
+          {/* SEO */}
+          <section className="space-y-3 rounded-2xl border border-forest/10 bg-white p-4 shadow-sm">
+            <p className="text-sm font-semibold text-forest-deep">Google SEO</p>
+            <Label t={`Google title (${value.seo_title.length}/60)`}>
+              <input className={inp} value={value.seo_title} onChange={(e) => set({ seo_title: e.target.value })} />
+            </Label>
+            <Label t={`Google description (${value.seo_description.length}/160)`}>
+              <input className={inp} value={value.seo_description} onChange={(e) => set({ seo_description: e.target.value })} />
+            </Label>
+            <div className="rounded-xl bg-cream/50 p-3">
+              <p className="text-[11px] text-charcoal/50">Google preview</p>
+              <p className="truncate text-[14px] text-forest-deep">{value.seo_title || value.title || "Title"}</p>
+              <p className="text-[11px] text-forest">plantedandsimple.com/blog/{value.slug}</p>
+              <p className="line-clamp-2 text-xs text-charcoal/70">{value.seo_description || value.excerpt}</p>
+            </div>
+          </section>
+
+          <SeoDoctor value={{ ...value, image: value.featured_image_url }} onApply={(patch) => set(patch as any)} />
+          {links && onLinksChange && <ConnectionsCard links={links} onChange={onLinksChange} contextText={`${value.title} ${value.tags} ${value.category}`} />}
+        </aside>
       </div>
     </div>
   );

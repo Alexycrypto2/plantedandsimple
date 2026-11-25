@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { ConfirmDelete } from "./ConfirmDelete";
-import { ChefHat, Plus, Trash2, Save, X, Link2, Sparkles, Wand2 } from "lucide-react";
+import { ChefHat, Plus, Trash2, Save, X, Link2, Sparkles, Wand2, ArrowLeft, ExternalLink } from "lucide-react";
 import {
   adminListEntity, adminSaveEntity, adminDeleteEntity,
   adminGetLinks, adminSetLinks, adminLinkableItems,
@@ -205,8 +205,17 @@ export function RecipesSection() {
   const load = () => adminListEntity({ data: { entity: "recipes" } }).then((r) => setRows(r as Recipe[]));
   useEffect(() => { load(); }, []);
 
+  const syncUrl = (id: string | null) => {
+    if (typeof window === "undefined") return;
+    const u = new URL(window.location.href);
+    if (id) u.searchParams.set("edit", id);
+    else u.searchParams.delete("edit");
+    window.history.replaceState({}, "", u.toString());
+  };
+
   const [stepImages, setStepImages] = useState<(string | null)[]>([]);
-  const openNew = () => { setForm(blank()); setLinks([]); setStepImages([]); setEditing("new"); };
+  const openNew = () => { setForm(blank()); setLinks([]); setStepImages([]); setEditing("new"); syncUrl("new"); };
+  const closeEdit = () => { setEditing(null); syncUrl(null); };
 
   const openEdit = async (r: Recipe) => {
     setForm({ ...blank(),
@@ -223,9 +232,19 @@ export function RecipesSection() {
     });
     setStepImages(Array.isArray(r.instructions) ? r.instructions.map((s: any) => (typeof s?.image_url === "string" ? s.image_url : null)) : []);
     setEditing(r.id);
+    syncUrl(r.id);
     const l = await adminGetLinks({ data: { contentType: "recipe", contentId: r.id } });
     setLinks((l as any).relations ?? []);
   };
+
+  useEffect(() => {
+    if (!rows || editing !== null || typeof window === "undefined") return;
+    const editParam = new URLSearchParams(window.location.search).get("edit");
+    if (!editParam) return;
+    if (editParam === "new") { openNew(); return; }
+    const match = rows.find((r) => r.id === editParam);
+    if (match) void openEdit(match);
+  }, [rows]);
 
   const save = async () => {
     if (!form.title.trim()) return;
@@ -262,7 +281,7 @@ export function RecipesSection() {
         data: { entity: "recipes", id: editing === "new" ? null : editing, values },
       });
       if (row?.id) await adminSetLinks({ data: { contentType: "recipe", contentId: row.id, relations: links } });
-      setEditing(null);
+      closeEdit();
       await load();
     } finally { setBusy(false); }
   };
@@ -270,134 +289,177 @@ export function RecipesSection() {
 
   if (editing) {
     return (
-      <div className="space-y-5 duration-300 animate-in fade-in slide-in-from-bottom-2">
-        <div className="flex items-center justify-between gap-3">
-          <h2 className="font-display text-xl italic text-forest-deep">
-            {editing === "new" ? "New recipe" : "Edit recipe"}
-          </h2>
-          <div className="flex flex-wrap justify-end gap-2">
-            {editing !== "new" && (
-              <ConfirmDelete label="Delete" itemTitle={form.title} onConfirm={async () => { await adminDeleteEntity({ data: { entity: "recipes", id: editing } }); setEditing(null); await load(); }} />
-            )}
-            <button onClick={() => setEditing(null)} className="inline-flex items-center gap-1.5 rounded-xl border border-forest/15 px-4 py-2.5 text-xs font-semibold text-charcoal/70 hover:bg-forest/5">
-              <X className="size-3.5" /> Cancel
-            </button>
-            <button onClick={save} disabled={busy} className={btnCls}><Save className="size-3.5" /> {busy ? "Saving…" : "Save recipe"}</button>
+      <div className="fixed inset-0 z-50 overflow-y-auto bg-cream duration-200 animate-in fade-in">
+        <header className="sticky top-0 z-20 border-b border-forest/10 bg-white/95 backdrop-blur">
+          <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6">
+            <div className="flex min-w-0 items-center gap-3">
+              <button
+                type="button"
+                onClick={closeEdit}
+                className="inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-forest/15 px-3 py-2 text-xs font-semibold text-charcoal/70 hover:bg-forest/5"
+              >
+                <ArrowLeft className="size-3.5" /> Recipes
+              </button>
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <h2 className="truncate font-display text-lg italic text-forest-deep sm:text-xl">
+                    {form.title.trim() || (editing === "new" ? "New recipe" : "Edit recipe")}
+                  </h2>
+                  <span className={`shrink-0 rounded-full px-2.5 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider ${form.status === "published" ? "bg-forest/15 text-forest" : "bg-charcoal/10 text-charcoal/60"}`}>
+                    {form.status === "published" ? "Live" : form.status}
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              {form.slug && editing !== "new" && (
+                <a
+                  href={`/recipes/${form.slug}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-forest/15 px-3 py-2 text-xs font-semibold text-forest hover:bg-forest/5"
+                >
+                  <ExternalLink className="size-3.5" /> Live
+                </a>
+              )}
+              {editing !== "new" && (
+                <ConfirmDelete label="Delete" itemTitle={form.title} onConfirm={async () => { await adminDeleteEntity({ data: { entity: "recipes", id: editing } }); closeEdit(); await load(); }} />
+              )}
+              <button onClick={save} disabled={busy} className={btnCls}>
+                <Save className="size-3.5" /> {busy ? "Saving…" : "Save recipe"}
+              </button>
+            </div>
           </div>
-        </div>
+        </header>
 
-        <HeroImageCard
-          heroId={form.hero_image_id}
-          title={form.title}
-          onChange={(id) => setForm({ ...form, hero_image_id: id })}
-        />
+        <div className="mx-auto grid max-w-7xl gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[1fr_380px] xl:grid-cols-[1fr_420px]">
+          <div className="min-w-0 space-y-6">
+            <PanelCard title="Essentials" icon={ChefHat}>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Field label="Recipe title"><input className={inputCls} value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} /></Field>
+                <Field label="Web address (slug)"><input className={inputCls} placeholder="auto from title" value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value })} /></Field>
+                <Field label="Subtitle" wide><input className={inputCls} value={form.subtitle} onChange={(e) => setForm({ ...form, subtitle: e.target.value })} /></Field>
+                <Field label="Description" wide><textarea className={inputCls} rows={3} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /></Field>
+              </div>
+              <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                <Field label="Prep (minutes)"><input className={inputCls} type="number" value={form.prep_minutes} onChange={(e) => setForm({ ...form, prep_minutes: Number(e.target.value) })} /></Field>
+                <Field label="Cook (minutes)"><input className={inputCls} type="number" value={form.cook_minutes} onChange={(e) => setForm({ ...form, cook_minutes: Number(e.target.value) })} /></Field>
+                <Field label="Serves"><input className={inputCls} placeholder="4" value={form.servings} onChange={(e) => setForm({ ...form, servings: e.target.value.replace(/\s*servings?$/i, "") })} /></Field>
+                <Field label="Difficulty">
+                  <select className={inputCls} value={form.difficulty} onChange={(e) => setForm({ ...form, difficulty: e.target.value })}>
+                    {DIFFICULTY.map((d) => <option key={d} value={d}>{d}</option>)}
+                  </select>
+                </Field>
+              </div>
+            </PanelCard>
 
-        <PanelCard title="Essentials" icon={ChefHat}>
-          <div className="grid gap-3 sm:grid-cols-2">
-            <Field label="Recipe title"><input className={inputCls} value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} /></Field>
-            <Field label="Web address (slug)"><input className={inputCls} placeholder="auto from title" value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value })} /></Field>
-            <Field label="Subtitle" wide><input className={inputCls} value={form.subtitle} onChange={(e) => setForm({ ...form, subtitle: e.target.value })} /></Field>
-            <Field label="Description" wide><textarea className={inputCls} rows={3} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /></Field>
-          </div>
-          <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <Field label="Prep (minutes)"><input className={inputCls} type="number" value={form.prep_minutes} onChange={(e) => setForm({ ...form, prep_minutes: Number(e.target.value) })} /></Field>
-            <Field label="Cook (minutes)"><input className={inputCls} type="number" value={form.cook_minutes} onChange={(e) => setForm({ ...form, cook_minutes: Number(e.target.value) })} /></Field>
-            <Field label="Serves"><input className={inputCls} placeholder="4" value={form.servings} onChange={(e) => setForm({ ...form, servings: e.target.value.replace(/\s*servings?$/i, "") })} /></Field>
-            <Field label="Difficulty">
-              <select className={inputCls} value={form.difficulty} onChange={(e) => setForm({ ...form, difficulty: e.target.value })}>
-                {DIFFICULTY.map((d) => <option key={d} value={d}>{d}</option>)}
-              </select>
-            </Field>
-          </div>
-        </PanelCard>
-
-        <PanelCard title="Nutrition (per serving)">
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
-            {MACROS.map(([k, label, unit]) => (
-              <Field key={k} label={`${label}${unit ? ` (${unit})` : ""}`}>
-                <input className={inputCls} inputMode="decimal" value={(form as any)[k]} onChange={(e) => setForm({ ...form, [k]: e.target.value.replace(/[^\d.]/g, "") })} />
+            <PanelCard title="Nutrition (per serving)">
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
+                {MACROS.map(([k, label, unit]) => (
+                  <Field key={k} label={`${label}${unit ? ` (${unit})` : ""}`}>
+                    <input className={inputCls} inputMode="decimal" value={(form as any)[k]} onChange={(e) => setForm({ ...form, [k]: e.target.value.replace(/[^\d.]/g, "") })} />
+                  </Field>
+                ))}
+              </div>
+              <Field label="Other nutrition — “Sodium: 420mg” per line (optional)" wide>
+                <textarea className={`${inputCls} mt-3`} rows={2} value={form.nutritionText} onChange={(e) => setForm({ ...form, nutritionText: e.target.value })} />
               </Field>
-            ))}
-          </div>
-          <Field label="Other nutrition — “Sodium: 420mg” per line (optional)" wide>
-            <textarea className={`${inputCls} mt-3`} rows={2} value={form.nutritionText} onChange={(e) => setForm({ ...form, nutritionText: e.target.value })} />
-          </Field>
-          <p className="mt-2 text-[11px] text-charcoal/50">Enter values you have verified. Leave blank rather than guessing.</p>
-        </PanelCard>
+              <p className="mt-2 text-[11px] text-charcoal/50">Enter values you have verified. Leave blank rather than guessing.</p>
+            </PanelCard>
 
-        <PanelCard title="The method">
-          <div className="grid gap-3 sm:grid-cols-2">
-            <label className="text-xs font-semibold text-charcoal/60">
-              Ingredients — one per line. Start a line with “## ” for a group (e.g. “## Dressing”)
-              <textarea className={`${inputCls} mt-1.5`} rows={10} value={form.ingredientsText} onChange={(e) => setForm({ ...form, ingredientsText: e.target.value })} />
-            </label>
-            <label className="text-xs font-semibold text-charcoal/60">
-              Steps — one per line, no numbers needed. Optional title: “Roast the veg :: Spread on a tray…”
-              <textarea className={`${inputCls} mt-1.5`} rows={10} value={form.instructionsText} onChange={(e) => setForm({ ...form, instructionsText: e.target.value })} />
-            </label>
-            <label className="text-xs font-semibold text-charcoal/60 sm:col-span-2">
-              Tips, storage & swaps — one per line
-              <textarea className={`${inputCls} mt-1.5`} rows={5} value={form.tipsText} onChange={(e) => setForm({ ...form, tipsText: e.target.value })} />
-            </label>
-          </div>
-          {form.slug && editing !== "new" && (
-            <a href={`/recipes/${form.slug}`} target="_blank" rel="noreferrer" className="mt-3 inline-block text-xs font-semibold text-forest underline">Open live recipe page ↗</a>
-          )}
-        </PanelCard>
+            <PanelCard title="The method">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <label className="text-xs font-semibold text-charcoal/60">
+                  Ingredients — one per line. Start a line with “## ” for a group (e.g. “## Dressing”)
+                  <textarea className={`${inputCls} mt-1.5`} rows={12} value={form.ingredientsText} onChange={(e) => setForm({ ...form, ingredientsText: e.target.value })} />
+                </label>
+                <label className="text-xs font-semibold text-charcoal/60">
+                  Steps — one per line, no numbers needed. Optional title: “Roast the veg :: Spread on a tray…”
+                  <textarea className={`${inputCls} mt-1.5`} rows={12} value={form.instructionsText} onChange={(e) => setForm({ ...form, instructionsText: e.target.value })} />
+                </label>
+                <label className="text-xs font-semibold text-charcoal/60 sm:col-span-2">
+                  Tips, storage & swaps — one per line
+                  <textarea className={`${inputCls} mt-1.5`} rows={5} value={form.tipsText} onChange={(e) => setForm({ ...form, tipsText: e.target.value })} />
+                </label>
+              </div>
+            </PanelCard>
 
-        <StepPhotosCard
-          title={form.title}
-          steps={textToInstructions(form.instructionsText).map((s) => (s.title ? `${s.title}: ${s.body}` : s.body))}
-          images={stepImages}
-          onChange={setStepImages}
-        />
-        <ConnectionsCard links={links} onChange={setLinks} selfId={editing === "new" ? null : editing} contextText={`${form.title} ${form.tagsText} ${form.ingredientsText}`} />
-
-        <PanelCard title="SEO & publishing">
-          <div className="grid gap-3 sm:grid-cols-2">
-            <input className={inputCls} placeholder="Meta title" value={form.seo_title} onChange={(e) => setForm({ ...form, seo_title: e.target.value })} />
-            <input className={inputCls} placeholder="Tags, comma separated" value={form.tagsText} onChange={(e) => setForm({ ...form, tagsText: e.target.value })} />
-            <textarea className={`${inputCls} sm:col-span-2`} rows={2} placeholder="Meta description" value={form.seo_description} onChange={(e) => setForm({ ...form, seo_description: e.target.value })} />
-            <textarea className={`${inputCls} sm:col-span-2`} rows={2} placeholder="Pinterest description" value={form.pinterest_description} onChange={(e) => setForm({ ...form, pinterest_description: e.target.value })} />
-            <select className={inputCls} value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>
-              {STATUS.map((s) => <option key={s} value={s}>{s}</option>)}
-            </select>
-            <label className="flex items-center gap-2 text-sm text-charcoal/70">
-              <input type="checkbox" checked={form.is_featured} onChange={(e) => setForm({ ...form, is_featured: e.target.checked })} />
-              Feature on homepage
-            </label>
+            <StepPhotosCard
+              title={form.title}
+              steps={textToInstructions(form.instructionsText).map((s) => (s.title ? `${s.title}: ${s.body}` : s.body))}
+              images={stepImages}
+              onChange={setStepImages}
+            />
           </div>
-        <SeoDoctor
-            kind="recipe"
-            extra={{ prepMinutes: Number(form.prep_minutes), cookMinutes: Number(form.cook_minutes), servings: String(form.servings ?? ""), calories: String(form.calories ?? ""), protein: String(form.protein ?? ""), hasImage: !!form.hero_image_id }}
-            value={{
-              slug: form.slug,
-              pinterest_description: form.pinterest_description,
-              title: form.title,
-              seo_title: form.seo_title,
-              seo_description: form.seo_description,
-              excerpt: form.description,
-              tags: form.tagsText,
-              content: recipeToHtml({
-                description: form.description,
-                ingredients: lines(form.ingredientsText).filter((l) => !l.startsWith("## ")),
-                instructions: lines(form.instructionsText),
-                nutrition: [
-                  ...MACROS.filter(([k]) => String((form as any)[k]).trim()).map(([k, label, unit]) => `${label}: ${String((form as any)[k]).trim()}${unit}`),
-                  ...lines(form.nutritionText),
-                ],
-                tips: lines(form.tipsText),
-              }),
-            }}
-            onApply={(p) => setForm({
-              ...form,
-              seo_title: p.seo_title ?? form.seo_title,
-              seo_description: p.seo_description ?? form.seo_description,
-              description: p.excerpt ?? form.description,
-              pinterest_description: p.pinterest_description ?? form.pinterest_description,
-            })}
-          />
-        </PanelCard>
+
+          <aside className="min-w-0 space-y-6">
+            <HeroImageCard
+              heroId={form.hero_image_id}
+              title={form.title}
+              onChange={(id) => setForm({ ...form, hero_image_id: id })}
+            />
+
+            <PanelCard title="Publishing & SEO">
+              <div className="space-y-3">
+                <Field label="Status">
+                  <select className={inputCls} value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>
+                    {STATUS.map((s) => <option key={s} value={s}>{s}</option>)}
+                  </select>
+                </Field>
+                <label className="flex items-center gap-2 rounded-xl border border-forest/15 bg-cream/30 px-3 py-2.5 text-sm font-medium text-forest-deep">
+                  <input type="checkbox" checked={form.is_featured} onChange={(e) => setForm({ ...form, is_featured: e.target.checked })} />
+                  Feature on homepage
+                </label>
+                <Field label="Tags (comma separated)">
+                  <input className={inputCls} placeholder="high-protein, quick, dinner" value={form.tagsText} onChange={(e) => setForm({ ...form, tagsText: e.target.value })} />
+                </Field>
+                <Field label="Meta title">
+                  <input className={inputCls} placeholder="Meta title" value={form.seo_title} onChange={(e) => setForm({ ...form, seo_title: e.target.value })} />
+                </Field>
+                <Field label="Meta description">
+                  <textarea className={inputCls} rows={2} placeholder="Meta description" value={form.seo_description} onChange={(e) => setForm({ ...form, seo_description: e.target.value })} />
+                </Field>
+                <Field label="Pinterest description">
+                  <textarea className={inputCls} rows={2} placeholder="Pinterest description" value={form.pinterest_description} onChange={(e) => setForm({ ...form, pinterest_description: e.target.value })} />
+                </Field>
+              </div>
+              <div className="mt-4">
+                <SeoDoctor
+                  kind="recipe"
+                  extra={{ prepMinutes: Number(form.prep_minutes), cookMinutes: Number(form.cook_minutes), servings: String(form.servings ?? ""), calories: String(form.calories ?? ""), protein: String(form.protein ?? ""), hasImage: !!form.hero_image_id }}
+                  value={{
+                    slug: form.slug,
+                    pinterest_description: form.pinterest_description,
+                    title: form.title,
+                    seo_title: form.seo_title,
+                    seo_description: form.seo_description,
+                    excerpt: form.description,
+                    tags: form.tagsText,
+                    content: recipeToHtml({
+                      description: form.description,
+                      ingredients: lines(form.ingredientsText).filter((l) => !l.startsWith("## ")),
+                      instructions: lines(form.instructionsText),
+                      nutrition: [
+                        ...MACROS.filter(([k]) => String((form as any)[k]).trim()).map(([k, label, unit]) => `${label}: ${String((form as any)[k]).trim()}${unit}`),
+                        ...lines(form.nutritionText),
+                      ],
+                      tips: lines(form.tipsText),
+                    }),
+                  }}
+                  onApply={(p) => setForm({
+                    ...form,
+                    seo_title: p.seo_title ?? form.seo_title,
+                    seo_description: p.seo_description ?? form.seo_description,
+                    description: p.excerpt ?? form.description,
+                    pinterest_description: p.pinterest_description ?? form.pinterest_description,
+                  })}
+                />
+              </div>
+            </PanelCard>
+
+            <ConnectionsCard links={links} onChange={setLinks} selfId={editing === "new" ? null : editing} contextText={`${form.title} ${form.tagsText} ${form.ingredientsText}`} />
+          </aside>
+        </div>
       </div>
     );
   }

@@ -3,6 +3,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { SiteLayout } from "@/components/SiteLayout";
+import { Mail } from "lucide-react";
 import freeBundle from "@/assets/free-cookbook-bundle.jpg";
 import freeCookbookAsset from "@/assets/free-cookbook.pdf.asset.json";
 import { trackEvent } from "@/lib/analytics";
@@ -94,6 +95,21 @@ function FreeCookbookPage() {
               Or read it online in a new tab
             </a>
           </p>
+          <div className="mx-auto mt-8 max-w-xl rounded-2xl border border-forest/15 bg-white p-5 text-left shadow-sm">
+            <div className="flex items-start gap-3.5">
+              <div className="grid size-9 shrink-0 place-items-center rounded-xl bg-forest/10 text-forest">
+                <Mail className="size-4" />
+              </div>
+              <div className="space-y-1">
+                <p className="text-sm font-semibold text-forest-deep">
+                  A backup copy is on its way to your inbox
+                </p>
+                <p className="text-xs leading-relaxed text-charcoal/70">
+                  Using <strong className="text-charcoal">Gmail</strong>? Check your <strong className="text-forest">Promotions</strong> or <strong className="text-forest">Spam</strong> tab and drag our email to <strong className="text-charcoal">Primary</strong> (or tap <em>&ldquo;Report not spam&rdquo;</em>) so you never miss your weekly high-protein recipes. On Apple Mail or Outlook, add us to your safe senders.
+                </p>
+              </div>
+            </div>
+          </div>
           <Link to="/shop" className="mt-5 inline-flex text-sm font-semibold text-forest underline-offset-4 hover:underline">
             Explore the full cookbook collection
           </Link>
