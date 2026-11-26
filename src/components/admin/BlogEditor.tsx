@@ -1,3 +1,4 @@
+import { createPortal } from "react-dom";
 import { ConnectionsCard, type ConnLink } from "./ConnectionsCard";
 import { BLOG_FORMATS, detectBlogFormat, findBannedPhrases } from "@/lib/ai/blog-formats";
 
@@ -215,7 +216,7 @@ export function BlogEditor({
     ["Tip box", '<aside class="article-callout"><span>Tip</span><p>', "</p></aside>"],
   ];
 
-  return (
+  const editor = (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-cream duration-200 animate-in fade-in">
       <header className="sticky top-0 z-20 border-b border-forest/10 bg-white/95 backdrop-blur">
         <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6">
@@ -456,6 +457,7 @@ export function BlogEditor({
       </div>
     </div>
   );
+  return typeof document !== "undefined" ? createPortal(editor, document.body) : editor;
 }
 
 const VisualBody = forwardRef<HTMLDivElement, { html: string; onChange: (h: string) => void }>(function VisualBody({ html, onChange }, ref) {

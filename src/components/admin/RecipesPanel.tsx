@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { ConfirmDelete } from "./ConfirmDelete";
 import { ChefHat, Plus, Trash2, Save, X, Link2, Sparkles, Wand2, ArrowLeft, ExternalLink } from "lucide-react";
 import {
@@ -288,7 +289,7 @@ export function RecipesSection() {
 
 
   if (editing) {
-    return (
+    const editor = (
       <div className="fixed inset-0 z-50 overflow-y-auto bg-cream duration-200 animate-in fade-in">
         <header className="sticky top-0 z-20 border-b border-forest/10 bg-white/95 backdrop-blur">
           <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6">
@@ -462,6 +463,7 @@ export function RecipesSection() {
         </div>
       </div>
     );
+    return typeof document !== "undefined" ? createPortal(editor, document.body) : editor;
   }
 
   return (
