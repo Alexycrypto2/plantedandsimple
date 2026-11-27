@@ -1,0 +1,850 @@
+{
+  "version": 1,
+  "sdk_version": "3.6.0",
+  "path": "/mcp",
+  "auth": {
+    "type": "oauth",
+    "issuer": "https://abzvbcbslfpdhwnqycng.supabase.co/auth/v1",
+    "accepted_audiences": [
+      "authenticated"
+    ]
+  },
+  "mcp": {
+    "server": {
+      "name": "planted-protein-pages",
+      "version": "1.0.0",
+      "title": "Planted Protein Pages"
+    },
+    "tools": [
+      {
+        "name": "list_recipes",
+        "title": "List Recipes",
+        "description": "List recipes with id, title, slug, status and publish date.",
+        "annotations": {
+          "readOnlyHint": true,
+          "destructiveHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "status": {
+              "type": "string",
+              "enum": [
+                "draft",
+                "published",
+                "all"
+              ],
+              "default": "all"
+            },
+            "limit": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 200,
+              "default": 100
+            }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_posts",
+        "title": "List Posts",
+        "description": "List blog posts with id, title, slug, category, status and dates.",
+        "annotations": {
+          "readOnlyHint": true,
+          "destructiveHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "status": {
+              "type": "string",
+              "enum": [
+                "draft",
+                "published",
+                "all"
+              ],
+              "default": "all"
+            },
+            "limit": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 200,
+              "default": 100
+            }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "get_post",
+        "title": "Get Post",
+        "description": "Get one blog post by id or slug, including content, meta tags, headings, image alt text and links.",
+        "annotations": {
+          "readOnlyHint": true,
+          "destructiveHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "slug": {
+              "type": "string",
+              "maxLength": 200
+            }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "create_draft",
+        "title": "Create Draft",
+        "description": "Create a new blog post as an unpublished draft.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "title": {
+              "type": "string",
+              "minLength": 3,
+              "maxLength": 200
+            },
+            "slug": {
+              "type": "string",
+              "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+              "maxLength": 120
+            },
+            "content": {
+              "type": "string",
+              "maxLength": 200000,
+              "default": ""
+            },
+            "excerpt": {
+              "type": "string",
+              "maxLength": 500
+            },
+            "category": {
+              "type": "string",
+              "maxLength": 80
+            },
+            "meta_title": {
+              "type": "string",
+              "maxLength": 120
+            },
+            "meta_description": {
+              "type": "string",
+              "maxLength": 320
+            }
+          },
+          "required": [
+            "title"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "update_post",
+        "title": "Update Post",
+        "description": "Update a blog post (title, content, meta title/description, slug, headings, alt text, internal links). The previous version is saved first for rollback.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "title": {
+              "type": "string",
+              "minLength": 3,
+              "maxLength": 200
+            },
+            "content": {
+              "type": "string",
+              "maxLength": 200000
+            },
+            "meta_title": {
+              "type": "string",
+              "maxLength": 120
+            },
+            "meta_description": {
+              "type": "string",
+              "maxLength": 320
+            },
+            "excerpt": {
+              "type": "string",
+              "maxLength": 600
+            },
+            "slug": {
+              "type": "string",
+              "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+              "maxLength": 120
+            },
+            "headings": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "from": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200
+                  },
+                  "to": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200
+                  }
+                },
+                "required": [
+                  "from",
+                  "to"
+                ],
+                "additionalProperties": false
+              },
+              "maxItems": 50
+            },
+            "alt_text": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "src": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 2000
+                  },
+                  "alt": {
+                    "type": "string",
+                    "maxLength": 300
+                  }
+                },
+                "required": [
+                  "src",
+                  "alt"
+                ],
+                "additionalProperties": false
+              },
+              "maxItems": 50
+            },
+            "internal_links": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "anchor": {
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 120
+                  },
+                  "href": {
+                    "type": "string",
+                    "pattern": "^\\/[a-z0-9\\-/]*$"
+                  }
+                },
+                "required": [
+                  "anchor",
+                  "href"
+                ],
+                "additionalProperties": false
+              },
+              "maxItems": 30
+            }
+          },
+          "required": [
+            "id"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "rollback_post",
+        "title": "Rollback Post",
+        "description": "Restore a blog post to a saved version (the current state is saved as a new version first).",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "version_id": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "required": [
+            "version_id"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "set_post_status",
+        "title": "Set Post Status",
+        "description": "Publish a draft blog post or move it back to draft. Publishing keeps an existing publish date. The previous version is saved first.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "status": {
+              "type": "string",
+              "enum": [
+                "published",
+                "draft"
+              ]
+            }
+          },
+          "required": [
+            "id",
+            "status"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_post_versions",
+        "title": "List Post Versions",
+        "description": "List saved rollback versions for a blog post.",
+        "annotations": {
+          "readOnlyHint": true,
+          "destructiveHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "required": [
+            "id"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "generate_post",
+        "title": "Generate Post",
+        "description": "Run the site's AI blog writer for a title. The result lands in AI Studio for review (never auto-published). Can take a few minutes.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "title": {
+              "type": "string",
+              "minLength": 5,
+              "maxLength": 240
+            }
+          },
+          "required": [
+            "title"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "get_seo_score",
+        "title": "Get Seo Score",
+        "description": "Run SEO Doctor on a blog post and return the score plus every failing check.",
+        "annotations": {
+          "readOnlyHint": true,
+          "destructiveHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "keyword": {
+              "type": "string",
+              "maxLength": 120
+            }
+          },
+          "required": [
+            "id"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "delete_post",
+        "title": "Delete Post",
+        "description": "Permanently delete a blog post (e.g. a duplicate or unwanted draft) by id or slug. A final snapshot is saved to post_versions first. Set confirm to true.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": true
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "slug": {
+              "type": "string",
+              "maxLength": 200
+            },
+            "confirm": {
+              "type": "boolean",
+              "const": true
+            }
+          },
+          "required": [
+            "confirm"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "get_recipe",
+        "title": "Get Recipe",
+        "description": "Get one recipe by id or slug with every editable field.",
+        "annotations": {
+          "readOnlyHint": true,
+          "destructiveHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "slug": {
+              "type": "string",
+              "maxLength": 200
+            }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "get_recipe_seo_score",
+        "title": "Get Recipe Seo Score",
+        "description": "Run SEO Doctor on a recipe and return the score plus every failing check with how to fix it.",
+        "annotations": {
+          "readOnlyHint": true,
+          "destructiveHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "keyword": {
+              "type": "string",
+              "maxLength": 120
+            }
+          },
+          "required": [
+            "id"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "update_recipe",
+        "title": "Update Recipe",
+        "description": "Edit a recipe: text/SEO fields, ingredients, steps, nutrition, servings and times. Send the FULL list for any array field you change (it replaces the old list). Saves a rollback version first and returns the new SEO score.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "title": {
+              "type": "string",
+              "minLength": 3,
+              "maxLength": 200
+            },
+            "subtitle": {
+              "type": "string",
+              "maxLength": 300
+            },
+            "description": {
+              "type": "string",
+              "maxLength": 5000
+            },
+            "seo_title": {
+              "type": "string",
+              "maxLength": 120
+            },
+            "seo_description": {
+              "type": "string",
+              "maxLength": 320
+            },
+            "pinterest_description": {
+              "type": "string",
+              "maxLength": 800
+            },
+            "slug": {
+              "type": "string",
+              "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+              "maxLength": 120
+            },
+            "tips": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 3,
+                "maxLength": 600
+              },
+              "maxItems": 10
+            },
+            "tags": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 60
+              },
+              "maxItems": 30
+            },
+            "ingredients": {
+              "type": "array",
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 300
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "group": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "maxLength": 120
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "items": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 300
+                        },
+                        "minItems": 1,
+                        "maxItems": 60
+                      }
+                    },
+                    "required": [
+                      "items"
+                    ],
+                    "additionalProperties": false
+                  }
+                ]
+              },
+              "minItems": 1,
+              "maxItems": 40,
+              "description": "Plain lines like '200 g extra-firm tofu' or groups {group, items}"
+            },
+            "instructions": {
+              "type": "array",
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "minLength": 3,
+                    "maxLength": 2000
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "title": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "maxLength": 200
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "body": {
+                        "type": "string",
+                        "minLength": 3,
+                        "maxLength": 2000
+                      },
+                      "image_url": {
+                        "type": "string",
+                        "maxLength": 1000
+                      }
+                    },
+                    "required": [
+                      "body"
+                    ],
+                    "additionalProperties": false
+                  }
+                ]
+              },
+              "minItems": 1,
+              "maxItems": 40,
+              "description": "Steps; keep existing image_url values to preserve step photos"
+            },
+            "nutrition": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "label": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 60
+                  },
+                  "value": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 60
+                  }
+                },
+                "required": [
+                  "label",
+                  "value"
+                ],
+                "additionalProperties": false
+              },
+              "maxItems": 20,
+              "description": "Per-serving rows like {label:'Protein', value:'24 g'}"
+            },
+            "servings": {
+              "type": "string",
+              "maxLength": 60
+            },
+            "prep_minutes": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1440
+            },
+            "cook_minutes": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1440
+            },
+            "difficulty": {
+              "type": "string",
+              "maxLength": 40
+            },
+            "keyword": {
+              "type": "string",
+              "maxLength": 120,
+              "description": "Focus keyword used for the returned SEO score"
+            }
+          },
+          "required": [
+            "id"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_recipe_versions",
+        "title": "List Recipe Versions",
+        "description": "List saved rollback versions for a recipe.",
+        "annotations": {
+          "readOnlyHint": true,
+          "destructiveHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "required": [
+            "id"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "rollback_recipe",
+        "title": "Rollback Recipe",
+        "description": "Restore a recipe's text, ingredients, steps and nutrition to a saved version (the current state is saved first).",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "version_id": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "required": [
+            "version_id"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "set_recipe_status",
+        "title": "Set Recipe Status",
+        "description": "Publish a draft recipe or move it back to draft. Publishing keeps an existing publish date. Returns the live URL and SEO score.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "status": {
+              "type": "string",
+              "enum": [
+                "published",
+                "draft"
+              ]
+            }
+          },
+          "required": [
+            "id",
+            "status"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "delete_recipe",
+        "title": "Delete Recipe",
+        "description": "Permanently delete a recipe (e.g. a duplicate or unwanted draft) by id or slug. A final snapshot is saved to recipe_versions first. Set confirm to true.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": true
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "slug": {
+              "type": "string",
+              "maxLength": 200
+            },
+            "confirm": {
+              "type": "boolean",
+              "const": true
+            }
+          },
+          "required": [
+            "confirm"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "get_analytics_summary",
+        "title": "Site Analytics Summary",
+        "description": "Read all-time site-recorded page views, subscriber and download totals, purchases and published content counts. These are site records, not Google Analytics or Paddle revenue.",
+        "annotations": {
+          "readOnlyHint": true
+        },
+        "inputSchema": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "type": "object",
+          "properties": {},
+          "additionalProperties": false
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "get_products_and_prices",
+        "title": "Products and Current Prices",
+        "description": "Read product catalog prices and the current flagship checkout pricing in minor currency units, without guessing prices or exposing private download links.",
+        "annotations": {
+          "readOnlyHint": true
+        },
+        "inputSchema": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "type": "object",
+          "properties": {},
+          "additionalProperties": false
+        },
+        "outputSchema": null
+      }
+    ]
+  }
+}
