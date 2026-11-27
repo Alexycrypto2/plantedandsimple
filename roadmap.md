@@ -1,4 +1,8 @@
 # Roadmap
+## Dual assistant connection
+- [ ] Prepare a separate secure ChatGPT MCP endpoint with existing content tools, analytics and current prices, preserving Claude compatibility.
+- [ ] Verify owner-only access and connection discovery; publish and enable Supabase OAuth before external sign-in can be verified.
+
 ## Agreed blog and prep upgrades
 - [x] Fix tag typing; immediate homepage pin, visible homepage badges/filter and three-post shelf.
 - [x] Add target-based smart week generation, printable fridge sheet and weekly storage guide.

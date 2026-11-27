@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
+import { oauthReturnPath } from '@/lib/oauth-return-path';
 
 export const Route = createFileRoute("/auth")({
   component: AuthPage,
@@ -23,14 +24,7 @@ export const Route = createFileRoute("/auth")({
 });
 
 function safeNext(next: string | undefined): string {
-  if (!next) return "/admin";
-  try {
-    // Only accept same-origin relative paths.
-    if (next.startsWith("/") && !next.startsWith("//")) return next;
-  } catch {
-    /* ignore */
-  }
-  return "/admin";
+  return oauthReturnPath(next);
 }
 
 function AuthPage() {
@@ -70,7 +64,7 @@ function AuthPage() {
         const { error } = await supabase.auth.signUp({
           email,
           password,
-          options: { emailRedirectTo: window.location.origin + "/auth" },
+          options: { emailRedirectTo: new URL(dest, window.location.origin).href },
         });
         if (error) throw error;
         setInfo(
@@ -96,7 +90,7 @@ function AuthPage() {
     setBusy(true);
     try {
       const result = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: window.location.origin + "/auth",
+        redirect_uri: new URL(dest, window.location.origin).href,
         extraParams: { prompt: "select_account" },
       });
       if (result.error) {

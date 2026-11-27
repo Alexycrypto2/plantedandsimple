@@ -25,7 +25,7 @@ async function authorized(request: Request) {
 
 const unauthorized = (request: Request) =>
   json({ error: "unauthorized" }, 401, {
-    "WWW-Authenticate": `Bearer resource_metadata="${publicOrigin(request)}/.well-known/oauth-protected-resource"`,
+    "WWW-Authenticate": `Bearer resource_metadata="${publicOrigin(request)}/.well-known/oauth-protected-resource/api/public/mcp"`,
   });
 
 export const Route = createFileRoute("/api/public/mcp")({

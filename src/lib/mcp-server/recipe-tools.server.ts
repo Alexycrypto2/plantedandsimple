@@ -2,19 +2,15 @@
 import { z } from "zod";
 import { auditSeo, recipeToHtml } from "@/lib/content/seo-doctor";
 
-const admin = async (): Promise<any> => (await import("@/integrations/supabase/client.server")).supabaseAdmin;
+const legacyAdmin = async (): Promise<any> => (await import("@/integrations/supabase/client.server")).supabaseAdmin;
 const FIELDS = "id,slug,title,subtitle,description,ingredients,instructions,nutrition,tips,prep_minutes,cook_minutes,servings,difficulty,tags,pinterest_description,seo_title,seo_description,status,hero_image_id,published_at,updated_at";
 const EDITABLE = ["title", "subtitle", "description", "seo_title", "seo_description", "pinterest_description", "slug", "tips", "tags", "ingredients", "instructions", "nutrition", "servings", "prep_minutes", "cook_minutes", "difficulty"] as const;
+}
+export const RECIPE_TOOLS = createRecipeTools();
 const slugRe = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const text = (x: any): string => (typeof x === "string" ? x : x && typeof x === "object" ? Object.values(x).filter((v) => typeof v === "string" || typeof v === "number").join(" ") : "");
 const arr = (x: any): string[] => (Array.isArray(x) ? x.map(text).filter(Boolean) : []);
 
-async function load(id: string) {
-  const { data, error } = await (await admin()).from("recipes").select(FIELDS).eq("id", id).maybeSingle();
-  if (error) throw new Error(error.message);
-  if (!data) throw new Error("Recipe not found");
-  return data;
-}
 
 export function recipeSeo(r: any, keyword?: string) {
   const nutrition = arr(r.nutrition);
@@ -32,7 +28,15 @@ export function recipeSeo(r: any, keyword?: string) {
   };
 }
 
-export const RECIPE_TOOLS = [
+export function createRecipeTools(admin: () => Promise<any> = legacyAdmin) {
+async function load(id: string) {
+  const { data, error } = await (await admin()).from("recipes").select(FIELDS).eq("id", id).maybeSingle();
+  if (error) throw new Error(error.message);
+  if (!data) throw new Error("Recipe not found");
+  return data;
+}
+
+return [
   {
     name: "get_recipe",
     description: "Get one recipe by id or slug with every editable field.",
@@ -167,3 +171,5 @@ export const RECIPE_TOOLS = [
     },
   },
 ] as const;
+}
+export const RECIPE_TOOLS = createRecipeTools();

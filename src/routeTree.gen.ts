@@ -18,6 +18,7 @@ import { Route as CheckoutRouteImport } from './routes/checkout'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as FreeRouteImport } from './routes/free'
 import { Route as FreeCookbookRouteImport } from './routes/free-cookbook'
+import { Route as McpRouteImport } from './routes/mcp'
 import { Route as PlanningKitRouteImport } from './routes/planning-kit'
 import { Route as PrepRouteImport } from './routes/prep'
 import { Route as PrivacyRouteImport } from './routes/privacy'
@@ -46,6 +47,7 @@ import { Route as RecipesIndexRouteImport } from './routes/recipes.index'
 import { Route as RecipesSlugRouteImport } from './routes/recipes.$slug'
 import { Route as ShopIndexRouteImport } from './routes/shop.index'
 import { Route as ShopSlugRouteImport } from './routes/shop.$slug'
+import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
 import { Route as AuthenticatedPrepAppIndexRouteImport } from './routes/_authenticated/prep-app.index'
 import { Route as AuthenticatedPrepAppGroceryRouteImport } from './routes/_authenticated/prep-app.grocery'
 import { Route as AuthenticatedPrepAppGuidesRouteImport } from './routes/_authenticated/prep-app.guides'
@@ -117,6 +119,11 @@ const FreeRoute = FreeRouteImport.update({
 const FreeCookbookRoute = FreeCookbookRouteImport.update({
   id: '/free-cookbook',
   path: '/free-cookbook',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const McpRoute = McpRouteImport.update({
+  id: '/mcp',
+  path: '/mcp',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PlanningKitRoute = PlanningKitRouteImport.update({
@@ -261,6 +268,11 @@ const ShopSlugRoute = ShopSlugRouteImport.update({
   id: '/$slug',
   path: '/$slug',
   getParentRoute: () => ShopRoute,
+} as any)
+const DotlovableOauthConsentRoute = DotlovableOauthConsentRouteImport.update({
+  id: '/.lovable/oauth/consent',
+  path: '/.lovable/oauth/consent',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedPrepAppIndexRoute =
   AuthenticatedPrepAppIndexRouteImport.update({
@@ -433,6 +445,7 @@ export interface FileRoutesByFullPath {
   '/contact': typeof ContactRoute
   '/free': typeof FreeRoute
   '/free-cookbook': typeof FreeCookbookRoute
+  '/mcp': typeof McpRoute
   '/planning-kit': typeof PlanningKitRoute
   '/prep': typeof PrepRoute
   '/privacy': typeof PrivacyRoute
@@ -461,6 +474,7 @@ export interface FileRoutesByFullPath {
   '/blog/': typeof BlogIndexRoute
   '/recipes/': typeof RecipesIndexRoute
   '/shop/': typeof ShopIndexRoute
+  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/prep-app/grocery': typeof AuthenticatedPrepAppGroceryRoute
   '/prep-app/guides': typeof AuthenticatedPrepAppGuidesRoute
   '/prep-app/kitchen': typeof AuthenticatedPrepAppKitchenRoute
@@ -498,6 +512,7 @@ export interface FileRoutesByTo {
   '/contact': typeof ContactRoute
   '/free': typeof FreeRoute
   '/free-cookbook': typeof FreeCookbookRoute
+  '/mcp': typeof McpRoute
   '/planning-kit': typeof PlanningKitRoute
   '/prep': typeof PrepRoute
   '/privacy': typeof PrivacyRoute
@@ -523,6 +538,7 @@ export interface FileRoutesByTo {
   '/blog': typeof BlogIndexRoute
   '/recipes': typeof RecipesIndexRoute
   '/shop': typeof ShopIndexRoute
+  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/prep-app/grocery': typeof AuthenticatedPrepAppGroceryRoute
   '/prep-app/guides': typeof AuthenticatedPrepAppGuidesRoute
   '/prep-app/kitchen': typeof AuthenticatedPrepAppKitchenRoute
@@ -563,6 +579,7 @@ export interface FileRoutesById {
   '/contact': typeof ContactRoute
   '/free': typeof FreeRoute
   '/free-cookbook': typeof FreeCookbookRoute
+  '/mcp': typeof McpRoute
   '/planning-kit': typeof PlanningKitRoute
   '/prep': typeof PrepRoute
   '/privacy': typeof PrivacyRoute
@@ -591,6 +608,7 @@ export interface FileRoutesById {
   '/blog/': typeof BlogIndexRoute
   '/recipes/': typeof RecipesIndexRoute
   '/shop/': typeof ShopIndexRoute
+  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/_authenticated/prep-app/grocery': typeof AuthenticatedPrepAppGroceryRoute
   '/_authenticated/prep-app/guides': typeof AuthenticatedPrepAppGuidesRoute
   '/_authenticated/prep-app/kitchen': typeof AuthenticatedPrepAppKitchenRoute
@@ -631,6 +649,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/free'
     | '/free-cookbook'
+    | '/mcp'
     | '/planning-kit'
     | '/prep'
     | '/privacy'
@@ -659,6 +678,7 @@ export interface FileRouteTypes {
     | '/blog/'
     | '/recipes/'
     | '/shop/'
+    | '/.lovable/oauth/consent'
     | '/prep-app/grocery'
     | '/prep-app/guides'
     | '/prep-app/kitchen'
@@ -696,6 +716,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/free'
     | '/free-cookbook'
+    | '/mcp'
     | '/planning-kit'
     | '/prep'
     | '/privacy'
@@ -721,6 +742,7 @@ export interface FileRouteTypes {
     | '/blog'
     | '/recipes'
     | '/shop'
+    | '/.lovable/oauth/consent'
     | '/prep-app/grocery'
     | '/prep-app/guides'
     | '/prep-app/kitchen'
@@ -760,6 +782,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/free'
     | '/free-cookbook'
+    | '/mcp'
     | '/planning-kit'
     | '/prep'
     | '/privacy'
@@ -788,6 +811,7 @@ export interface FileRouteTypes {
     | '/blog/'
     | '/recipes/'
     | '/shop/'
+    | '/.lovable/oauth/consent'
     | '/_authenticated/prep-app/grocery'
     | '/_authenticated/prep-app/guides'
     | '/_authenticated/prep-app/kitchen'
@@ -828,6 +852,7 @@ export interface RootRouteChildren {
   ContactRoute: typeof ContactRoute
   FreeRoute: typeof FreeRoute
   FreeCookbookRoute: typeof FreeCookbookRoute
+  McpRoute: typeof McpRoute
   PlanningKitRoute: typeof PlanningKitRoute
   PrepRoute: typeof PrepRoute
   PrivacyRoute: typeof PrivacyRoute
@@ -847,6 +872,7 @@ export interface RootRouteChildren {
   OauthAuthorizeRoute: typeof OauthAuthorizeRoute
   PSlugRoute: typeof PSlugRoute
   ProductsSplatRoute: typeof ProductsSplatRoute
+  DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
   ApiPublicMcpRoute: typeof ApiPublicMcpRoute
   LovableEmailSuppressionRoute: typeof LovableEmailSuppressionRoute
   ApiPublicDownloadCookbookRoute: typeof ApiPublicDownloadCookbookRoute
@@ -928,6 +954,13 @@ declare module '@tanstack/react-router' {
       path: '/free-cookbook'
       fullPath: '/free-cookbook'
       preLoaderRoute: typeof FreeCookbookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/mcp': {
+      id: '/mcp'
+      path: '/mcp'
+      fullPath: '/mcp'
+      preLoaderRoute: typeof McpRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/planning-kit': {
@@ -1125,6 +1158,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/shop/$slug'
       preLoaderRoute: typeof ShopSlugRouteImport
       parentRoute: typeof ShopRoute
+    }
+    '/.lovable/oauth/consent': {
+      id: '/.lovable/oauth/consent'
+      path: '/.lovable/oauth/consent'
+      fullPath: '/.lovable/oauth/consent'
+      preLoaderRoute: typeof DotlovableOauthConsentRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_authenticated/prep-app/': {
       id: '/_authenticated/prep-app/'
@@ -1433,6 +1473,7 @@ const rootRouteChildren: RootRouteChildren = {
   ContactRoute: ContactRoute,
   FreeRoute: FreeRoute,
   FreeCookbookRoute: FreeCookbookRoute,
+  McpRoute: McpRoute,
   PlanningKitRoute: PlanningKitRoute,
   PrepRoute: PrepRoute,
   PrivacyRoute: PrivacyRoute,
@@ -1455,6 +1496,7 @@ const rootRouteChildren: RootRouteChildren = {
   OauthAuthorizeRoute: OauthAuthorizeRoute,
   PSlugRoute: PSlugRoute,
   ProductsSplatRoute: ProductsSplatRoute,
+  DotlovableOauthConsentRoute: DotlovableOauthConsentRoute,
   ApiPublicMcpRoute: ApiPublicMcpRoute,
   LovableEmailSuppressionRoute: LovableEmailSuppressionRoute,
   ApiPublicDownloadCookbookRoute: ApiPublicDownloadCookbookRoute,

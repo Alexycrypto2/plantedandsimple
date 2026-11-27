@@ -3,7 +3,7 @@ import { z } from "zod";
 import { auditSeo } from "@/lib/content/seo-doctor";
 
 type Admin = any;
-const admin = async (): Promise<Admin> => (await import("@/integrations/supabase/client.server")).supabaseAdmin;
+const legacyAdmin = async (): Promise<Admin> => (await import("@/integrations/supabase/client.server")).supabaseAdmin;
 
 const POST_FIELDS = "id,slug,title,excerpt,content,category,tags,seo_title,seo_description,featured_image_url,status,published_at,updated_at";
 
@@ -54,7 +54,8 @@ export function applyContentEdits(html: string, e: {
 const slugRe = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const internalHref = z.string().regex(/^\/[a-z0-9\-/]*$/i, "Internal links must be site paths like /recipes/slug");
 
-export const TOOLS = [
+export function createPostTools(admin: () => Promise<any> = legacyAdmin) {
+return [
   {
     name: "list_recipes",
     description: "List recipes with id, title, slug, status and publish date.",
@@ -252,3 +253,5 @@ export const TOOLS = [
     },
   },
 ] as const;
+}
+export const TOOLS = createPostTools();
