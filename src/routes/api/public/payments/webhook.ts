@@ -9,6 +9,7 @@ import {
 } from "@/lib/paddle.server";
 import { template as cookbookTemplate } from "@/lib/email-templates/cookbook-download";
 import { template as prepTemplate } from "@/lib/email-templates/prep-access";
+import { PACKAGES, type PackageId } from '@/lib/bundle-offers';
 
 const SITE_NAME = "PlantedAndSimple";
 const SENDER_DOMAIN = "notify.primedownloads.store";
@@ -319,6 +320,38 @@ async function handleKitPurchase(
   return Response.json({ ok: true, queued: ok });
 }
 
+async function handleBundlePurchase(supabase: SupabaseAdminClient, tx: any, transactionId: string, email: string | null, environment: PaddleEnv, products: PackageId[]) {
+  if (!email) return Response.json({ error: 'Buyer email is not available yet.' }, { status: 503 });
+  email = email.toLowerCase();
+  if (products.includes('prep')) {
+    const { error } = await supabase.from('prep_purchases').upsert({ transaction_id: transactionId, email, environment }, { onConflict: 'transaction_id' });
+    if (error) return Response.json({ error: 'Access could not be recorded.' }, { status: 503 });
+  }
+  if (products.includes('cookbook')) {
+    const { error } = await supabase.from('cookbook_downloads').upsert({ stripe_session_id: transactionId, email, download_count: 0 }, { onConflict: 'stripe_session_id', ignoreDuplicates: true });
+    if (error) return Response.json({ error: 'Download order could not be recorded.' }, { status: 503 });
+  }
+  await supabase.from('subscribers').upsert({ email, source: 'bundle_purchase', stripe_session_id: transactionId }, { onConflict: 'email', ignoreDuplicates: true });
+  await attributeAffiliate(supabase, tx, transactionId, 'bundle');
+  await syncBuyer(email, 'bundle');
+  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(`bundle-${transactionId}`));
+  const hex = Array.from(new Uint8Array(digest)).slice(0, 16).map(b => b.toString(16).padStart(2, '0')).join('');
+  const messageId = `${hex.slice(0,8)}-${hex.slice(8,12)}-${hex.slice(12,16)}-${hex.slice(16,20)}-${hex.slice(20)}`;
+  const { data: sent } = await supabase.from('email_send_log').select('id').eq('message_id', messageId).in('status', ['sent', 'pending']).limit(1).maybeSingle();
+  if (sent) return Response.json({ ok: true, already_sent: true });
+  const unsubscribeToken = await emailGuard(supabase, email);
+  if (!unsubscribeToken) return Response.json({ ok: true, suppressed: true });
+  const url = `${PUBLIC_ORIGIN}/thank-you?_ptxn=${encodeURIComponent(transactionId)}`;
+  const titles = PACKAGES.filter(p => products.includes(p.id)).map(p => p.title);
+  const ok = await deliver(supabase, {
+    email, unsubscribeToken, templateName: 'bundle-access', idempotencyKey: `bundle-${transactionId}`, messageId,
+    subject: 'Your Planted & Simple package is ready',
+    html: `<h1>Your package is ready</h1><p>Thank you for your purchase. Your order includes:</p><ul>${titles.map(t => `<li>${t.replace(/&/g, '&amp;')}</li>`).join('')}</ul><p><a href="${url}">Open your downloads and access page</a></p><p>Use your purchase email to sign in to the Meal Prep System when included. Questions? support@plantedandsimple.com</p>`,
+    text: `Your package is ready: ${titles.join(', ')}. Open your downloads and access page: ${url}. Questions? support@plantedandsimple.com`,
+  });
+  return Response.json(ok ? { ok: true, queued: true } : { error: 'Delivery is retrying.' }, { status: ok ? 200 : 503 });
+}
+
 export const Route = createFileRoute("/api/public/payments/webhook")({
   server: {
     handlers: {
@@ -369,13 +402,18 @@ export const Route = createFileRoute("/api/public/payments/webhook")({
           "@/integrations/supabase/client.server"
         );
 
+        const { purchasedProducts } = await import('@/lib/purchased-products.server');
+        const products = await purchasedProducts(tx, environment);
+        if (!products.length) return Response.json({ ok: true, ignored: 'unrecognized_product' });
+        if (products.length > 1) return handleBundlePurchase(supabaseAdmin, tx, transactionId, email, environment, products);
+
         // Route by product: the Meal Prep System records a prep purchase
         // instead of a cookbook download.
         // Planning Kit downloads are verified live against Paddle; nothing to record.
-        if (productSlugOf(tx) === "planning-kit") {
+        if (products.includes('kit')) {
           return handleKitPurchase(supabaseAdmin, transactionId, email);
         }
-        if (productSlugOf(tx) === "meal-prep-system") {
+        if (products.includes('prep')) {
           return handlePrepPurchase(
             supabaseAdmin,
             tx,

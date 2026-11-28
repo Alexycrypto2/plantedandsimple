@@ -60,8 +60,8 @@ export const Route = createFileRoute("/api/public/download/cookbook")({
               { status: 402 },
             );
           }
-          const slug = txJson?.data?.custom_data?.productSlug;
-          if (slug === "planning-kit" || slug === "meal-prep-system") {
+          const { purchasedProducts } = await import('@/lib/purchased-products.server');
+          if (!(await purchasedProducts(txJson.data, environment)).includes('cookbook')) {
             return json(
               { error: "This order is for a different product." },
               { status: 403 },

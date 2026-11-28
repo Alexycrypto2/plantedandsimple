@@ -28,7 +28,7 @@ export async function initializePaddle(): Promise<void> {
       const paddleJsEnvironment =
         getPaddleEnvironment() === "sandbox" ? "sandbox" : "production";
       window.Paddle.Environment.set(paddleJsEnvironment);
-      window.Paddle.Initialize({ token: clientToken });
+      window.Paddle.Initialize({ token: clientToken, eventCallback: redirectOnPaddleComplete });
       paddleInitialized = true;
       return resolve();
     }
@@ -38,7 +38,7 @@ export async function initializePaddle(): Promise<void> {
       const paddleJsEnvironment =
         getPaddleEnvironment() === "sandbox" ? "sandbox" : "production";
       window.Paddle.Environment.set(paddleJsEnvironment);
-      window.Paddle.Initialize({ token: clientToken });
+      window.Paddle.Initialize({ token: clientToken, eventCallback: redirectOnPaddleComplete });
       paddleInitialized = true;
       resolve();
     };

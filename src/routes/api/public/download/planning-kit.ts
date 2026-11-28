@@ -22,7 +22,8 @@ export const Route = createFileRoute("/api/public/download/planning-kit")({
           if (status !== "completed" && status !== "paid" && status !== "billed") {
             return json({ error: "Payment not completed. Access denied." }, 402);
           }
-          if (body?.data?.custom_data?.productSlug !== "planning-kit") {
+          const { purchasedProducts } = await import('@/lib/purchased-products.server');
+          if (!(await purchasedProducts(body.data, environment)).includes('kit')) {
             return json({ error: "This order does not include the Planning Kit." }, 403);
           }
         } catch (e) {

@@ -8,6 +8,8 @@ import prepSystemCover from "@/assets/prep-system-cover.jpg";
 import { verifyCookbookPayment } from "@/lib/payments.functions";
 import { getPaddleEnvironment } from "@/lib/paddle";
 import { ReviewForm } from "@/components/ReviewForm";
+import { BundleDownloads } from '@/components/site/BundleDownloads';
+import type { PackageId } from '@/lib/bundle-offers';
 
 function downloadUrl(transactionId: string): string {
   const env = getPaddleEnvironment();
@@ -52,7 +54,8 @@ type State =
       status: "paid";
       email: string | null;
       transactionId: string;
-      product: "cookbook" | "prep" | "kit";
+      product: "cookbook" | "prep" | "kit" | "bundle";
+      products?: PackageId[];
     }
   | { status: "unpaid"; reason: string }
   | { status: "no_session" };
@@ -84,6 +87,7 @@ function ThankYou() {
             email: res.email,
             transactionId,
             product: res.product,
+            products: res.products,
           });
         } else {
           setState({ status: "unpaid", reason: res.reason });
@@ -121,6 +125,7 @@ function ThankYou() {
               email={state.email}
               transactionId={state.transactionId}
               product={state.product}
+              products={state.products ?? []}
             />
           )}
           {state.status === "unpaid" && <UnpaidView reason={state.reason} />}
@@ -160,11 +165,14 @@ function PaidView({
   email,
   transactionId,
   product,
+  products,
 }: {
   email: string | null;
   transactionId: string;
-  product: "cookbook" | "prep" | "kit";
+  product: "cookbook" | "prep" | "kit" | "bundle";
+  products: PackageId[];
 }) {
+  if (product === 'bundle') return <BundleDownloads products={products} transactionId={transactionId} />;
   if (product === "prep") return <PrepPaidView email={email} />;
   if (product === "kit") return <KitPaidView email={email} transactionId={transactionId} />;
   return <CookbookPaidView email={email} transactionId={transactionId} />;
