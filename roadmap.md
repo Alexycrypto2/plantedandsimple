@@ -1,4 +1,9 @@
 # Roadmap
+## Checkout bundles and assistant completion
+- [ ] Add single-product, discounted pair and $30.99 full-bundle checkout without sales-page pricing tiers.
+- [ ] Verify bundle payment, purchased-item downloads, prep access and delivery email.
+- [ ] Repair preview errors, extract MCP catalog and provide verified ChatGPT setup and OpenAPI documentation.
+- [ ] Add checkout recovery offer and retain truthful guarantee information.
 ## Dual assistant connection
 - [ ] Prepare a separate secure ChatGPT MCP endpoint with existing content tools, analytics and current prices, preserving Claude compatibility.
 - [ ] Verify owner-only access and connection discovery; publish and enable Supabase OAuth before external sign-in can be verified.

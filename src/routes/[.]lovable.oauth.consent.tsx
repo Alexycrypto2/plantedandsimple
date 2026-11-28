@@ -29,7 +29,7 @@ export const Route = createFileRoute('/.lovable/oauth/consent')({
     return data;
   },
   component: ConsentPage,
-  errorComponent: ({ error }) => <main className="min-h-screen bg-background p-8 text-foreground"><h1 className="text-xl font-semibold">Connection unavailable</h1><p role="alert" className="mt-3">{error.message}</p></main>,
+  errorComponent: ({ error }) => <main className="min-h-screen bg-background p-8 text-foreground"><h1 className="text-xl font-semibold">Connection unavailable</h1><p role="alert" className="mt-3">{error instanceof Error ? error.message : String(error)}</p></main>,
 });
 
 function ConsentPage() {
@@ -37,7 +37,7 @@ function ConsentPage() {
   const { authorization_id } = Route.useSearch();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const name = details && 'client' in details ? details.client.name : 'your assistant';
+  const name = details && 'client' in details ? details.client?.name ?? 'your assistant' : 'your assistant';
   async function decide(approve: boolean) {
     if (busy) return;
     setBusy(true); setError(null);
